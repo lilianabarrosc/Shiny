@@ -8,16 +8,6 @@ header <- dashboardHeader(title = ":)")
 sidebar <- dashboardSidebar(disable = "true",sidebarMenu(
   menuItem("Dashboard", tabName = "dsh", icon = icon("list-alt"))))
 
-body <- dashboardBody(navbar)
-
-
-navbar <- navbarPage("", tabPanel("Data", newProjects),
-tabPanel("exploratory analysis"),
-tabPanel("to train"),
-tabPanel("predict"),
-tabPanel("validation"),
-tabPanel("regression"))
-
 newProjects <- fluidPage(
   fluidRow(
     box(
@@ -25,7 +15,12 @@ newProjects <- fluidPage(
       actionButton("back", label = "Back"),
       textInput("name", label = "Name", value = "name..."),
       textInput("description", label = "Description", value = "description..."),
-      fileInput("file", label = "File upload"),
+      #cargar archivo csv o txt
+      fileInput("file", label = "File upload csv/txt",
+                accept=c('text/csv', 
+                         'text/comma-separated-values,text/plain', 
+                         '.csv')
+      ),
       fluidRow(
         column(width = 4, ""),
         column(width = 2, actionButton("save", label = "Save")),
@@ -35,6 +30,16 @@ newProjects <- fluidPage(
   )
 )
 
+navBar <- navbarPage("", tabPanel("Data", newProjects),
+                     tabPanel("exploratory analysis"),
+                     tabPanel("to train"),
+                     tabPanel("predict"),
+                     tabPanel("validation"),
+                     tabPanel("regression"))
+
+body <- dashboardBody(navBar)
+
+
 ui <- dashboardPage(header, sidebar, body)
 
 
@@ -42,13 +47,12 @@ server <- function(input, output) {
   # You can access the value of the widget with input$newProject, e.g.
   output$valuenewproject <- renderPrint({ input$newProject })
   
-  #datos que se muestran en la tabla
-  output$table <- renderDataTable(iris,
-                                  options = list(
-                                    pageLength = 5,
-                                    initComplete = I("function(settings, json) {alert('Done.');}")
-                                  )
-  )
+  #inFile <- input$file
+  
+  #if (is.null(inFile))
+   # return(NULL)
+  
+  #read.csv(inFile)
   
 }
 

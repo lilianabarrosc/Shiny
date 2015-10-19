@@ -25,11 +25,6 @@ sidebar <- dashboardSidebar(
     menuItem("Outlier detection", tabName = "outlier")
   ))
 
-option <- box( width = 12, title = "Option", solidHeader = TRUE,
-          collapsible = TRUE,
-          graficOption
-        )
-
 graficOption <- fluidRow(
           box(
             title = "Range", width = 6, solidHeader = TRUE,
@@ -53,6 +48,11 @@ graficOption <- fluidRow(
             textInput("notes", label = "", value = "notes...")
           )
         )
+
+option <- box( width = 12, title = "Option", solidHeader = TRUE,
+               collapsible = TRUE,
+               graficOption
+)
 
 body <- dashboardBody(
   tabItems( 

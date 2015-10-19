@@ -11,7 +11,7 @@ sidebar <- dashboardSidebar(disable = "true",sidebarMenu(
 body <- dashboardBody(projects)
 
 elements <-  fluidRow(
-  valueBox( "New Orders",icon = icon("list"), color = "purple")
+  valueBox( "New Orders","",icon = icon("list"), color = "purple")
   
 )
 
@@ -26,7 +26,7 @@ projects <- fluidPage(
               fluidRow(
                 box(
                   title = "Project", width = 10, solidHeader = TRUE, status = "primary",
-                  actionButton("new project", label = "New Project"),hr(),
+                  actionButton("new project", label = "New Project", ), href="./www/projects",
                   dataTableOutput('table')
                 )
               )
