@@ -46,7 +46,8 @@ projects <- fluidPage(
                     tags$td(""),
                     tags$td(
                       tags$div( class = 'btn-group',
-                                actionButton("analyze", label = "Analyze", icon = icon("eye")),
+                                actionButton("analyze", icon = icon("eye")
+                                  tags$a(href="../exploratoryAnalysis/", "Analyze")),
                                 actionButton("download", label = "Download", icon = icon("download")),
                                 actionButton("delete", label = "Delete", icon = icon("trash"))
                       )
