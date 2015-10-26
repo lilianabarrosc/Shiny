@@ -13,7 +13,7 @@ newProjects <- fluidPage(
     column(width = 1),
     box(
       title = "New project", width = 10, solidHeader = TRUE, status = "primary",
-      actionButton("back", label = "Back"),
+      tags$a(href="../project/", "Back!"),
       textInput("name", label = "Name", value = "name..."),
       textInput("description", label = "Description", value = "description..."),
       #cargar archivo csv o txt

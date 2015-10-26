@@ -14,7 +14,7 @@ projects <- fluidPage(
     box(
       title = "Project", width = 10, solidHeader = TRUE, status = "primary",
       tags$div( class = 'col-sm-6',
-                actionButton("new project", label = "New Project",href="./www/projects")
+               tags$a(href="../newproject/", "New project!")
               ),
       tags$div( class = 'col-sm-6',
                 textInput("search", label = "Search")
@@ -31,17 +31,18 @@ projects <- fluidPage(
                  tags$th("Name"),
                  tags$th("Description"),
                  tags$th("Date"),
-                 tags$th("N° Files"),
+                 tags$th("Num Files"),
                  tags$th("Actions")
                ),
                tags$tr(
                  tags$td("proyecto 1"),
-                 tags$td("Descripción proy 1"),
+                 tags$td("Descripcion proy 1"),
                  tags$td("10/10/2015"),
                  tags$td("3"),
                  tags$td(
                    tags$div( class = 'btn-group',
                           actionButton("view", label = "View", icon = icon("eye")),
+                          tags$a(href="../viewData/", "New project!"),
                           actionButton("edit", label = "Edit", icon = icon("edit")),
                           actionButton("delete", label = "Delete", icon = icon("trash"))
                    )
