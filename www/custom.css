@@ -1,0 +1,8 @@
+table, td, th {
+    border: 3px solid #3c8dbc;
+}
+
+th {
+    background-color: #3c8dbc;
+    color: white; 
+}

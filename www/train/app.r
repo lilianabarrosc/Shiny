@@ -33,12 +33,12 @@ body <- dashboardBody(
               fluidRow(
                 box(
                   title = "PLS parameters", width = 12, solidHeader = TRUE, status = "primary",
-                  textInput("name", label = "Name", value = "name..."),
-                  textInput("name", label = "Name", value = "name..."),
-                  textInput("name", label = "Name", value = "name...")
+                  textInput("ncomp", label = "ncomp", value = "name..."),
+                  textInput("yadd", label = "y.add", value = "name..."),
+                  textInput("naction", label = "na.action", value = "name...")
                 ),
                 box(
-                  title = "PLS parameters", width = 12, solidHeader = TRUE, status = "primary",
+                  title = "Results", width = 12, solidHeader = TRUE, status = "primary",
                   verbatimTextOutput("value")
                 )
               )
@@ -48,12 +48,10 @@ body <- dashboardBody(
               fluidRow(
                 box(
                   title = "RGML parameters", width = 12, solidHeader = TRUE, status = "primary",
-                  textInput("name", label = "Name", value = "name..."),
-                  textInput("name", label = "Name", value = "name..."),
-                  textInput("name", label = "Name", value = "name...")
+                  textInput("type", label = "type", value = "name...")
                 ),
                 box(
-                  title = "PLS parameters", width = 12, solidHeader = TRUE, status = "primary",
+                  title = "Results", width = 12, solidHeader = TRUE, status = "primary",
                   verbatimTextOutput("value")
                 )
               )

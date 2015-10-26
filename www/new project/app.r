@@ -10,6 +10,7 @@ sidebar <- dashboardSidebar(disable = "true",sidebarMenu(
 
 newProjects <- fluidPage(
   fluidRow(
+    column(width = 1),
     box(
       title = "New project", width = 10, solidHeader = TRUE, status = "primary",
       actionButton("back", label = "Back"),
