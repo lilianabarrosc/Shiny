@@ -6,12 +6,9 @@ library('RegressionLibs')
 #library('VIM')
 #library('ggbiplot')
 
-source('opcionesDashboard.r')
-source('analisisExploratorio.r')
-source('data.r')
-
-#variable global que contendra el nombre de los archivos de la bd
-data_sets <- list("iris" = 1, "airquality" = 2, "new" = 3)
+source('functions/opcionesDashboard.r')
+source('functions/analisisExploratorio.r')
+source('functions/data.r')
 
 #Cuerpo de la página
 body <- dashboardBody(

@@ -1,4 +1,7 @@
 
+#variable global que contendra el nombre de los archivos de la bd
+data_sets <- list("iris" = 1, "airquality" = 2, "new" = 3)
+
 #vista que muestra el listado de data set utilizados
 viewData <- function() {
   fluidPage(
