@@ -2,10 +2,9 @@
 library('shiny')
 library('shinydashboard')
 library('RegressionLibs')
-library('plotly')
-library('Amelia')
-library('VIM')
-library('ggbiplot')
+#library('Amelia')
+#library('VIM')
+#library('ggbiplot')
 
 source('opcionesDashboard.r')
 source('analisisExploratorio.r')
@@ -166,7 +165,7 @@ server <- function(input, output, session) {
   
   #Opcion 1 (libreria Amelia)
   output$missing1 <- renderPlot({
-    missmap(selectedData1(), main = "Missing values vs observed")
+   # missmap(selectedData1(), main = "Missing values vs observed")
   })
   
 #   #---------descarga del grafico opcion 1
@@ -197,9 +196,9 @@ server <- function(input, output, session) {
   
   #Opcion 2 (libreria VIM)
   output$missing2 <- renderPlot({
-    aggr_plot <- aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
-                      sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
-                      ylab=c("Histogram of missing data","Pattern"))
+ #   aggr_plot <- aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
+ #                     sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
+ #                     ylab=c("Histogram of missing data","Pattern"))
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -223,7 +222,7 @@ server <- function(input, output, session) {
   
   #Option 3 (matricial)
   output$missing3 <- renderPlot({
-    scattmatrixMiss(dat3(), interactive = F, highlight = c(names(file())[[input$y3]]))
+    #scattmatrixMiss(dat3(), interactive = F, highlight = c(names(file())[[input$y3]]))
   })
   
   #************************************************
