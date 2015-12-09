@@ -1,0 +1,12 @@
+Para instalar alguna libreria en la máquina virtual:
+opcion1
+sudo su - -c "R -e \"install.packages('devtools',repos='http://cran.at.r-project.org/')\""
+
+opcion2:
+sudo su - -c "R -e \"install.packages('devtools', repos='http://cran.rstudio.com/')\""
+sudo su - -c "R -e \"devtools::install_github('daattali/shinyjs')\"" 
+
+opcion 3
+
+ingresar a R e instalr directamente, saldra un error pero se soluciona con esto:
+http://stackoverflow.com/questions/6841726/error-installing-randforestgui-hence-rgl-x11-in-r-version-2-13-1-2011-07
