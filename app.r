@@ -6,16 +6,18 @@ library('shinydashboard')
 #library(devtools)
 #install_github("mariytu/RegressionLibs") #Para usar esto hay que tener instalado devtools
 library('RegressionLibs')
-#install.packages("Amelia")
+#install.packages("Amelia") or sudo apt-get install r-cran-amelia
+#install.packages("Amelia", repos="http://r.iq.harvard.edu", type = "source")
+#http://gking.harvard.edu/amelia/ 
 library('Amelia')
-#install.packages("VIM")
+#install.packages("VIM") #sudo apt-get install r-cran-rcppeigen para amazon
 library('VIM')
 #install.packages("clusterSim")
 library('clusterSim')
 
-source('opcionesDashboard.r')
-source('analisisExploratorio.r')
-source('data.r')
+source('funciones/opcionesDashboard.r')
+source('funciones/analisisExploratorio.r')
+source('funciones/data.r')
 
 #variable global que contendra el nombre de los archivos de la bd
 data_sets <- list("iris" = 1, "airquality" = 2, "cars" = 3, "new" = 4)
