@@ -20,7 +20,7 @@ source('funciones/analisisExploratorio.r')
 source('funciones/data.r')
 
 #variable global que contendra el nombre de los archivos de la bd
-data_sets <- list("iris" = 1, "airquality" = 2, "cars" = 3, "new" = 4)
+
 
 #Cuerpo de la página
 body <- dashboardBody(
