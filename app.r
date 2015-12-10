@@ -22,7 +22,7 @@ source('funciones/data.r')
 #variable global que contendra el nombre de los archivos de la bd
 
 
-#Cuerpo de la página
+#Cuerpo de la pagina
 body <- dashboardBody(
   tabItems( 
     #Tab del home
@@ -128,7 +128,7 @@ server <- function(input, output, session) {
   
   #----------> Graficos de visualizacion
   
-  #Actualizo el máximo del slider con el valor del tamaño del archivo seleccionado
+  #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
       title = "Range", width = 6, solidHeader = TRUE,
