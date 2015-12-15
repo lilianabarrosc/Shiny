@@ -15,10 +15,10 @@ tabsVisualization <- function(title, tab1, tab2) {
                                                                  uiOutput("slider_range_range_density")
                                                                  ))
          ),
-         tabPanel(tab2, "Working..."
-                  #contenido del tab2 = Scatter plot 2
-#                   tab_grafics("", tools_general_grafics("radio1", "note1", "save1", "cancel1",
-#                                                         "download1", uiOutput("slider_range_range_hitograma")))
+         tabPanel(tab2, 
+                  #contenido del tab2 = parallel grafics
+                  tab_grafics("parallel", tools_general_grafics("radio1", "note1", "save1", "cancel1",
+                                                        "download1", uiOutput("slider_range_range_parallel")))
          )
        ) 
     )
@@ -129,6 +129,33 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
   )
 }
 
+tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
+  fluidRow(
+    column(width = 12,
+           tabBox(
+             title = title,
+             width = 12,
+             id = "tabset2",
+             tabPanel(tab1,
+                      #residual vs fitted
+                      imageOutput("rsidualFitted")
+             ),
+             tabPanel(tab2,
+                      #scale-location
+                      imageOutput("sacaleLocation")
+             ),
+             tabPanel(tab3, 
+                      #normal Q-Q
+                      imageOutput("normalQQ")
+             ),
+             tabPanel(tab4,
+                      #residual vs leverage
+                      imageOutput("residualLeverage")
+             )
+           ) 
+    )
+  )
+}
 
 #--------------------------
 #strtoi("att")

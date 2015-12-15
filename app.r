@@ -22,12 +22,16 @@ source('funciones/data.r')
 #variable global que contendra el nombre de los archivos de la bd
 
 
-#Cuerpo de la pagina
+#Cuerpo de la página
 body <- dashboardBody(
   tabItems( 
     #Tab del home
-    tabItem(tabName = "home",
-            h2("Working...")
+    tabItem(tabName = "home", #h2("Working...")
+            fluidRow(
+              column(12,
+                     imageOutput("home")
+              )
+            )
           ),
     #Tab del data
     tabItem(tabName = "data",
@@ -35,13 +39,14 @@ body <- dashboardBody(
     ),
     #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
     tabItem(tabName = "visualization",
-            tabsVisualization("visualization", "Scatter plot1", "Scatter plot2")
+            tabsVisualization("visualization", "Scatter plot", "Parallel plot")
     ),
     tabItem(tabName = "mvalues",
             tabsMissingValues("Missing values", "Plot 1", "Plot 2","Plot 3")
     ),
     tabItem(tabName = "nremoval",
-            h2("Working...")
+            tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
+                                                     "download5", uiOutput("slider_range_range_nremoval")))
     ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
@@ -51,7 +56,8 @@ body <- dashboardBody(
                                         "Colinearity test", "Attribute selection")
     ),
     tabItem(tabName = "odetection",
-            h2("Working...")
+            tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
+                        "Normal Q-Q", "Residual vs leverage")
     )
     #Fin tabs Analisis exploratorio
   )
@@ -63,6 +69,15 @@ ui <- dashboardPage(head(), sidebar(), body)
 #--------------------Servidor-------------------
 
 server <- function(input, output, session) {
+  
+  #--------------> home
+  output$home <- renderImage({
+    list(
+    src = "images/home.jpg",
+    contentType = 'image/jpeg',
+    alt = "Home")
+  }, deleteFile = FALSE)
+    
   
   # -------------> Lectura de archivo
 #   output$contents <- renderDataTable(
@@ -128,7 +143,7 @@ server <- function(input, output, session) {
   
   #----------> Graficos de visualizacion
   
-  #Actualizo el maximo del slider con el valor del tamaño del archivo seleccionado
+  #Actualizo el máximo del slider con el valor del tamaño del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
       title = "Range", width = 6, solidHeader = TRUE,
@@ -157,30 +172,38 @@ server <- function(input, output, session) {
   
   #Grafico correspondiente a scatterPlot con un grafico de densidad 
   output$scatter1 <- renderPlot({
-    #ir.pca <- prcomp(dat1(), center = TRUE, scale. = TRUE)
-    #c <- c(input$x1[1]:input$x1[2])
-    #sacar columnas con datos nominales
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], names(only_file_nums())[[input$y1]])
   })
   
-#   #Slider visualizacion grafico de histograma
-#   output$slider_range_range_hitograma <- renderUI({
-#     box(
-#       title = "Range", width = 6, solidHeader = TRUE,
-#       background = "aqua",
-#       sliderInput("x2", label = "X", min = 1, 
-#                   max = dim(file())[2], value = c(1, dim(file())[2])),
-#       sliderInput("y2", label = "Y", min = 1, 
-#                   max = dim(file())[2], value = 2),
-#       sliderInput("z2", label = "Observations", min = 1, 
-#                   max = dim(file())[1], value = c(1, dim(file())[1]))
-#     )
-#   })
-#   
-#   #seleccion de atributos y observaciones del data set
-#   dat2 <- reactive({
-#     file()[input$z2[1]:input$z2[2],input$x2[1]:input$x2[2]]
-#   })
+  #Slider visualizacion grafico parallel
+  output$slider_range_range_parallel <- renderUI({
+    box(
+      title = "Range", width = 6, solidHeader = TRUE,
+      background = "aqua",
+      sliderInput("x2", label = "X", min = 1, 
+                  max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
+      sliderInput("y2", label = "Y", min = 1, 
+                  max = dim(file())[2], value = 2),
+      sliderInput("z2", label = "Observations", min = 1, 
+                  max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1]))
+    )
+  })
+  
+  #seleccion de atributos y observaciones del data set
+  datParallelx <- reactive({
+    only_file_nums()[input$z2[1]:input$z2[2],input$x2[1]:input$x2[2]]
+  })
+  
+  datParallely <- reactive({
+    file()[,input$y2]
+  })
+  
+  output$parallel <- renderPlot({
+    
+    # A ParallelPlot of all rows and all columns
+    ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
+                 names(file())[[input$y2]], 1, 0.5, TRUE)
+  })
   
   #*********************************************
   #---------------> Graficos correspondientes a missing values
@@ -389,8 +412,72 @@ server <- function(input, output, session) {
     s()$d
   })
   
+  #************************************************
+  #-------------> Eliminacion de ruido
+  #Slider visualizacion grafico ruido
+  output$slider_range_range_nremoval <- renderUI({
+    box(
+      title = "Range", width = 6, solidHeader = TRUE,
+      background = "aqua",
+      sliderInput("attributes4", label = "Attributes", min = 1, 
+                  max = dim(missingV())[2], value = c(1, 4)),
+      sliderInput("observation4", label = "Observation", min = 1, 
+                  max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
+    )
+  })
+  
+  #Obtengo la seleccion de atributos y observaciones para grafico ruido
+  selectedDataNremoval <- reactive({
+    missingV()[input$observation4[1]:input$observation4[2], 
+               input$attributes4[1]:input$attributes4[2]]
+  })
+  
+  #grafico de ruido
+  output$nremoval <- renderPlot({
+    #iris.x <- iris[,1:4]
+    ir.pca <- prcomp(selectedDataNremoval(), center = TRUE, scale. = TRUE)
+    elbowPlot(ir.pca)
+  })
+  
+  #************************************************
+  #-------------> Outlier
+  
+  output$rsidualFitted <- renderImage({
+    list(
+      src = "images/residual_f.png",
+      contentType = 'image/png',
+      width = 400,
+      height = 400,
+      alt = "Home")
+  }, deleteFile = FALSE)
+  
+  output$sacaleLocation <- renderImage({
+    list(
+      src = "images/scale.png",
+      contentType = 'image/png',
+      width = 400,
+      height = 400,
+      alt = "Home")
+  }, deleteFile = FALSE)
+  
+  output$normalQQ <- renderImage({
+    list(
+      src = "images/normal.png",
+      contentType = 'image/png',
+      width = 400,
+      height = 400,
+      alt = "Home")
+  }, deleteFile = FALSE)
+  
+  output$residualLeverage <- renderImage({
+    list(
+      src = "images/residual_l.png",
+      contentType = 'image/png',
+      width = 400,
+      height = 400,
+      alt = "Home")
+  }, deleteFile = FALSE)
 }
 
 #App
 shinyApp(ui, server)
-
