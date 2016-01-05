@@ -22,7 +22,7 @@ source('funciones/data.r')
 #variable global que contendra el nombre de los archivos de la bd
 
 
-#Cuerpo de la página
+#Cuerpo de la pagina
 body <- dashboardBody(
   tabItems( 
     #Tab del home
