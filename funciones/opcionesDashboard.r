@@ -1,7 +1,7 @@
 
 #titulo de la pagina
 head <- function() {
-  dashboardHeader(title = "GUI Regresion Analysis")
+  dashboardHeader(title = "GÜIña")
 }
 
 #opciones del sidebar

@@ -30,6 +30,8 @@ body <- dashboardBody(
             fluidRow(
               column(12,
                      imageOutput("home")
+                     #archivo que contiene el html de la página home
+                     #includeHTML("html/home.html")
               )
             )
           ),
@@ -64,7 +66,7 @@ body <- dashboardBody(
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
-ui <- dashboardPage(head(), sidebar(), body)
+ui <- dashboardPage(skin = "yellow", head(), sidebar(), body)
 
 #--------------------Servidor-------------------
 
@@ -73,8 +75,10 @@ server <- function(input, output, session) {
   #--------------> home
   output$home <- renderImage({
     list(
-    src = "images/home.jpg",
+    src = "images/gato.jpg", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
     contentType = 'image/jpeg',
+    width = 700,
+    height = 550,
     alt = "Home")
   }, deleteFile = FALSE)
     
@@ -391,11 +395,17 @@ server <- function(input, output, session) {
            input$attributes3[1]:input$attributes3[2]]
   })
   
+  pca <- NULL
   #grafico de PCA
   output$pca <- renderPlot({
     #iris.x <- iris[,1:4]
-    ir.pca <- prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
-    elbowPlot(ir.pca)
+    pca <- prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
+    elbowPlot(pca)
+  })
+  
+  #Informacion resumen de los pc's obtenidos
+  output$summary_pcs <- renderPrint({
+    summary(pca)
   })
   
   s <- reactive({

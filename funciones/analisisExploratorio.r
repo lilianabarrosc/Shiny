@@ -3,6 +3,8 @@
 tabsVisualization <- function(title, tab1, tab2) {
   fluidRow(
     column(width = 12,
+      #BreadCrumds, archivo que contiene el html     
+      includeHTML("html/breadcrumbs.html"),
        tabBox(
          title = title,
          width = 12,
@@ -110,7 +112,8 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
              tabPanel(tab1,
                       #PCA
                       tab_grafics("pca", tools_general_grafics("radio4", "note4", "save4", "cancel4",
-                                                                    "download4", uiOutput("slider_range_range_pca")))
+                                                                    "download4", uiOutput("slider_range_range_pca"))),
+                      verbatimTextOutput("summary_pcs")
              ),
              tabPanel(tab2,
                       #SVD
