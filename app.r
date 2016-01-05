@@ -30,8 +30,6 @@ body <- dashboardBody(
             fluidRow(
               column(12,
                      imageOutput("home")
-                     #archivo que contiene el html de la página home
-                     #includeHTML("html/home.html")
               )
             )
           ),
