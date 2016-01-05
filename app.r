@@ -30,6 +30,8 @@ body <- dashboardBody(
             fluidRow(
               column(12,
                      imageOutput("home")
+                     #archivo que contiene el html de la pagina home
+                     #includeHTML("html/home.html")
               )
             )
           ),
@@ -145,7 +147,7 @@ server <- function(input, output, session) {
   
   #----------> Graficos de visualizacion
   
-  #Actualizo el máximo del slider con el valor del tamaño del archivo seleccionado
+  #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
       title = "Range", width = 6, solidHeader = TRUE,
