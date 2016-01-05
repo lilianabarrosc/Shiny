@@ -1,5 +1,5 @@
 
-#tabs de la vista de visualización, resibe como parametros el titulo del contenedor y los tabs 
+#tabs de la vista de visualizaciÃ³n, resibe como parametros el titulo del contenedor y los tabs 
 tabsVisualization <- function(title, tab1, tab2) {
   fluidRow(
     column(width = 12,
@@ -69,7 +69,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
   )
 }
 
-#vista correspondiente a la normalizacion del data set, recibe como parámetro el titulo de la vista
+#vista correspondiente a la normalizacion del data set, recibe como parÃ¡metro el titulo de la vista
 normalizations <- function(title){
   fluidRow(
     box( width = 12, title = "Normalization", solidHeader = TRUE, status = "primary",
