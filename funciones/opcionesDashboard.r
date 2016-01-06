@@ -1,7 +1,9 @@
 
 #titulo de la pagina
 head <- function() {
-  dashboardHeader(title = "GÜIña")
+  dbHeader <- dashboardHeader()
+  dbHeader$children[[2]]$children <-  tags$a(href='#',
+                                             tags$img(src='images/gato.jpg',height='60',width='200'))
 }
 
 #opciones del sidebar

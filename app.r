@@ -21,9 +21,17 @@ source('funciones/data.r')
 
 #variable global que contendra el nombre de los archivos de la bd
 
+dbHeader <- dashboardHeader()
+dbHeader$children[[2]]$children <- tags$img(src='images/gato.jpg',height='30',width='70')
 
 #Cuerpo de la pagina
 body <- dashboardBody(
+  tags$head(tags$style(HTML('
+                            /* color de tabBox */
+                            .nav-tabs-custom>.nav-tabs>li.active {
+                            border-top-color: #f39c12;
+                            })')
+            )),
   tabItems( 
     #Tab del home
     tabItem(tabName = "home", #h2("Working...")
@@ -41,14 +49,13 @@ body <- dashboardBody(
     ),
     #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
     tabItem(tabName = "visualization",
-            tabsVisualization("visualization", "Scatter plot", "Parallel plot")
+            tabsVisualization("Visualization", "Scatter plot", "Parallel plot")
     ),
     tabItem(tabName = "mvalues",
             tabsMissingValues("Missing values", "Plot 1", "Plot 2","Plot 3")
     ),
     tabItem(tabName = "nremoval",
-            tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                                     "download5", uiOutput("slider_range_range_nremoval")))
+            noiseRemoval("")
     ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
@@ -66,7 +73,7 @@ body <- dashboardBody(
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
-ui <- dashboardPage(skin = "yellow", head(), sidebar(), body)
+ui <- dashboardPage(skin = "yellow", dbHeader, sidebar(), body)
 
 #--------------------Servidor-------------------
 
@@ -75,8 +82,8 @@ server <- function(input, output, session) {
   #--------------> home
   output$home <- renderImage({
     list(
-    src = "images/gato.jpg", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
-    contentType = 'image/jpeg',
+    src = "images/icon.png", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
+    contentType = 'image/png',
     width = 700,
     height = 550,
     alt = "Home")

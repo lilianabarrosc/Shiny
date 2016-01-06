@@ -3,8 +3,12 @@
 tabsVisualization <- function(title, tab1, tab2) {
   fluidRow(
     column(width = 12,
-      #BreadCrumds, archivo que contiene el html     
-      includeHTML("html/breadcrumbs.html"),
+      #BreadCrumds de visualizacion     
+      HTML('
+           <ul class="breadcrumb">
+           <li>Analysis</li>
+           <li>Visualization</li>
+           </ul>'),
        tabBox(
          title = title,
          width = 12,
@@ -31,6 +35,12 @@ tabsVisualization <- function(title, tab1, tab2) {
 tabsMissingValues <- function(title, tab1, tab2, tab3) {
   fluidRow(
     column(width = 12,
+           #BreadCrumds de Missing values     
+           HTML('
+                <ul class="breadcrumb">
+                <li>Analysis</li>
+                <li>Missing Values</li>
+                </ul>'),
            tabBox(
              title = title,
              width = 12,
@@ -69,9 +79,34 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
   )
 }
 
+#Vista correspondiente a eliminacion de ruido
+noiseRemoval <- function(title){
+  fluidRow(
+    column(width = 12,
+           #BreadCrumds de eliminaciÛn de ruido    
+           HTML('
+                <ul class="breadcrumb">
+                <li>Analysis</li>
+                <li>Noise removal</li>
+                </ul>')
+           ),
+    tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
+                                          "download5", uiOutput("slider_range_range_nremoval")))
+  )
+  
+}
+
 #vista correspondiente a la normalizacion del data set, recibe como par√°metro el titulo de la vista
 normalizations <- function(title){
   fluidRow(
+    column(width = 12,
+           #BreadCrumds de normalizacion    
+           HTML('
+                <ul class="breadcrumb">
+                <li>Analysis</li>
+                <li>Normalization</li>
+                </ul>')
+    ),
     box( width = 12, title = "Normalization", solidHeader = TRUE, status = "primary",
          tags$div( class = 'col-sm-4',
                    radioButtons("normalizationType", label = "Type", selected = 1,
@@ -105,6 +140,12 @@ normalizations <- function(title){
 tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
   fluidRow(
     column(width = 12,
+           #BreadCrumds de reduccion de la dimencionalidad     
+           HTML('
+                <ul class="breadcrumb">
+                <li>Analysis</li>
+                <li>Dimensionality reduction</li>
+                </ul>'),
            tabBox(
              title = title,
              width = 12,
@@ -135,6 +176,12 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
 tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
   fluidRow(
     column(width = 12,
+           #BreadCrumds de outlier    
+           HTML('
+                <ul class="breadcrumb">
+                <li>Analysis</li>
+                <li>Outlier detection</li>
+                </ul>'),
            tabBox(
              title = title,
              width = 12,

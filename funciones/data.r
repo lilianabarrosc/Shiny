@@ -4,7 +4,7 @@ viewData <- function() {
   fluidPage(
     fluidRow(
       box(
-        title = "Data", width = 12, solidHeader = TRUE, status = "primary", 
+        title = "Data", width = 12, solidHeader = TRUE, status = "warning", 
         radioButtons("select_file", label = h3("Select data Set"), selected = 2,
                              choices = data_sets
         ),
@@ -13,10 +13,12 @@ viewData <- function() {
 
         #dataTableOutput('contents')
       ),
-     # HTML("<div class='col-sm-12' style='min-width: 500px !important;'>"),
-#         box(
-#           title = "Summay", width = 12, status = "primary", collapsible = TRUE, height = '500px',
         tabBox(width = 12,
+          HTML("style {
+          .nav-tabs-custom>.nav-tabs>li.active {
+               border-top-color: #f39c12;}
+               }")
+        ,
         tabPanel("STR", verbatimTextOutput("str_data")),
         tabPanel("Summary", verbatimTextOutput("summary_data")) #dataTableOutput(outputId="summary_data")
         )          
