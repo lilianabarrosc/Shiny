@@ -22,7 +22,7 @@ source('funciones/data.r')
 #variable global que contendra el nombre de los archivos de la bd
 
 dbHeader <- dashboardHeader()
-dbHeader$children[[2]]$children <- tags$img(src='images/gato.jpg',height='30',width='70')
+dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
 
 #Cuerpo de la pagina
 body <- dashboardBody(
@@ -78,12 +78,21 @@ ui <- dashboardPage(skin = "yellow", dbHeader, sidebar(), body)
 #--------------------Servidor-------------------
 
 server <- function(input, output, session) {
+  #--------------> logo
+  output$logo <- renderImage({
+    list(
+      src = "images/logo.jpg",
+      contentType = 'image/jpg',
+      width = 70,
+      height = 50,
+      alt = "Logo")
+  }, deleteFile = FALSE)
   
   #--------------> home
   output$home <- renderImage({
     list(
-    src = "images/icon.png", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
-    contentType = 'image/png',
+    src = "images/gato.jpg", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
+    contentType = 'image/jpg',
     width = 700,
     height = 550,
     alt = "Home")
