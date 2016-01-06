@@ -41,6 +41,17 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                 <li>Analysis</li>
                 <li>Missing Values</li>
                 </ul>'),
+            box(width = 12, title ="",
+                tags$div( class = 'col-sm-2',
+                          actionButton("deleteMS", label = "Delete MS",href="")
+                ),
+                tags$div( class = 'col-sm-2',
+                          actionButton("save", label = "Save chages",href="")
+                ),
+                tags$div( class = 'col-sm-2',
+                          actionButton("cancel", label = "Cancel",href="")
+                )
+            ),
            tabBox(
              title = title,
              width = 12,
@@ -61,21 +72,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                                                                     "download3", uiOutput("slider_range_range_option2")))
              )
            ) 
-    ),
-    column(width = 12,
-           box(width = 12, title ="Sumary", solidHeader = TRUE,
-             tags$div( class = 'col-sm-2',
-                       actionButton("deleteMS", label = "Delete MS",href="")
-                       ),
-             tags$div( class = 'col-sm-2',
-                       actionButton("save", label = "Save chages",href="")
-             ),
-             tags$div( class = 'col-sm-2',
-                       actionButton("cancel", label = "Cancel",href="")
-             )
-           )
     )
-    
   )
 }
 
