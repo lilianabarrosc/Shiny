@@ -261,10 +261,8 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
 tab_grafics <- function(plot, options){
   fluidRow(
     column(width = 12,
-           box(width = 12,
-               title = NULL, status = "primary",
                plotOutput(plot)
-           )),
+           ),
     column(width = 12,
            #box contenedor de opciones para el grafico
            box( width = 12, title = "Options", solidHeader = TRUE,

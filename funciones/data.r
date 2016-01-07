@@ -3,8 +3,7 @@ data_sets <- list("iris" = 1, "airquality" = 2, "cars" = 3, "new" = 4)
 viewData <- function() {
   fluidPage(
     fluidRow(
-      box(
-        title = "Data", width = 12, solidHeader = TRUE, status = "warning", 
+      box(width = 12, status = "warning",
         radioButtons("select_file", label = h3("Select data Set"), selected = 2,
                              choices = data_sets
         ),
