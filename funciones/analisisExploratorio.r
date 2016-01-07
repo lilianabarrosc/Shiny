@@ -18,13 +18,13 @@ tabsVisualization <- function(title, tab1, tab2) {
                   tab_grafics("scatter1",  tools_general_grafics("radio0", "note0", "save0", "cancel0",
                                                                  "download0", 
                                                                  #slider_range_int("x1","y1","z1")
-                                                                 uiOutput("slider_range_range_density")
+                                                                 uiOutput("slider_range_range_density"), NULL
                                                                  ))
          ),
          tabPanel(tab2, 
                   #contenido del tab2 = parallel grafics
                   tab_grafics("parallel", tools_general_grafics("radio1", "note1", "save1", "cancel1",
-                                                        "download1", uiOutput("slider_range_range_parallel")))
+                                                        "download1", uiOutput("slider_range_range_parallel"), uiOutput("slider_range_range_parallel2")))
          )
        ) 
     )
@@ -59,17 +59,17 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
              tabPanel(tab1,
                       #opcion1 de visualizacion
                       tab_grafics("missing1", tools_general_grafics("radio", "note", "save", "cancel",
-                                                                    "download", uiOutput("slider_range_range_amelia")))
+                                                                    "download", uiOutput("slider_range_range_amelia"),NULL))
              ),
              tabPanel(tab2,
                       #opcion2 de visualizacion
                       tab_grafics("missing2", tools_general_grafics("radio2", "note2", "save2", "cancel2",
-                                                                    "download2", uiOutput("slider_range_range_option1")))
+                                                                    "download2", uiOutput("slider_range_range_option1"), NULL))
              ),
              tabPanel(tab3,
                       #opcion3 de visualizacion
                       tab_grafics("missing3", tools_general_grafics("radio3", "note3", "save3", "cancel3",
-                                                                    "download3", uiOutput("slider_range_range_option2")))
+                                                                    "download3", uiOutput("slider_range_range_option2"), NULL))
              )
            ) 
     )
@@ -88,12 +88,12 @@ noiseRemoval <- function(title){
                 </ul>')
            ),
     tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                          "download5", uiOutput("slider_range_range_nremoval")))
+                                          "download5", uiOutput("slider_range_range_nremoval"), NULL))
   )
   
 }
 
-#vista correspondiente a la normalizacion del data set, recibe como parámetro el titulo de la vista
+#vista correspondiente a la normalizacion del data set, recibe como parametro el titulo de la vista
 normalizations <- function(title){
   fluidRow(
     column(width = 12,
@@ -150,7 +150,7 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
              tabPanel(tab1,
                       #PCA
                       tab_grafics("pca", tools_general_grafics("radio4", "note4", "save4", "cancel4",
-                                                                    "download4", uiOutput("slider_range_range_pca"))),
+                                                                    "download4", uiOutput("slider_range_range_pca"), NULL)),
                       verbatimTextOutput("summary_pcs")
              ),
              tabPanel(tab2,
@@ -234,13 +234,14 @@ tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
 
 #Funcion contenedora de las herramientas de un grafico que contenga atributos y observaciones
 #Recive como parametros los nombres de cada una de lass herramientas para cada una de las vistas
-tools_general_grafics <- function(radio, note, save, cancel, download, slider_type){
+tools_general_grafics <- function(radio, note, save, cancel, download, slider_type, slider_type2){
   fluidRow(
     #Tipo de slider correspondiente (con rango o sin rango)
-    slider_type,  
+    slider_type,
+    slider_type2,
     box(
-      title = "Download image", width = 4, solidHeader = TRUE,
-      background = "blue",
+      title = "Download image", width = 4, solidHeader = TRUE, status = "warning",
+      #background = "orange",
       radioButtons(radio,NULL,
                    choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
                    selected = 1),
@@ -248,8 +249,8 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
     ),
     #box para los apuntes
     box(
-      title = "Notes", width = 4, solidHeader = TRUE,
-      background = "light-blue",
+      title = "Notes", width = 4, solidHeader = TRUE, status = "warning",
+      #background = "yellow",
       tags$div( class='form-group shiny-input-container',
                 tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
       )

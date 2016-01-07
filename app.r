@@ -19,7 +19,8 @@ source('funciones/opcionesDashboard.r')
 source('funciones/analisisExploratorio.r')
 source('funciones/data.r')
 
-#variable global que contendra el nombre de los archivos de la bd
+#variable global que con el color de los slider
+colorSlider <- "orange"
 
 dbHeader <- dashboardHeader()
 dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
@@ -166,8 +167,8 @@ server <- function(input, output, session) {
   #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("x1", label = "X", min = 1, 
                   max = dim(only_file_nums())[2], value = c(1,4)),
       sliderInput("y1", label = "Y", min = 1, 
@@ -195,19 +196,32 @@ server <- function(input, output, session) {
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], names(only_file_nums())[[input$y1]])
   })
   
-  #Slider visualizacion grafico parallel
+  #Slider visualizacion grafico parallel x e y
   output$slider_range_range_parallel <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("x2", label = "X", min = 1, 
                   max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
       sliderInput("y2", label = "Y", min = 1, 
-                  max = dim(file())[2], value = 2),
-      sliderInput("z2", label = "Observations", min = 1, 
-                  max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1]))
+                  max = dim(file())[2], value = 2)
     )
   })
+  
+  #Slider visualizacion grafico parallel observations y alfa
+  output$slider_range_range_parallel2 <- renderUI({
+    box(
+      width = 6, status = "warning",
+      h4("Range"),
+      sliderInput("z2", label = "Observations", min = 1, 
+                  max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
+      sliderInput("lineSize", label = "Line Size", min = 1, 
+                  max = 5, value = 2),
+      sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
+                  max = 0.99, value = 0.5)
+    )
+  })
+  
   
   #seleccion de atributos y observaciones del data set
   datParallelx <- reactive({
@@ -222,7 +236,7 @@ server <- function(input, output, session) {
     
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], 1, 0.5, TRUE)
+                 names(file())[[input$y2]], input$lineSize, input$alphaLine, TRUE)
   })
   
   #*********************************************
