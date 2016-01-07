@@ -215,8 +215,8 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("z2", label = "Observations", min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
-      sliderInput("lineSize", label = "Line Size", min = 1, 
-                  max = 5, value = 2),
+#       sliderInput("lineSize", label = "Line Size", min = 1, 
+#                   max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
                   max = 0.99, value = 0.5)
     )
@@ -236,7 +236,7 @@ server <- function(input, output, session) {
     
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], input$lineSize, input$alphaLine, TRUE)
+                 names(file())[[input$y2]], 1, input$alphaLine, TRUE)
   })
   
   #*********************************************
@@ -252,8 +252,8 @@ server <- function(input, output, session) {
    #Slider visualizacion grafico de missing values Amelia
   output$slider_range_range_amelia <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("attributes", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1,4)),
       sliderInput("observation", label = "Observation", min = 1, 
@@ -283,8 +283,8 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico de missing VIM option1
   output$slider_range_range_option1 <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("attributes2", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
       sliderInput("observation2", label = "Observation", min = 1, 
@@ -308,8 +308,8 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico de missing VIM option2
   output$slider_range_range_option2 <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("x3", label = "X", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
       sliderInput("y3", label = "Y", min = 1, 
@@ -409,8 +409,8 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico PCA
   output$slider_range_range_pca <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("attributes3", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
       sliderInput("observation3", label = "Observation", min = 1, 
@@ -425,17 +425,18 @@ server <- function(input, output, session) {
            input$attributes3[1]:input$attributes3[2]]
   })
   
-  pca <- NULL
+  pca <- reactive({
+    prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
+  })
+  
   #grafico de PCA
   output$pca <- renderPlot({
-    #iris.x <- iris[,1:4]
-    pca <- prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
-    elbowPlot(pca)
+    elbowPlot(pca())
   })
   
   #Informacion resumen de los pc's obtenidos
   output$summary_pcs <- renderPrint({
-    summary(pca)
+    summary(pca())
   })
   
   s <- reactive({
@@ -457,8 +458,8 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico ruido
   output$slider_range_range_nremoval <- renderUI({
     box(
-      title = "Range", width = 6, solidHeader = TRUE,
-      background = "aqua",
+      width = 6, status = "warning",
+      h4("Range"),
       sliderInput("attributes4", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
       sliderInput("observation4", label = "Observation", min = 1, 

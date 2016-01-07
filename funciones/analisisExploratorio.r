@@ -44,13 +44,13 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
             box(width = 12, title ="",
                 tags$div( class = 'col-sm-2',
                           actionButton("deleteMS", label = "Delete MS",href="")
-                ),
-                tags$div( class = 'col-sm-2',
-                          actionButton("save", label = "Save chages",href="")
-                ),
-                tags$div( class = 'col-sm-2',
-                          actionButton("cancel", label = "Cancel",href="")
-                )
+                 )
+#                 tags$div( class = 'col-sm-2',
+#                           actionButton("save", label = "Save chages",href="")
+#                 ),
+#                 tags$div( class = 'col-sm-2',
+#                           actionButton("cancel", label = "Cancel",href="")
+#                 )
             ),
            tabBox(
              title = title,
@@ -149,9 +149,26 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
              id = "tabset2",
              tabPanel(tab1,
                       #PCA
-                      tab_grafics("pca", tools_general_grafics("radio4", "note4", "save4", "cancel4",
-                                                                    "download4", uiOutput("slider_range_range_pca"), NULL)),
-                      verbatimTextOutput("summary_pcs")
+                      fluidRow(
+                        column(width = 12,
+                               plotOutput("pca")
+                        ),
+                        box(width = 12, status = "warning",
+                            #texto con el summary
+                            verbatimTextOutput("summary_pcs")
+                        ),
+                        column(width = 12,
+                               #box contenedor de opciones para el grafico
+                               box( width = 12, title = "Options", solidHeader = TRUE,
+                                    collapsible = TRUE,
+                                    #herramientas del grafico
+                                    tools_general_grafics("radio4", "note4", "save4", "cancel4",
+                                                          "download4", uiOutput("slider_range_range_pca"),
+                                                          box(width = 6, status = "warning",
+                                                          actionButton("reduceDim", label = "Reduce Dimensionality")))
+                               )
+                        )
+                      )
              ),
              tabPanel(tab2,
                       #SVD
@@ -165,7 +182,7 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
                       #Seleccion de atributos
                       
              )
-           ) 
+           )
     )
   )
 }
