@@ -81,21 +81,21 @@ server <- function(input, output, session) {
   #--------------> logo
   output$logo <- renderImage({
     list(
-      src = "images/logo.jpg",
-      contentType = 'image/jpg',
-      width = 70,
-      height = 50,
+      src = "images/icon.png",
+      contentType = 'image/png',
+      width = 90,
+      height = 40,
       alt = "Logo")
   }, deleteFile = FALSE)
   
   #--------------> home
   output$home <- renderImage({
     list(
-    src = "images/gato.jpg", #https://en.wikipedia.org/wiki/Felidae#/media/File:Margaykat_Leopardus_wiedii.jpg
-    contentType = 'image/jpg',
-    width = 700,
-    height = 550,
-    alt = "Home")
+    src = "images/logo.png",
+    contentType = 'image/png',
+    width = 400,
+    height = 250,
+    alt = "Logo")
   }, deleteFile = FALSE)
     
   
