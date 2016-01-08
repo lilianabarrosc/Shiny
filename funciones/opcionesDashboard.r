@@ -20,10 +20,7 @@ sidebar <- function() {
              menuSubItem("Outlier detection", tabName = "odetection", icon = shiny::icon("angle-double-right"))
              ),
     menuItem("Train", tabName = "train", icon("cog", lib = "glyphicon"),
-             menuSubItem("Polynomial", tabName = "polynomial", icon = shiny::icon("angle-double-right")),
-             menuSubItem("Neuronal", tabName = "neuronal", icon = shiny::icon("angle-double-right")),
-             menuSubItem("SVM", tabName = "svm", icon = shiny::icon("angle-double-right")),
-             menuSubItem("Function", tabName = "function", icon = shiny::icon("angle-double-right"))
+             menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right"))
              ),
     menuItem("Predict", tabName = "predict"),
     menuItem("Validation", tabName = "validation", icon("cog", lib = "glyphicon"),

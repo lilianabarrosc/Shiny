@@ -18,6 +18,7 @@ library('clusterSim')
 source('funciones/opcionesDashboard.r')
 source('funciones/analisisExploratorio.r')
 source('funciones/data.r')
+source('funciones/train.r')
 
 #variable global que con el color de los slider
 colorSlider <- "orange"
@@ -99,6 +100,9 @@ body <- dashboardBody(
     tabItem(tabName = "odetection",
             tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
                         "Normal Q-Q", "Residual vs leverage")
+    ),
+    tabItem(tabName = "lm",
+            linearRegression()
     )
     #Fin tabs Analisis exploratorio
   )
@@ -226,6 +230,16 @@ server <- function(input, output, session) {
   output$scatter1 <- renderPlot({
     if(is.null(input$x1) || is.na(input$x1)){
       return()
+    }
+    progress <- shiny::Progress$new(session, min=1, max=10)
+    on.exit(progress$close())
+    
+    progress$set(message = 'Calculation in progress',
+                 detail = 'This may take a while...')
+    
+    for (i in 1:8) {
+      progress$set(value = i)
+      Sys.sleep(0.5)
     }
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], names(only_file_nums())[[input$y1]])
   })
