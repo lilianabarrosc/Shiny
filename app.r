@@ -30,8 +30,39 @@ body <- dashboardBody(
   tags$head(tags$style(HTML('
                             /* color de tabBox */
                             .nav-tabs-custom>.nav-tabs>li.active {
-                            border-top-color: #f39c12;
-                            })')
+                              border-top-color: #f39c12;
+                            }
+                            /* color de slider
+                            .irs-bar {
+                              height: 8px;
+                              top: 25px;
+                              border-top: 1px solid #E08E0B;
+                              border-bottom: 1px solid #E08E0B;
+                              background: #E08E0B;
+                            }
+                            /* color de slider
+                            .irs-bar-edge {
+                              height: 8px;
+                              top: 25px;
+                              width: 14px;
+                              border: 1px solid #428bca;
+                              border-right: 0;
+                              background: #f39c12;
+                              border-radius: 16px 0 0 16px;
+                              -moz-border-radius: 16px 0 0 16px;
+                            }
+                            /* color de numeros slider
+                            .irs-from, .irs-to, .irs-single {
+                              color: #fff;
+                              font-size: 11px;
+                              line-height: 1.333;
+                              text-shadow: none;
+                              padding: 1px 3px;
+                              background: #E08E0B;
+                              border-radius: 3px;
+                              -moz-border-radius: 3px;
+                            }
+                            )')
             )),
   tabItems( 
     #Tab del home
@@ -193,6 +224,9 @@ server <- function(input, output, session) {
   
   #Grafico correspondiente a scatterPlot con un grafico de densidad 
   output$scatter1 <- renderPlot({
+    if(is.null(input$x1) || is.na(input$x1)){
+      return()
+    }
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], names(only_file_nums())[[input$y1]])
   })
   
@@ -233,7 +267,9 @@ server <- function(input, output, session) {
   })
   
   output$parallel <- renderPlot({
-    
+    if(is.null(input$x2) || is.na(input$x2)){
+      return()
+    }
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
                  names(file())[[input$y2]], 1, input$alphaLine, TRUE)
@@ -269,6 +305,9 @@ server <- function(input, output, session) {
   
   #Opcion 1 (libreria Amelia)
   output$missing1 <- renderPlot({
+    if(is.null(input$attributes) || is.na(input$attributes)){
+      return()
+    }
     missmap(selectedData1(), main = "Missing values vs observed")
   })
   
@@ -300,6 +339,9 @@ server <- function(input, output, session) {
   
   #Opcion 2 (libreria VIM)
   output$missing2 <- renderPlot({
+    if(is.null(input$attributes2) || is.na(input$attributes2)){
+      return()
+    }
     aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
          sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
          ylab=c("Histogram of missing data","Pattern"))
@@ -326,6 +368,9 @@ server <- function(input, output, session) {
   
   #Option 3 (matricial)
   output$missing3 <- renderPlot({
+    if(is.null(input$x3) || is.na(input$x3)){
+      return()
+    }
     scattmatrixMiss(dat3(), interactive = F, highlight = c(names(missingV())[[input$y3]]))
   })
   
