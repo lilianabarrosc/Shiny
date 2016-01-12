@@ -120,8 +120,8 @@ server <- function(input, output, session) {
     list(
       src = "images/icon.png",
       contentType = 'image/png',
-      width = 90,
-      height = 40,
+      width = 120,
+      height = 50,
       alt = "Logo")
   }, deleteFile = FALSE)
   
