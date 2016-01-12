@@ -104,7 +104,7 @@ normalizations <- function(title){
                 <li>Normalization</li>
                 </ul>')
     ),
-    box( width = 12, title = "Normalization", solidHeader = TRUE, status = "primary",
+    box( width = 12, title = "Normalization", solidHeader = TRUE, status = "success",
          tags$div( class = 'col-sm-4',
                    radioButtons("normalizationType", label = "Type", selected = 1,
                                 choices = list("Scale Standardization" = 1, "Normalization 0-1" = 2,
@@ -153,7 +153,7 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
                         column(width = 12,
                                plotOutput("pca")
                         ),
-                        box(width = 12, status = "warning",
+                        box(width = 12, status = "success",
                             #texto con el summary
                             verbatimTextOutput("summary_pcs")
                         ),
@@ -257,7 +257,7 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
     slider_type,
     slider_type2,
     box(
-      title = "Download image", width = 4, solidHeader = TRUE, status = "warning",
+      title = "Download image", width = 4, solidHeader = TRUE, status = "success",
       #background = "orange",
       radioButtons(radio,NULL,
                    choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
@@ -266,7 +266,7 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
     ),
     #box para los apuntes
     box(
-      title = "Notes", width = 4, solidHeader = TRUE, status = "warning",
+      title = "Notes", width = 4, solidHeader = TRUE, status = "success",
       #background = "yellow",
       tags$div( class='form-group shiny-input-container',
                 tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")

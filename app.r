@@ -20,8 +20,9 @@ source('funciones/analisisExploratorio.r')
 source('funciones/data.r')
 source('funciones/train.r')
 
+
 #variable global que con el color de los slider
-colorSlider <- "orange"
+dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
 
 dbHeader <- dashboardHeader()
 dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
@@ -31,7 +32,7 @@ body <- dashboardBody(
   tags$head(tags$style(HTML('
                             /* color de tabBox */
                             .nav-tabs-custom>.nav-tabs>li.active {
-                              border-top-color: #f39c12;
+                              border-top-color: #00a65a;
                             }
                             /* color de slider
                             .irs-bar {
@@ -109,7 +110,7 @@ body <- dashboardBody(
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
-ui <- dashboardPage(skin = "yellow", dbHeader, sidebar(), body)
+ui <- dashboardPage(skin = "green", dbHeader, sidebar(), body)
 
 #--------------------Servidor-------------------
 
@@ -147,16 +148,18 @@ server <- function(input, output, session) {
 #     datatable(iris, colnames = c('Data set', 'Size', 'Date', 'Dimensions', 'Actions'))
 #   )
   
-  #----------> data set
+  #-------------------------------------------------------
+  #-----------------------> data <-----------------------
   
+  #----------> data set
   output$ui <- renderUI({
     if (is.null(input$select_file))
       return()
     switch(input$select_file,
            '4' = fileInput('file1', 'Choose CSV File',
-                         accept=c('text/csv', 
-                                  'text/comma-separated-values,text/plain', 
-                                  '.csv'))
+                           accept=c('text/csv', 
+                                    'text/comma-separated-values,text/plain', 
+                                    '.csv'))
     )
   })
   
@@ -175,13 +178,16 @@ server <- function(input, output, session) {
   
   #muestro un resumen del data set seleccionado
   output$str_data <- renderPrint({
+    if (input$select_file==4 && is.null(input$file1))
+      return()
     str(file())
   })
   
   #muestro un sumary del data set seleccionado
-  output$summary_data <- renderPrint({#renderDataTable(
+  output$summary_data <- renderPrint({
+    if (input$select_file==4 && is.null(input$file1))
+      return()
     summary(file())
-   # options = list(paging = FALSE, searching = FALSE)
   })
   
   #----------> dimensionalidad del archivo
@@ -190,19 +196,21 @@ server <- function(input, output, session) {
 
   #*************************************************
   #----------> Sacar columnas con valores nominales
-  
   only_file_nums <- reactive({
     aux <- data.frame(file())
     nums <- sapply(aux, is.numeric)
     aux[ , nums]
   }) 
   
+  #-------------------------------------------------------
+  #-----------------------> visualization <-----------------------
+  
   #----------> Graficos de visualizacion
   
   #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("x1", label = "X", min = 1, 
                   max = dim(only_file_nums())[2], value = c(1,4)),
@@ -212,14 +220,6 @@ server <- function(input, output, session) {
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1]))
     )
   })
-#   max_variables <- dim(file())[2]
-#   
-#   updateSliderInput(session, "x1",
-#                     max = dim(file())[2])
-#   updateSliderInput(session, "y1",
-#                     max = dim(file())[2])
-#   updateSliderInput(session, "z1",
-#                     max = dim(file())[1])
   
   #seleccion de atributos y observaciones del data set
   dat1 <- reactive({
@@ -247,7 +247,7 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico parallel x e y
   output$slider_range_range_parallel <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("x2", label = "X", min = 1, 
                   max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
@@ -259,12 +259,12 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico parallel observations y alfa
   output$slider_range_range_parallel2 <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("z2", label = "Observations", min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
-#       sliderInput("lineSize", label = "Line Size", min = 1, 
-#                   max = 5, value = 2),
+      sliderInput("lineSize", label = "Line Size", min = 1, 
+                  max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
                   max = 0.99, value = 0.5)
     )
@@ -302,7 +302,7 @@ server <- function(input, output, session) {
    #Slider visualizacion grafico de missing values Amelia
   output$slider_range_range_amelia <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("attributes", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1,4)),
@@ -336,7 +336,7 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico de missing VIM option1
   output$slider_range_range_option1 <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("attributes2", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
@@ -364,7 +364,7 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico de missing VIM option2
   output$slider_range_range_option2 <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("x3", label = "X", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
@@ -468,7 +468,7 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico PCA
   output$slider_range_range_pca <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("attributes3", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
@@ -490,6 +490,9 @@ server <- function(input, output, session) {
   
   #grafico de PCA
   output$pca <- renderPlot({
+    if(is.null(input$attributes3) || is.na(input$attributes3)){
+      return()
+    }
     elbowPlot(pca())
   })
   
@@ -517,7 +520,7 @@ server <- function(input, output, session) {
   #Slider visualizacion grafico ruido
   output$slider_range_range_nremoval <- renderUI({
     box(
-      width = 6, status = "warning",
+      width = 6, status = "success",
       h4("Range"),
       sliderInput("attributes4", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
@@ -577,6 +580,39 @@ server <- function(input, output, session) {
       height = 400,
       alt = "Home")
   }, deleteFile = FALSE)
+  
+  #-------------------------------------------------------
+  #-----------------------> Train <-----------------------
+  
+  #-----------------------> lm
+  #seleccion de la variable dependiente
+  output$select_box_lm_y <- renderUI({
+    numVariables <- dim(missingV())[2]
+    namesVariables <- names(missingV())
+    selectInput("lm_y", label = h4("Dependent variable"), 
+                choices = namesVariables, selected = names(missingV())[numVariables])
+  })
+  
+  #seleccion de la variable independiente
+  output$select_box_lm_x <- renderUI({
+    selectInput("lm_x", label = h4("Independent variable"), 
+                choices = names(missingV()), multiple = TRUE)
+  })
+  
+  #Aplicando el modelo lm
+#   model_lm <- reactive({
+#     lm(input$lm_y ~ ., data=missingV())
+#   })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$summary_lm <- renderPrint({
+    if(is.null(input$lm_y))
+      return()
+    #input$lm_y
+    fit <- lm(input$lm_y ~ ., data=missingV())
+    summary(fit)
+  })
+  
 }
 
 #App

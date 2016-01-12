@@ -8,8 +8,12 @@ linearRegression <- function() {
               </ul>')
           ),
     box(
-      width = 12, title = "Inputs", status = "warning"
-      
+      width = 12, title = "Inputs", status = "success",
+      #opciones de entrada
+      uiOutput("select_box_lm_y"),
+      uiOutput("select_box_lm_x"),
+      #actionButton("button_lm", "Apply")
+      verbatimTextOutput("summary_lm")
     )
   )
 }
