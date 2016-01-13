@@ -584,10 +584,14 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$summary_lm <- renderPrint({
-    if(is.null(input$lm_y))
-      return()
+    if(is.null(input$lm_x)){
+      (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
+    }
     #input$lm_y
-    fit <- lm(input$lm_y ~ ., data=missingV())
+    else
+     (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
+    
+    fit <- lm(fmla, data=missingV())
     summary(fit)
   })
   

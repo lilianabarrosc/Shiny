@@ -19,7 +19,7 @@ sidebar <- function() {
              menuSubItem("Dimensionality reduction", tabName = "dreduccion", icon = shiny::icon("angle-double-right")),
              menuSubItem("Outlier detection", tabName = "odetection", icon = shiny::icon("angle-double-right"))
              ),
-    menuItem("Train", tabName = "train", icon("cog", lib = "glyphicon"),
+    menuItem("Regression", tabName = "regression", icon("cog", lib = "glyphicon"),
              menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right"))
              ),
     menuItem("Predict", tabName = "predict"),
