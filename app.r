@@ -28,44 +28,7 @@ dbHeader <- dashboardHeader()
 dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
 
 #Cuerpo de la pagina
-body <- dashboardBody(
-  tags$head(tags$style(HTML('
-                            /* color de tabBox */
-                            .nav-tabs-custom>.nav-tabs>li.active {
-                              border-top-color: #00a65a;
-                            }
-                            /* color de slider
-                            .irs-bar {
-                              height: 8px;
-                              top: 25px;
-                              border-top: 1px solid #E08E0B;
-                              border-bottom: 1px solid #E08E0B;
-                              background: #E08E0B;
-                            }
-                            /* color de slider
-                            .irs-bar-edge {
-                              height: 8px;
-                              top: 25px;
-                              width: 14px;
-                              border: 1px solid #428bca;
-                              border-right: 0;
-                              background: #f39c12;
-                              border-radius: 16px 0 0 16px;
-                              -moz-border-radius: 16px 0 0 16px;
-                            }
-                            /* color de numeros slider
-                            .irs-from, .irs-to, .irs-single {
-                              color: #fff;
-                              font-size: 11px;
-                              line-height: 1.333;
-                              text-shadow: none;
-                              padding: 1px 3px;
-                              background: #E08E0B;
-                              border-radius: 3px;
-                              -moz-border-radius: 3px;
-                            }
-                            )')
-            )),
+body <- dashboardBody(includeCSS("css/styles.css"),
   tabItems( 
     #Tab del home
     tabItem(tabName = "home", #h2("Working...")
@@ -205,6 +168,10 @@ server <- function(input, output, session) {
   #-------------------------------------------------------
   #-----------------------> visualization <-----------------------
   
+  strx <- "Dependent variables"
+  stry <- "Response variable"
+  strz <- "Observations"
+  
   #----------> Graficos de visualizacion
   
   #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
@@ -212,11 +179,11 @@ server <- function(input, output, session) {
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("x1", label = "X", min = 1, 
+      sliderInput("x1", label = strx, min = 1, 
                   max = dim(only_file_nums())[2], value = c(1,4)),
-      sliderInput("y1", label = "Y", min = 1, 
-                  max = dim(only_file_nums())[2], value = 2),
-      sliderInput("z1", label = "Observations", min = 1, 
+      sliderInput("y1", label = stry, min = 1, 
+                  max = dim(only_file_nums())[2], value = dim(only_file_nums())[2]),
+      sliderInput("z1", label = strz, min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1]))
     )
   })
@@ -249,9 +216,9 @@ server <- function(input, output, session) {
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("x2", label = "X", min = 1, 
+      sliderInput("x2", label = strx, min = 1, 
                   max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
-      sliderInput("y2", label = "Y", min = 1, 
+      sliderInput("y2", label = stry, min = 1, 
                   max = dim(file())[2], value = 2)
     )
   })
@@ -261,12 +228,12 @@ server <- function(input, output, session) {
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("z2", label = "Observations", min = 1, 
+      sliderInput("z2", label = strz, min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
       sliderInput("lineSize", label = "Line Size", min = 1, 
                   max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
-                  max = 0.99, value = 0.5)
+                  max = 0.99, value = 0.11)
     )
   })
   
@@ -286,7 +253,7 @@ server <- function(input, output, session) {
     }
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], 1, input$alphaLine, TRUE)
+                 names(file())[[input$y2]], input$lineSize, input$alphaLine, TRUE)
   })
   
   #*********************************************
@@ -306,7 +273,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("attributes", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1,4)),
-      sliderInput("observation", label = "Observation", min = 1, 
+      sliderInput("observation", label = strz, min = 1, 
                   max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
     )
   })
@@ -340,7 +307,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("attributes2", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation2", label = "Observation", min = 1, 
+      sliderInput("observation2", label = strz, min = 1, 
                   max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
     )
   })
@@ -366,11 +333,11 @@ server <- function(input, output, session) {
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("x3", label = "X", min = 1, 
+      sliderInput("x3", label = strx, min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("y3", label = "Y", min = 1, 
+      sliderInput("y3", label = stry, min = 1, 
                   max = dim(missingV())[2], value = 2),
-      sliderInput("z3", label = "Observations", min = 1, 
+      sliderInput("z3", label = strz, min = 1, 
                   max = dim(missingV())[1], value = c(1, dim(missingV())[1]))
     )
   })
@@ -472,7 +439,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("attributes3", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation3", label = "Observation", min = 1, 
+      sliderInput("observation3", label = strz, min = 1, 
                   max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
     )
   })
@@ -501,6 +468,17 @@ server <- function(input, output, session) {
     summary(pca())
   })
   
+  reduceDimensionality <- reactive({
+    if(input$reduceDim){
+      selectedDataPCA()
+    }
+  })
+  
+  output$summary_reduceDimensionality <- renderPrint({
+    summary(reduceDimensionality())
+  })
+  
+  #------------SVD
   s <- reactive({
     dat <- as.matrix(missingV())
     svd(dat)
@@ -524,7 +502,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("attributes4", label = "Attributes", min = 1, 
                   max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation4", label = "Observation", min = 1, 
+      sliderInput("observation4", label = strz, min = 1, 
                   max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
     )
   })

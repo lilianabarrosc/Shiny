@@ -1,0 +1,8 @@
+ /* color de tabBox */
+.nav-tabs-custom>.nav-tabs>li.active {
+  border-top-color: #00a65a;
+}
+                              
+.skin-green .treeview-menu>li.active>a, .skin-green .treeview-menu>li>a:hover {
+    color: #03ff72;
+}

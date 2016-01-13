@@ -165,7 +165,10 @@ tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
                                     tools_general_grafics("radio4", "note4", "save4", "cancel4",
                                                           "download4", uiOutput("slider_range_range_pca"),
                                                           box(width = 6, status = "warning",
-                                                          actionButton("reduceDim", label = "Reduce Dimensionality")))
+                                                          actionButton("reduceDim", label = "Reduce Dimensionality"),
+                                                          hr(),
+                                                          verbatimTextOutput("summary_reduceDimensionality")
+                                                          ))
                                )
                         )
                       )
