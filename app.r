@@ -481,6 +481,8 @@ server <- function(input, output, session) {
     if(input$reduceDim){
       selectedDataPCA()
     }
+    else
+      missingV()
   })
   
   output$summary_reduceDimensionality <- renderPrint({
@@ -574,40 +576,66 @@ server <- function(input, output, session) {
   #-----------------------> lm
   #seleccion de la variable dependiente
   output$select_box_lm_y <- renderUI({
-    numVariables <- dim(missingV())[2]
-    namesVariables <- names(missingV())
+    numVariables <- dim(reduceDimensionality())[2]
+    namesVariables <- names(reduceDimensionality())
     selectInput("lm_y", label = h4("Dependent variable"), 
-                choices = namesVariables, selected = names(missingV())[numVariables])
+                choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
   })
   
   #seleccion de la variable independiente
   output$select_box_lm_x <- renderUI({
     selectInput("lm_x", label = h4("Independent variable"), 
-                choices = names(missingV()), multiple = TRUE)
+                choices = names(reduceDimensionality()), multiple = TRUE)
   })
   
   #Aplicando el modelo lm
-#   model_lm <- reactive({
-#     lm(input$lm_y ~ ., data=missingV())
-#   })
-  
-  #Resultado obtenido tras aplicar el  modelo
-  output$summary_lm <- renderPrint({
+  fit <- reactive({
     if(is.null(input$lm_x)){
       (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
     }
     #input$lm_y
     else
-     (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
+      (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
     
-    fit <- lm(fmla, data=missingV())
-    summary(fit)
+   lm(fmla, data=reduceDimensionality())
+  })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$summary_lm <- renderPrint({
+    summary(fit())
   })
   
   #-------------------------------------------------------
   #-----------------------> outlier <-----------------------
-  
+
   #-----------------------> Diagnostic Plots
+  #Slider visualizacion grafico residual vs fitted
+  output$slider_outlier_residualF <- renderUI({
+    box(
+      width = 6, status = "success",
+      h4("Range"),
+      sliderInput("attributes4", label = "Attributes", min = 1, 
+                  max = dim(reduceDimensionality())[2], value = c(1, 4)),
+      sliderInput("observation4", label = strz, min = 1, 
+                  max = dim(reduceDimensionality())[1], value = c(1, (dim(reduceDimensionality())[1])/2))
+    )
+  })
+  
+  
+  #Obtengo la seleccion de atributos y observaciones para grafico residual vs fitted
+  selectedDataResidualF <- reactive({
+    diagnostic <- diagnosticData(fit())
+    diagnostic[input$observation4[1]:input$observation4[2], 
+          input$attributes4[1]:input$attributes4[2]]
+  })
+  
+  #grafico de grafico residual vs fitted
+  output$ResidualsFitted <- renderPlot({
+    if(is.null(input$attributes4) || is.na(input$attributes4)){
+      return()
+    }
+    ResidualsFitted(selectedDataResidualF(), "Ozone")
+  })
   
 }
 

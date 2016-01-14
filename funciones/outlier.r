@@ -15,7 +15,7 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              id = "tabset2",
              tabPanel(tab1,
                       #residual vs fitted
-                      tab_grafics("residualF", tools_general_grafics("radio7", "note7", "save7", "cancel7",
+                      tab_grafics("ResidualsFitted", tools_general_grafics("radio7", "note7", "save7", "cancel7",
                                                                     "download7", uiOutput("slider_outlier_residualF"),NULL))
              ),
              tabPanel(tab2
