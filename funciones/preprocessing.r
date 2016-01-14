@@ -1,36 +1,4 @@
 
-#tabs de la vista de visualizaci√≥n, resibe como parametros el titulo del contenedor y los tabs 
-tabsVisualization <- function(title, tab1, tab2) {
-  fluidRow(
-    column(width = 12,
-      #BreadCrumds de visualizacion     
-      HTML('
-           <ul class="breadcrumb">
-           <li>Analysis</li>
-           <li>Visualization</li>
-           </ul>'),
-       tabBox(
-         title = title,
-         width = 12,
-         id = "tabset1",
-         tabPanel(tab1,
-                  #contenido del tab1 = Scatter plot 1
-                  tab_grafics("scatter1",  tools_general_grafics("radio0", "note0", "save0", "cancel0",
-                                                                 "download0", 
-                                                                 #slider_range_int("x1","y1","z1")
-                                                                 uiOutput("slider_range_range_density"), NULL
-                                                                 ))
-         ),
-         tabPanel(tab2, 
-                  #contenido del tab2 = parallel grafics
-                  tab_grafics("parallel", tools_general_grafics("radio1", "note1", "save1", "cancel1",
-                                                        "download1", uiOutput("slider_range_range_parallel"), uiOutput("slider_range_range_parallel2")))
-         )
-       ) 
-    )
-  )
-}
-
 #tabs de la vista de datos faltantes, resibe como parametros el titulo del contenedor y los tabs 
 tabsMissingValues <- function(title, tab1, tab2, tab3) {
   fluidRow(
@@ -38,7 +6,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
            #BreadCrumds de Missing values     
            HTML('
                 <ul class="breadcrumb">
-                <li>Analysis</li>
+                <li>Preprocessing</li>
                 <li>Missing Values</li>
                 </ul>'),
             box(width = 12, title ="",
@@ -83,7 +51,7 @@ noiseRemoval <- function(title){
            #BreadCrumds de eliminaciÛn de ruido    
            HTML('
                 <ul class="breadcrumb">
-                <li>Analysis</li>
+                <li>Preprocessing</li>
                 <li>Noise removal</li>
                 </ul>')
            ),
@@ -91,103 +59,6 @@ noiseRemoval <- function(title){
                                           "download5", uiOutput("slider_range_range_nremoval"), NULL))
   )
   
-}
-
-#vista correspondiente a la normalizacion del data set, recibe como parametro el titulo de la vista
-normalizations <- function(title){
-  fluidRow(
-    column(width = 12,
-           #BreadCrumds de normalizacion    
-           HTML('
-                <ul class="breadcrumb">
-                <li>Analysis</li>
-                <li>Normalization</li>
-                </ul>')
-    ),
-    box( width = 12, title = "Normalization", solidHeader = TRUE, status = "success",
-         tags$div( class = 'col-sm-4',
-                   radioButtons("normalizationType", label = "Type", selected = 1,
-                                choices = list("Scale Standardization" = 1, "Normalization 0-1" = 2,
-                                               "Other normalization" = 3)
-                   )
-         ),
-         uiOutput("range")
-    ),
-    tabBox(width = 12,
-           tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
-           tabPanel("Normalized data", "*First ten observations", verbatimTextOutput("normalized_data")),
-           tabPanel("Sumary",verbatimTextOutput("summary_normalization"))
-    ) 
-#     box(width = 6, title ="Original data", solidHeader = TRUE,
-#         verbatimTextOutput("original_data")
-#         #dataTableOutput(outputId="original_data")
-#     ),
-#     box(width = 6, title ="Normalized data", solidHeader = TRUE,
-#         verbatimTextOutput("normalized_data")
-#         #dataTableOutput(outputId="normalized_data")
-#     ),
-#     box(width = 12, title ="Sumary", solidHeader = TRUE,
-#         verbatimTextOutput("summary_normalization")
-#         #dataTableOutput(outputId="summary_normalization")
-#     )
-  )
-}
-
-#tabs de la vista de reduccion de la dimensionalidad, resibe como parametros el titulo del contenedor y los tabs 
-tabsDimensionalityReduction <- function(title, tab1, tab2, tab3, tab4) {
-  fluidRow(
-    column(width = 12,
-           #BreadCrumds de reduccion de la dimencionalidad     
-           HTML('
-                <ul class="breadcrumb">
-                <li>Analysis</li>
-                <li>Dimensionality reduction</li>
-                </ul>'),
-           tabBox(
-             title = title,
-             width = 12,
-             id = "tabset2",
-             tabPanel(tab1,
-                      #PCA
-                      fluidRow(
-                        column(width = 12,
-                               plotOutput("pca")
-                        ),
-                        box(width = 12, status = "success",
-                            #texto con el summary
-                            verbatimTextOutput("summary_pcs")
-                        ),
-                        column(width = 12,
-                               #box contenedor de opciones para el grafico
-                               box( width = 12, title = "Options", solidHeader = TRUE,
-                                    collapsible = TRUE,
-                                    #herramientas del grafico
-                                    tools_general_grafics("radio4", "note4", "save4", "cancel4",
-                                                          "download4", uiOutput("slider_range_range_pca"),
-                                                          box(width = 6, status = "warning",
-                                                          actionButton("reduceDim", label = "Reduce Dimensionality"),
-                                                          hr(),
-                                                          verbatimTextOutput("summary_reduceDimensionality")
-                                                          ))
-                               )
-                        )
-                      )
-             ),
-             tabPanel(tab2,
-                      #SVD
-                      tab_grafics("svd", verbatimTextOutput("s"))
-             ),
-             tabPanel(tab3, "Working..."
-                      #test de colinealidad
-                   
-             ),
-             tabPanel(tab4, "Working..."
-                      #Seleccion de atributos
-                      
-             )
-           )
-    )
-  )
 }
 
 tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {

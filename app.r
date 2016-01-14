@@ -16,9 +16,10 @@ library('VIM')
 library('clusterSim')
 
 source('funciones/opcionesDashboard.r')
-source('funciones/analisisExploratorio.r')
+source('funciones/preprocessing.r')
+source('funciones/transformation.r')
 source('funciones/data.r')
-source('funciones/train.r')
+source('funciones/regresion.r')
 
 
 #variable global que con el color de los slider
@@ -41,7 +42,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             )
           ),
     #Tab del data
-    tabItem(tabName = "data",
+    tabItem(tabName = "source",
             viewData()
     ),
     #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
@@ -49,7 +50,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             tabsVisualization("Visualization", "Scatter plot", "Parallel plot")
     ),
     tabItem(tabName = "mvalues",
-            tabsMissingValues("Missing values", "Plot 1", "Plot 2","Plot 3")
+            tabsMissingValues("Missing values", "Box plot", "Histogram","Scatter plot")
     ),
     tabItem(tabName = "nremoval",
             noiseRemoval("")
@@ -57,9 +58,11 @@ body <- dashboardBody(includeCSS("css/styles.css"),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
     ),
-    tabItem(tabName = "dreduccion",
-            tabsDimensionalityReduction("Dimensionality reduccion", "PCA", "SVD", 
-                                        "Colinearity test", "Attribute selection")
+    tabItem(tabName = "pca",
+            pca("")
+    ),
+    tabItem(tabName = "svd",
+            svd2("")
     ),
     tabItem(tabName = "odetection",
             tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
