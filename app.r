@@ -20,6 +20,7 @@ source('funciones/preprocessing.r')
 source('funciones/transformation.r')
 source('funciones/data.r')
 source('funciones/regresion.r')
+source('funciones/outlier.r')
 
 
 #variable global que con el color de los slider
@@ -55,6 +56,10 @@ body <- dashboardBody(includeCSS("css/styles.css"),
     tabItem(tabName = "nremoval",
             noiseRemoval("")
     ),
+    tabItem(tabName = "outlier",
+            tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
+                        "Normal Q-Q", "Residual vs leverage")
+    ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
     ),
@@ -64,13 +69,14 @@ body <- dashboardBody(includeCSS("css/styles.css"),
     tabItem(tabName = "svd",
             svd2("")
     ),
-    tabItem(tabName = "odetection",
-            tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
-                        "Normal Q-Q", "Residual vs leverage")
-    ),
     tabItem(tabName = "lm",
             linearRegression()
+    ),
+    tabItem(tabName = "diagnosticP",
+            tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
+                        "Normal Q-Q", "Residual vs leverage")
     )
+    
     #Fin tabs Analisis exploratorio
   )
 )
@@ -597,6 +603,11 @@ server <- function(input, output, session) {
     fit <- lm(fmla, data=missingV())
     summary(fit)
   })
+  
+  #-------------------------------------------------------
+  #-----------------------> outlier <-----------------------
+  
+  #-----------------------> Diagnostic Plots
   
 }
 
