@@ -2,7 +2,40 @@
 .nav-tabs-custom>.nav-tabs>li.active {
   border-top-color: #00a65a;
 }
-                              
+ 
+/* color del texto seleccionado en el sidebar*/                          
 .skin-green .treeview-menu>li.active>a, .skin-green .treeview-menu>li>a:hover {
     color: #03ff72;
+}
+
+/*color de la barra del select*/
+.irs-bar {
+    height: 8px;
+    top: 25px;
+    border-top: 1px solid #00a65a;
+    border-bottom: 1px solid #00a65a;
+    background: #00a65a;
+}
+
+.irs-bar-edge {
+    height: 8px;
+    top: 25px;
+    width: 14px;
+    border: 1px solid #00a65a;
+    border-right: 0;
+    background: #00a65a;
+    border-radius: 16px 0 0 16px;
+    -moz-border-radius: 16px 0 0 16px;
+}
+
+/*color de los numeros del select*/
+.irs-from, .irs-to, .irs-single {
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.333;
+    text-shadow: none;
+    padding: 1px 3px;
+    background: #03ff72;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
 }
