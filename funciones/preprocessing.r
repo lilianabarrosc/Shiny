@@ -9,7 +9,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                 <li>Preprocessing</li>
                 <li>Missing Values</li>
                 </ul>'),
-            box(width = 12, title ="",
+            box(width = 12, title = title, solidHeader = TRUE, status = "success",
                 tags$div( class = 'col-sm-2',
                           actionButton("deleteMS", label = "Delete MS",href="")
                  )
@@ -21,7 +21,6 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
 #                 )
             ),
            tabBox(
-             title = title,
              width = 12,
              id = "tabset2",
              tabPanel(tab1,
@@ -67,7 +66,7 @@ tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
            #BreadCrumds de outlier    
            HTML('
                 <ul class="breadcrumb">
-                <li>Analysis</li>
+                <li>Preprocessing</li>
                 <li>Outlier detection</li>
                 </ul>'),
            tabBox(

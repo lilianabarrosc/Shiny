@@ -8,7 +8,7 @@ linearRegression <- function() {
               </ul>')
           ),
      box(
-       width = 12,
+       width = 12, title = "Linear Regression", solidHeader = TRUE, status = "success",
        "By default, the system will use", em("all"), "the independent variables to predict
        the last column in the data.", br(),
        "If you wish, you may use the selector tool to predict something else.",
