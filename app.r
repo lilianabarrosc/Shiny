@@ -6,7 +6,7 @@ library('shinydashboard')
 #library(devtools)
 #install_github("mariytu/RegressionLibs") #Para usar esto hay que tener instalado devtools
 library('RegressionLibs')
-#install.packages("Amelia") or sudo apt-get install r-cran-amelia
+#install.packages("Amelia") #or sudo apt-get install r-cran-amelia
 #install.packages("Amelia", repos="http://r.iq.harvard.edu", type = "source")
 #http://gking.harvard.edu/amelia/ 
 library('Amelia')
@@ -14,6 +14,10 @@ library('Amelia')
 library('VIM')
 #install.packages("clusterSim")
 library('clusterSim')
+#install.packages("Rlof")
+library("Rlof") #Outlier detection library
+#install.packages("plyr")
+library("plyr")
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r')
@@ -36,9 +40,21 @@ body <- dashboardBody(includeCSS("css/styles.css"),
     tabItem(tabName = "home", #h2("Working...")
             fluidRow(
               column(12,
-                     imageOutput("home")
-                     #archivo que contiene el html de la pagina home
-                     #includeHTML("html/home.html")
+                     #imageOutput("home")
+                     titlePanel("Welcome to Güiña!"),
+                     sidebarLayout(
+                       sidebarPanel(imageOutput("home")),
+                       mainPanel(
+                         p("The Guiña is a small cat that is endemic from the evergreen forest of southern 
+                           Chile. This smart predator relies on its senses to identify and capture the prey, 
+                           usually sheltered in the dense and obscure forest."),
+                         p("This clever feline served us as inspiration to build a data mining tools for 
+                           visualizing an analyzing data. From our perspective, the data miner acts as a 
+                           furtive predator of precious information hidden in the dark data forest."),
+                         p("Coincidentally the name Guiña begins with the three letters GUI which also 
+                           stands for the acronym for Graphical User Interface (GUI).")
+                       )
+                     )
               )
             )
           ),
@@ -57,7 +73,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             noiseRemoval("")
     ),
     tabItem(tabName = "outlier",
-            tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
+            lof("Outlier detection", "Residual vs Fitted", "Scale-location",
                         "Normal Q-Q", "Residual vs leverage")
     ),
     tabItem(tabName = "normalization",
