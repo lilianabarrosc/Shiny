@@ -235,7 +235,7 @@ server <- function(input, output, session) {
 #     }
     
     #plot(dat[,1], col = cols[1])
-    myPalette <- c(input$col, input$col2, input$col3)
+    myPalette <- c(input$col1, input$col2, input$col3)
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
                       names(only_file_nums())[[input$y1]], colours = myPalette)
   })
