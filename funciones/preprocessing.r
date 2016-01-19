@@ -47,7 +47,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
 noiseRemoval <- function(title){
   fluidRow(
     column(width = 12,
-           #BreadCrumds de eliminaciÃÂ³n de ruido    
+           #BreadCrumds de eliminaci�n de ruido    
            HTML('
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
@@ -63,7 +63,7 @@ noiseRemoval <- function(title){
 lof <- function(title, tab1, tab2, tab3, tab4) {
     fluidRow(
       column(width = 12,
-             #BreadCrumds de eliminaciÃÂ³n de ruido    
+             #BreadCrumds de eliminaci�n de ruido    
              HTML('
                   <ul class="breadcrumb">
                   <li>Preprocessing</li>

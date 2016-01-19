@@ -30,7 +30,7 @@ viewData <- function() {
   )
 }
 
-#tabs de la vista de visualizaciÃÂ³n, resibe como parametros el titulo del contenedor y los tabs 
+#tabs de la vista de visualización, resibe como parametros el titulo del contenedor y los tabs 
 tabsVisualization <- function(title, tab1, tab2) {
   fluidRow(
     column(width = 12,
