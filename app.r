@@ -21,8 +21,8 @@ library("plyr")
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r')
-source('funciones/transformation.r')
-source('funciones/data.r')
+source("funciones/transformation.r")
+source("funciones/data.r")
 source('funciones/regresion.r')
 source('funciones/outlier.r')
 
@@ -41,17 +41,17 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             fluidRow(
               column(12,
                      #imageOutput("home")
-                     titlePanel("Welcome to Güiña!"),
+                     titlePanel("Welcome to Güña!"),
                      sidebarLayout(
                        sidebarPanel(imageOutput("home")),
                        mainPanel(
-                         p("The Guiña is a small cat that is endemic from the evergreen forest of southern 
+                         p("The Güña is a small cat that is endemic from the evergreen forest of southern 
                            Chile. This smart predator relies on its senses to identify and capture the prey, 
                            usually sheltered in the dense and obscure forest."),
                          p("This clever feline served us as inspiration to build a data mining tools for 
                            visualizing an analyzing data. From our perspective, the data miner acts as a 
                            furtive predator of precious information hidden in the dark data forest."),
-                         p("Coincidentally the name Guiña begins with the three letters GUI which also 
+                         p("Coincidentally the name Güña begins with the three letters GUI which also 
                            stands for the acronym for Graphical User Interface (GUI).")
                        )
                      )
@@ -199,7 +199,7 @@ server <- function(input, output, session) {
   
   #----------> Graficos de visualizacion
   
-  #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
+  #Actualizo el mÃÂÃÂ¡ximo del slider con el valor del tamaÃÂÃÂ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
       width = 6, status = "success",
