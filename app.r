@@ -14,6 +14,8 @@ library('Amelia')
 library('VIM')
 #install.packages("clusterSim")
 library('clusterSim')
+#devtools::install_github("daattali/shinyjs") #libreria para los colores
+library(shinyjs)
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r')
@@ -219,17 +221,23 @@ server <- function(input, output, session) {
     if(is.null(input$x1) || is.na(input$x1)){
       return()
     }
-    progress <- shiny::Progress$new(session, min=1, max=10)
-    on.exit(progress$close())
     
-    progress$set(message = 'Calculation in progress',
-                 detail = 'This may take a while...')
+#     #Progress
+#     progress <- shiny::Progress$new(session, min=1, max=10)
+#     on.exit(progress$close())
+#     
+#     progress$set(message = 'Calculation in progress',
+#                  detail = 'This may take a while...')
+#     
+#     for (i in 1:8) {
+#       progress$set(value = i)
+#       Sys.sleep(0.5)
+#     }
     
-    for (i in 1:8) {
-      progress$set(value = i)
-      Sys.sleep(0.5)
-    }
-    ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], names(only_file_nums())[[input$y1]])
+    #plot(dat[,1], col = cols[1])
+    myPalette <- c(input$col, input$col2, input$col3)
+    ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
+                      names(only_file_nums())[[input$y1]], colours = myPalette)
   })
   
   #Slider visualizacion grafico parallel x e y

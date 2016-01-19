@@ -45,6 +45,7 @@ tabsVisualization <- function(title, tab1, tab2) {
              width = 12,
              id = "tabset1",
              tabPanel(tab1,
+                      colors("col1", "col2", "col3"),
                       #contenido del tab1 = Scatter plot 1
                       tab_grafics("scatter1",  tools_general_grafics("radio0", "note0", "save0", "cancel0",
                                                                      "download0", 
@@ -59,5 +60,16 @@ tabsVisualization <- function(title, tab1, tab2) {
              )
            ) 
            )
+  )
+}
+
+colors <- function(id1, id2, id3){
+  fluidRow(
+    column(width = 4,
+           colourInput(id1, "Choose colour", "darkred")),
+    column(width = 4,
+           colourInput(id2, "Choose colour", "yellow")),
+    column(width = 4,
+           colourInput(id3, "Choose colour", "darkgreen"))
   )
 }
