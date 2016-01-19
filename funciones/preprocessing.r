@@ -60,19 +60,38 @@ noiseRemoval <- function(title){
   
 }
 
-lof <- function(title, tab1, tab2, tab3, tab4) {
-    fluidRow(
-      column(width = 12,
-             #BreadCrumds de eliminación de ruido    
-             HTML('
-                  <ul class="breadcrumb">
-                  <li>Preprocessing</li>
-                  <li>Otlier</li>
-                  </ul>')
+tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
+  fluidRow(
+    column(width = 12,
+           #BreadCrumds de outlier    
+           HTML('
+                <ul class="breadcrumb">
+                <li>Preprocessing</li>
+                <li>Outlier detection</li>
+                </ul>'),
+           tabBox(
+             title = title,
+             width = 12,
+             id = "tabset2",
+             tabPanel(tab1,
+                      #residual vs fitted
+                      imageOutput("rsidualFitted")
              ),
-            tab_grafics("", tools_general_grafics("radio8", "note8", "save8", "cancel8",
-                                            "download8", uiOutput("slider_range_range_nremoval"), NULL))
-      )
+             tabPanel(tab2,
+                      #scale-location
+                      imageOutput("sacaleLocation")
+             ),
+             tabPanel(tab3, 
+                      #normal Q-Q
+                      imageOutput("normalQQ")
+             ),
+             tabPanel(tab4,
+                      #residual vs leverage
+                      imageOutput("residualLeverage")
+             )
+           ) 
+    )
+  )
 }
 
 #--------------------------
