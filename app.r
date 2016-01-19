@@ -274,7 +274,7 @@ server <- function(input, output, session) {
     }
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], input$lineSize, input$alphaLine, TRUE)
+                 names(file())[[input$y2]], 1, input$alphaLine, TRUE)
   })
   
   #*********************************************

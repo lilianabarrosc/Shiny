@@ -10,9 +10,8 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
                 <li>Diagnostic Plots</li>
                 </ul>'),
            tabBox(
-             title = title,
-             width = 12,
-             id = "tabset2",
+             title = title, width = 12, id = "tabset2",
+             "This outlier detetion ",
              tabPanel(tab1,
                       #residual vs fitted
                       tab_grafics("ResidualsFitted", tools_general_grafics("radio7", "note7", "save7", "cancel7",
