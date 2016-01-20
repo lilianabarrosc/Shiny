@@ -20,14 +20,20 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
                       tab_grafics("ResidualsFitted", tools_general_grafics("radio7", "note7", "save7", "cancel7",
                                                                     "download7", "",NULL))
              ),
-             tabPanel(tab2
+             tabPanel(tab2,
                       #scale-location
+                      tab_grafics("StResidualsFitted", tools_general_grafics("radio21", "note21", "save21", "cancel21",
+                                                                             "download21", "",NULL))
              ),
-             tabPanel(tab3 
+             tabPanel(tab3, 
                       #normal Q-Q
+                      tab_grafics("NormalQQ", tools_general_grafics("radio22", "note22", "save22", "cancel22",
+                                                                    "download22", "",NULL))
              ),
-             tabPanel(tab4
+             tabPanel(tab4,
                       #residual vs leverage
+                      tab_grafics("StResidualsLeverange", tools_general_grafics("radio23", "note23", "save23", "cancel23",
+                                                                                "download23", "",NULL))
              )
            ) 
            )

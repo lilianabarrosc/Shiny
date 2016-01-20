@@ -47,7 +47,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
 noiseRemoval <- function(title){
   fluidRow(
     column(width = 12,
-           #BreadCrumds de eliminación de ruido    
+           #BreadCrumds de eliminaci?n de ruido    
            HTML('
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
@@ -60,37 +60,29 @@ noiseRemoval <- function(title){
   
 }
 
-tabsOutlier <- function(title, tab1, tab2, tab3, tab4) {
+lof <- function() {
   fluidRow(
     column(width = 12,
-           #BreadCrumds de outlier    
+           #BreadCrumds de eliminaciï¿½n de ruido    
            HTML('
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
-                <li>Outlier detection</li>
-                </ul>'),
-           tabBox(
-             title = title,
-             width = 12,
-             id = "tabset2",
-             tabPanel(tab1,
-                      #residual vs fitted
-                      imageOutput("rsidualFitted")
-             ),
-             tabPanel(tab2,
-                      #scale-location
-                      imageOutput("sacaleLocation")
-             ),
-             tabPanel(tab3, 
-                      #normal Q-Q
-                      imageOutput("normalQQ")
-             ),
-             tabPanel(tab4,
-                      #residual vs leverage
-                      imageOutput("residualLeverage")
-             )
-           ) 
-    )
+                <li>Local outlier factor</li>
+                </ul>')
+    ),
+    box(width = 12, title = "Local outlier factor", solidHeader = TRUE, status = "success",
+        fluidRow(
+          column(width = 6,
+            plotOutput("densityPlot")
+            ),
+          column(width = 6,
+                 plotOutput("")
+          )
+          ),
+        tools_general_grafics("radio9", "note9", "save9", "cancel9",
+                              "download9", uiOutput("sliderLOF"), NULL)
+        )
+    
   )
 }
 

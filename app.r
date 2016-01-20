@@ -3,7 +3,7 @@ library('shiny')
 #install.packages('shinydashboard')
 library('shinydashboard')
 #install.packages("devtools")
-library(devtools)
+#library('devtools')
 #install_github("mariytu/RegressionLibs") #Para usar esto hay que tener instalado devtools
 library('RegressionLibs')
 #install.packages("Amelia") or sudo apt-get install r-cran-amelia
@@ -15,7 +15,7 @@ library('VIM')
 #install.packages("clusterSim")
 library('clusterSim')
 #devtools::install_github("daattali/shinyjs") #libreria para los colores
-library(shinyjs)
+library('shinyjs')
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r')
@@ -71,8 +71,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             noiseRemoval("")
     ),
     tabItem(tabName = "outlier",
-            tabsOutlier("Outlier detection", "Residual vs Fitted", "Scale-location",
-                        "Normal Q-Q", "Residual vs leverage")
+            lof()
     ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
@@ -385,6 +384,30 @@ server <- function(input, output, session) {
   })
   
   #************************************************
+  #-------------> Local outlier factor
+  
+  #Slider visualizacion grafico de missing VIM option2
+  output$sliderLOF <- renderUI({
+    box(
+      width = 6, status = "success",
+      h4("Range"),
+      sliderInput("xlof", label = strx, min = 1, 
+                  max = dim(missingV())[2], value = 1),
+      sliderInput("ylof", label = "Cut", min = 1, 
+                  max = dim(missingV())[1], value = 2)
+    )
+  })
+  
+  #grafico inicial density plot
+  output$densityPlot <- renderPlot({
+    if(is.null(input$xlof) || is.na(input$xlof)){
+      return()
+    }
+    DensityPlot(missingV(), input$xlof)
+  })
+  
+  
+  #************************************************
   #-------------> Normalization
   #salida dinamica de rango para normalizacion
   output$range <- renderUI({
@@ -636,11 +659,25 @@ server <- function(input, output, session) {
   
   #Obtengo la seleccion de atributos y observaciones para grafico residual vs fitted
   
-  #grafico de grafico residual vs fitted
+  #grafico residual vs fitted
   output$ResidualsFitted <- renderPlot({
     ResidualsFitted(diagnostic(), input$lm_y)
   })
   
+  #grafico Standarized Residuals v/s Fitted Values
+  output$StResidualsFitted <- renderPlot({
+    StResidualsFitted(diagnostic(), input$lm_y)
+  })
+  
+  #grafico normal Q-Q
+  output$NormalQQ <- renderPlot({
+    NormalQQ(diagnostic(), input$lm_y)
+  })
+  
+  #grafico residual vs leverage
+  output$StResidualsLeverange <- renderPlot({
+    StResidualsLeverange(diagnostic(), input$lm_y)
+  })
 }
 
 #App
