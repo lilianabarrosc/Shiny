@@ -66,10 +66,10 @@ tabsVisualization <- function(title, tab1, tab2) {
 colors <- function(id1, id2, id3){
   fluidRow(
     column(width = 4,
-           colourInput(id1, "Choose colour", "darkred")),
+           colourInput(id1, "Min color", "darkred")),
     column(width = 4,
-           colourInput(id2, "Choose colour", "yellow")),
+           colourInput(id2, "Avg color", "yellow")),
     column(width = 4,
-           colourInput(id3, "Choose colour", "darkgreen"))
+           colourInput(id3, "Max color", "darkgreen"))
   )
 }

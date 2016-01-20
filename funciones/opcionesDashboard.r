@@ -17,7 +17,7 @@ sidebar <- function() {
     menuItem("Preprocessing", tabName = "preprocessing", icon("cog", lib = "glyphicon"),
              menuSubItem("Missing Values", tabName = "mvalues", icon = shiny::icon("angle-double-right")),
              menuSubItem("Noise removal", tabName = "nremoval", icon = shiny::icon("angle-double-right")),
-             menuSubItem("Outlier", tabName = "outlier", icon = shiny::icon("angle-double-right"))
+             menuSubItem("Local outlier factor", tabName = "outlier", icon = shiny::icon("angle-double-right"))
              ),
     menuItem("Transformation", tabName = "transformation", icon("cog", lib = "glyphicon"),
              menuSubItem("Normalization", tabName = "normalization", icon = shiny::icon("angle-double-right")),

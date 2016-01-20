@@ -3,7 +3,7 @@ library('shiny')
 #install.packages('shinydashboard')
 library('shinydashboard')
 #install.packages("devtools")
-#library(devtools)
+library(devtools)
 #install_github("mariytu/RegressionLibs") #Para usar esto hay que tener instalado devtools
 library('RegressionLibs')
 #install.packages("Amelia") or sudo apt-get install r-cran-amelia
@@ -629,32 +629,16 @@ server <- function(input, output, session) {
   #-----------------------> outlier <-----------------------
 
   #-----------------------> Diagnostic Plots
-  #Slider visualizacion grafico residual vs fitted
-  output$slider_outlier_residualF <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("attributes4", label = "Attributes", min = 1, 
-                  max = dim(reduceDimensionality())[2], value = c(1, 4)),
-      sliderInput("observation4", label = strz, min = 1, 
-                  max = dim(reduceDimensionality())[1], value = c(1, (dim(reduceDimensionality())[1])/2))
-    )
-  })
   
+    diagnostic <- reactive({
+      diagnosticData(fit())
+    })
   
   #Obtengo la seleccion de atributos y observaciones para grafico residual vs fitted
-  selectedDataResidualF <- reactive({
-    diagnostic <- diagnosticData(fit())
-    diagnostic[input$observation4[1]:input$observation4[2], 
-          input$attributes4[1]:input$attributes4[2]]
-  })
   
   #grafico de grafico residual vs fitted
   output$ResidualsFitted <- renderPlot({
-    if(is.null(input$attributes4) || is.na(input$attributes4)){
-      return()
-    }
-    ResidualsFitted(selectedDataResidualF(), "Ozone")
+    ResidualsFitted(diagnostic(), input$lm_y)
   })
   
 }
