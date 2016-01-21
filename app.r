@@ -27,6 +27,7 @@ source('funciones/transformation.r')
 source('funciones/data.r')
 source('funciones/regresion.r')
 source('funciones/outlier.r')
+source('funciones/LOF.R')
 
 
 #variable global que con el color de los slider
@@ -402,12 +403,18 @@ server <- function(input, output, session) {
     )
   })
   
+#   res <- reactive({
+#     LOFCraft(mtcars,threshold = 1.25,k = c(5:10))
+#   }) 
+  
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
-    if(is.null(input$xlof) || is.na(input$xlof)){
-      return()
-    }
-    DensityPlot(missingV(), input$xlof)
+#     if(is.null(input$xlof) || is.na(input$xlof)){
+#       return()
+#     }
+    res<-LOFCraft(mtcars,threshold = 1.25,k = c(5:10)) ##calling LOF 
+    outlier.scores=data.frame(res[1])  ## scores for the original data
+    DensityPlot(outlier.scores, ncol(outlier.scores)) #Generating a plot of outliers scores
   })
   
   
