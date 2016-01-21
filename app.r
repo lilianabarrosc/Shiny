@@ -16,6 +16,10 @@ library('VIM')
 library('clusterSim')
 #devtools::install_github("daattali/shinyjs") #libreria para los colores
 library('shinyjs')
+#install.packages("Rlof")
+library('Rlof') #Outlier detection library
+#install.packages("plyr")
+library("plyr") ##required for count()
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r')
@@ -664,9 +668,19 @@ server <- function(input, output, session) {
     ResidualsFitted(diagnostic(), input$lm_y)
   })
   
+  #muestra informacion de los puntos seleccionados
+  output$ResidualsFitted_brushInfo <- renderPrint({
+    brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
+  })
+  
   #grafico Standarized Residuals v/s Fitted Values
   output$StResidualsFitted <- renderPlot({
     StResidualsFitted(diagnostic(), input$lm_y)
+  })
+  
+  #muestra informacion de los puntos seleccionados
+  output$StResidualsFitted_brushInfo <- renderPrint({
+    brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
   })
   
   #grafico normal Q-Q
@@ -674,9 +688,19 @@ server <- function(input, output, session) {
     NormalQQ(diagnostic(), input$lm_y)
   })
   
+  #muestra informacion de los puntos seleccionados
+  output$NormalQQ_brushInfo <- renderPrint({
+    brushedPoints(diagnostic(), input$NormalQQ_brush)[1:dim(reduceDimensionality())[2]]
+  })
+  
   #grafico residual vs leverage
   output$StResidualsLeverange <- renderPlot({
     StResidualsLeverange(diagnostic(), input$lm_y)
+  })
+  
+  #muestra informacion de los puntos seleccionados
+  output$StResidualsLeverange_brushInfo <- renderPrint({
+    brushedPoints(diagnostic(), input$StResidualsLeverange_brush)[1:dim(reduceDimensionality())[2]]
   })
 }
 

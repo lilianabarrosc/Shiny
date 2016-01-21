@@ -118,24 +118,26 @@ lof <- function() {
 #Recive como parametros los nombres de cada una de lass herramientas para cada una de las vistas
 tools_general_grafics <- function(radio, note, save, cancel, download, slider_type, slider_type2){
   fluidRow(
-    #Tipo de slider correspondiente (con rango o sin rango)
-    slider_type,
-    slider_type2,
-    box(
-      title = "Download image", width = 4, solidHeader = TRUE, status = "success",
-      #background = "orange",
-      radioButtons(radio,NULL,
-                   choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
-                   selected = 1),
-      downloadButton(download, "Download")
-    ),
-    #box para los apuntes
-    box(
-      title = "Notes", width = 4, solidHeader = TRUE, status = "success",
-      #background = "yellow",
-      tags$div( class='form-group shiny-input-container',
-                tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
-      )
+    column(width = 12,
+        #Tipo de slider correspondiente (con rango o sin rango)
+        slider_type,
+        slider_type2,
+        box(
+          title = "Download image", width = 4, solidHeader = TRUE, status = "success",
+          #background = "orange",
+          radioButtons(radio,NULL,
+                       choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
+                       selected = 1),
+          downloadButton(download, "Download")
+        ),
+        #box para los apuntes
+        box(
+          title = "Notes", width = 4, solidHeader = TRUE, status = "success",
+          #background = "yellow",
+          tags$div( class='form-group shiny-input-container',
+                    tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
+          )
+        )
     )
   )
 }
