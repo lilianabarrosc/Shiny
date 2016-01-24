@@ -1,3 +1,4 @@
+source('funciones/generalTools.r')
 
 #tabs de la vista de datos faltantes, resibe como parametros el titulo del contenedor y los tabs 
 tabsMissingValues <- function(title, tab1, tab2, tab3) {
@@ -9,17 +10,11 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                 <li>Preprocessing</li>
                 <li>Missing Values</li>
                 </ul>'),
-            box(width = 12, title = title, solidHeader = TRUE, status = "success",
-                tags$div( class = 'col-sm-2',
-                          actionButton("deleteMS", label = "Delete MS",href="")
-                 )
-#                 tags$div( class = 'col-sm-2',
-#                           actionButton("save", label = "Save chages",href="")
-#                 ),
-#                 tags$div( class = 'col-sm-2',
-#                           actionButton("cancel", label = "Cancel",href="")
-#                 )
-            ),
+           box(width = 12, title = title, solidHeader = TRUE, status = "success",
+               tags$div( class = 'col-sm-2',
+                         actionButton("deleteMS", label = "Delete MS",href="")
+               )
+           ),
            tabBox(
              width = 12,
              id = "tabset2",
@@ -39,7 +34,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                                                                     "download3", uiOutput("slider_range_range_option2"), NULL))
              )
            ) 
-    )
+           )
   )
 }
 
@@ -47,114 +42,30 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
 noiseRemoval <- function(title){
   fluidRow(
     column(width = 12,
-           #BreadCrumds de eliminaci?n de ruido    
+           #BreadCrumds de eliminacion de ruido    
            HTML('
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
                 <li>Noise removal</li>
-                </ul>')
-           ),
-    tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                          "download5", uiOutput("slider_range_range_nremoval"), NULL))
-  )
+                </ul>'),
+           tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
+                                                 "download5", uiOutput("slider_range_range_nremoval"), NULL))
+           )
+    )
   
 }
 
-lof <- function() {
+#vista correspondiente a local outlier factor
+localOutlier <- function(title){
   fluidRow(
-    column(width = 12,
-           #BreadCrumds de eliminaci�n de ruido    
-           HTML('
+    column( width = 12,
+            #BreadCrumds de local outlier factor    
+            HTML('
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
                 <li>Local outlier factor</li>
-                </ul>')
-    ),
-    box(width = 12, title = "Local outlier factor", solidHeader = TRUE, status = "success",
-        fluidRow(
-          column(width = 6,
+                </ul>'),
             plotOutput("densityPlot")
-            ),
-          column(width = 6,
-                 plotOutput("")
-          )
-          ),
-        tools_general_grafics("radio9", "note9", "save9", "cancel9",
-                              "download9", uiOutput("sliderLOF"), NULL)
-        )
-    
-  )
-}
-
-#--------------------------
-#strtoi("att")
-#Tanto atributos como observaciones son un rango
-# slider_range_range <- function(x,y){
-#   box(
-#     title = "Range", width = 6, solidHeader = TRUE,
-#     background = "aqua",
-#     sliderInput(x, label = "Atributes", min = 1, 
-#                 max = dim(airquality)[2], value = c(1, dim(airquality)[2])),
-#     sliderInput(y, label = "Observation", min = 1, 
-#                 max = dim(airquality)[1], value = c(1, dim(airquality)[1]))
-#   )
-# }
-# 
-# #X representa atributos en un rango e Y la variable a comparar
-# slider_range_int <- function(x,y,z){
-#   box(
-#     title = "Range", width = 6, solidHeader = TRUE,
-#     background = "aqua",
-#     sliderInput(x, label = "X", min = 1, 
-#                 max = 5, value = c(1,4)),
-#     sliderInput(y, label = "Y", min = 1, 
-#                 max = 5, value = 2),
-#     sliderInput(z, label = "Observations", min = 1,
-#                 max = 60, value = c(1,20))
-#   )
-# }
-
-#Funcion contenedora de las herramientas de un grafico que contenga atributos y observaciones
-#Recive como parametros los nombres de cada una de lass herramientas para cada una de las vistas
-tools_general_grafics <- function(radio, note, save, cancel, download, slider_type, slider_type2){
-  fluidRow(
-    column(width = 12,
-        #Tipo de slider correspondiente (con rango o sin rango)
-        slider_type,
-        slider_type2,
-        box(
-          title = "Download image", width = 4, solidHeader = TRUE, status = "success",
-          #background = "orange",
-          radioButtons(radio,NULL,
-                       choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
-                       selected = 1),
-          downloadButton(download, "Download")
-        ),
-        #box para los apuntes
-        box(
-          title = "Notes", width = 4, solidHeader = TRUE, status = "success",
-          #background = "yellow",
-          tags$div( class='form-group shiny-input-container',
-                    tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
-          )
-        )
-    )
-  )
-}
-
-#contenedor con dos box, uno para el grafico y otro para las opciones
-tab_grafics <- function(plot, options){
-  fluidRow(
-    column(width = 12,
-               plotOutput(plot)
-           ),
-    column(width = 12,
-           #box contenedor de opciones para el grafico
-           box( width = 12, title = "Options", solidHeader = TRUE,
-                collapsible = TRUE,
-                #herramientas del grafico
-                options
-           )
     )
   )
 }

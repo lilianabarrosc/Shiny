@@ -1,4 +1,4 @@
-source('funciones/preprocessing.r')
+source('funciones/generalTools.r')
 
 tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
   fluidRow(
@@ -57,6 +57,6 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
                                           "download23", verbatimTextOutput("StResidualsLeverange_brushInfo"),NULL)
              )
            ) 
-           )
+      )
   )
 }

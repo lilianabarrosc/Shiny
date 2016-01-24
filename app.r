@@ -22,12 +22,12 @@ library('Rlof') #Outlier detection library
 library("plyr") ##required for count()
 
 source('funciones/opcionesDashboard.r')
-source('funciones/preprocessing.r')
+source('funciones/preprocessing.r') #si
 source('funciones/transformation.r')
 source('funciones/data.r')
 source('funciones/regresion.r')
 source('funciones/outlier.r')
-
+source('funciones/LOF.R')
 
 #variable global que con el color de los slider
 dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
@@ -75,7 +75,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             noiseRemoval("")
     ),
     tabItem(tabName = "outlier",
-            lof()
+            localOutlier("")
     ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
@@ -219,7 +219,7 @@ server <- function(input, output, session) {
     only_file_nums()[input$z1[1]:input$z1[2],input$x1[1]:input$x1[2]]
   })
   
-  #Grafico correspondiente a scatterPlot con un grafico de densidad 
+  #Grafico correspondiente a scatterPlot 
   output$scatter1 <- renderPlot({
     if(is.null(input$x1) || is.na(input$x1)){
       return()
@@ -404,10 +404,10 @@ server <- function(input, output, session) {
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
-    if(is.null(input$xlof) || is.na(input$xlof)){
-      return()
-    }
-    DensityPlot(missingV(), input$xlof)
+    #DensityPlot(missingV(), input$xlof)
+     res<-LOFCraft(mtcars, 1.25, c(5:10)) ##calling LOF 
+     outlier.scores <- data.frame(res[1])  ## scores for the original data
+     DensityPlot(outlier.scores, ncol(outlier.scores))
   })
   
   
