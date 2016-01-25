@@ -64,8 +64,30 @@ localOutlier <- function(title){
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
                 <li>Local outlier factor</li>
-                </ul>'),
-            plotOutput("densityPlot")
+                </ul>')
+    ),
+    box(width = 12, title = title, solidHeader = TRUE, status = "success",
+        column(width = 6,
+               plotOutput("densityPlot")
+        ),
+        column(width = 6,
+               plotOutput("densityPlotResult")
+        ),
+        column(width = 6,
+          h4("The total number of outliers"),
+          verbatimTextOutput("howManyOutliers"),
+          hr(),
+          #numericInput("threshold", label = h4("Threshold"), value = 1.25, step = 0.01)
+          uiOutput("sliderLOF")
+        ),
+        column(width = 6,
+          h4("The positions of the outliers"),
+          verbatimTextOutput("posOutliers")
+        ),
+        column(width = 12,
+           h4("Data without outliers"),
+           verbatimTextOutput("strWithoutOutliers")
+        )
     )
   )
 }

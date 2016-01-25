@@ -66,22 +66,21 @@ return(list(outlier.scores,withoutOutliers.scores,dataWithoutOutliers,numberOfOu
 # 
 # 
 # 
-# ##example 2 ... mtcars
-# 
+# ##example 2 ... 
 # res<-LOFCraft(mtcars,threshold = 1.25,k = c(5:10)) ##calling LOF 
 # outlier.scores=data.frame(res[1])  ## scores for the original data
-# #str(outlier.scores) 
+# str(outlier.scores) 
 # withoutOutliers.scores=data.frame(res[2]) ## scores of data without outliers
-# #str(withoutOutliers.scores)  
+# str(withoutOutliers.scores)  
 # dataWithoutOutliers<-data.frame(res[3])  ##the data without outliers
-# #str(dataWithoutOutliers)
+# str(dataWithoutOutliers)
 # #View(dataWithoutOutliers)
 # howManyOutliers<-as.numeric(res[4]) ## the total number of outliers
 # outliers=data.frame(res[5])  ## the positions of the outliers in the original data and theirs respective scores
-# #str(outliers)
+# str(outliers)
 # 
-# DensityPlot(outlier.scores, ncol(outlier.scores)) #Generating a plot of outliers scores
+#DensityPlot(outlier.scores, ncol(outlier.scores)) #Generating a plot of outliers scores
 # DensityPlot(withoutOutliers.scores, ncol(outlier.scores)) #Generating a plot of outliers scores
-
+# 
 
 

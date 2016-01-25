@@ -75,7 +75,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
             noiseRemoval("")
     ),
     tabItem(tabName = "outlier",
-            localOutlier("")
+            localOutlier("Local outlier factor")
     ),
     tabItem(tabName = "normalization",
             normalizations("Normalization")
@@ -390,26 +390,52 @@ server <- function(input, output, session) {
   #************************************************
   #-------------> Local outlier factor
   
+  #llamado a la funcion lof, la cual devuelve una lista
+  res <- reactive({
+    LOFCraft(missingV(), input$threshold, c(5:10)) ##calling LOF 
+  })
+  
+  ## scores for the original data
+  outlier.scores <- reactive({
+    data.frame(res()[1]) 
+  })
+  
   #Slider visualizacion grafico de missing VIM option2
   output$sliderLOF <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("xlof", label = strx, min = 1, 
-                  max = dim(missingV())[2], value = 1),
-      sliderInput("ylof", label = "Cut", min = 1, 
-                  max = dim(missingV())[1], value = 2)
-    )
+      sliderInput("threshold", label = "Threshold", min = round(min(outlier.scores()), digits=4), 
+                  max = round(max(outlier.scores()), digits=4), value = 1.25)
+  })
+  
+  ## scores for the without outliers data
+  withoutOutliers.scores <- reactive({
+    data.frame(res()[2]) ## scores of data without outliers
   })
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
-    #DensityPlot(missingV(), input$xlof)
-     res<-LOFCraft(mtcars, 1.25, c(5:10)) ##calling LOF 
-     outlier.scores <- data.frame(res[1])  ## scores for the original data
-     DensityPlot(outlier.scores, ncol(outlier.scores))
+     DensityPlot(outlier.scores(), ncol(outlier.scores()))
   })
   
+  #Grafico resultante tras realizar corte del primer density
+  output$densityPlotResult <- renderPlot({
+    DensityPlot(withoutOutliers.scores(), ncol(outlier.scores())) #Generating a plot of outliers scores
+  })
+  
+  #Cantaidad de outlier existentes
+  output$howManyOutliers <- renderPrint({
+    as.numeric(res()[4])
+  })
+  
+  #Posicion de los outlier en el archivo
+  output$posOutliers <- renderPrint({
+    data.frame(res()[5])  ## the positions of the outliers in the original data and theirs respective scores
+  })
+  
+  #without outliers data
+  output$strWithoutOutliers <- renderPrint({
+    dataWithoutOutliers<-data.frame(res()[3])  ##the data without outliers
+    str(dataWithoutOutliers)
+  })
   
   #************************************************
   #-------------> Normalization
