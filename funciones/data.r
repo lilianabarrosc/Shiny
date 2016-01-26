@@ -35,12 +35,15 @@ tabsVisualization <- function(title, tab1, tab2) {
                 <li>Data</li>
                 <li>Visualization</li>
                 </ul>'),
+           box( width = 12, title = "Change color palette", solidHeader = TRUE,
+                collapsible = TRUE, collapsed = TRUE,
+                colors("col1","col2","col3")
+           ),
            tabBox(
              title = title,
              width = 12,
              id = "tabset1",
              tabPanel(tab1,
-                      colors("col1", "col2", "col3"),
                       #contenido del tab1 = Scatter plot 1
                       tab_grafics("scatter1",  tools_general_grafics("radio0", "note0", "save0", "cancel0",
                                                                      "download0", uiOutput("slider_range_range_density"), 

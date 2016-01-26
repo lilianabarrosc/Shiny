@@ -200,7 +200,7 @@ server <- function(input, output, session) {
   
   #----------> Graficos de visualizacion
   
-  #Actualizo el mÃ¡ximo del slider con el valor del tamaÃ±o del archivo seleccionado
+  #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
     box(
       width = 6, status = "success",
@@ -238,6 +238,7 @@ server <- function(input, output, session) {
 #     }
     
     #plot(dat[,1], col = cols[1])
+
     myPalette <- c(input$col1, input$col2, input$col3)
     ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
                       names(only_file_nums())[[input$y1]], colours = myPalette)
@@ -283,9 +284,10 @@ server <- function(input, output, session) {
     if(is.null(input$x2) || is.na(input$x2)){
       return()
     }
+    myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
     ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], 1, input$alphaLine, TRUE)
+                 names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
   })
   
   #*********************************************
@@ -691,7 +693,8 @@ server <- function(input, output, session) {
   
   #grafico residual vs fitted
   output$ResidualsFitted <- renderPlot({
-    ResidualsFitted(diagnostic(), input$lm_y)
+    myPalette <- c(input$col1, input$col2, input$col3)
+    ResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
   })
   
   #muestra informacion de los puntos seleccionados
@@ -701,7 +704,8 @@ server <- function(input, output, session) {
   
   #grafico Standarized Residuals v/s Fitted Values
   output$StResidualsFitted <- renderPlot({
-    StResidualsFitted(diagnostic(), input$lm_y)
+    myPalette <- c(input$col1, input$col2, input$col3)
+    StResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
   })
   
   #muestra informacion de los puntos seleccionados
@@ -721,7 +725,8 @@ server <- function(input, output, session) {
   
   #grafico residual vs leverage
   output$StResidualsLeverange <- renderPlot({
-    StResidualsLeverange(diagnostic(), input$lm_y)
+    myPalette <- c(input$col1, input$col2, input$col3)
+    StResidualsLeverange(diagnostic(), input$lm_y, colours = myPalette)
   })
   
   #muestra informacion de los puntos seleccionados
