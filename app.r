@@ -346,7 +346,8 @@ server <- function(input, output, session) {
     if(is.null(input$attributes) || is.na(input$attributes)){
       return()
     }
-    missmap(selectedData1(), main = "Missing values vs observed")
+    #missmap(selectedData1(), main = "Missing values vs observed")
+    matrixplot(selectedData1())
   })
   
 #   #---------descarga del grafico opcion 1
