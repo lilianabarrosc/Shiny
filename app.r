@@ -101,6 +101,23 @@ body <- dashboardBody(includeCSS("css/styles.css"),
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
 ui <- dashboardPage(skin = "green", dbHeader, sidebar(), body)
 
+
+# This function generates the client-side HTML for a URL input
+urlInput <- function(inputId, label, value = "") {
+  tagList(
+    # This makes web page load the JS file in the HTML head.
+    # The call to singleton ensures it's only included once
+    # in a page.
+    shiny::singleton(
+      shiny::tags$head(
+        shiny::tags$script(src = "url-input-binding.js")
+      )
+    ),
+    shiny::tags$label(label, `for` = inputId),
+    shiny::tags$input(id = inputId, type = "url", value = value)
+  )
+}
+
 #--------------------Servidor-------------------
 
 server <- function(input, output, session) {
@@ -145,23 +162,29 @@ server <- function(input, output, session) {
     if (is.null(input$select_file))
       return()
     switch(input$select_file,
-           '4' = fileInput('file1', 'Choose CSV File',
-                           accept=c('text/csv', 
-                                    'text/comma-separated-values,text/plain', 
-                                    '.csv'))
-    )
+           #Cargar archivo desde el equipo o mediante una URL
+            '4' = fileInput('file1', 'Choose CSV File',
+                           accept=c('text/csv', 'text/comma-separated-values,text/plain', 
+                                    '.csv')),
+            '5' = column(6, 
+                        textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
+                        actionButton("upload", label = "Upload")
+                    )
+      )
   })
   
   #Seleccion de data set a utilizar
   file <- reactive({
     inFile <- input$file1
-    if (is.null(input$select_file))
+    if (is.null(input$select_file) && is.null(input$url))
       return()
     switch(input$select_file,
            '1'= iris,
            '2'= airquality,
-           '3'= read.csv("https://dl.dropboxusercontent.com/u/12599702/autosclean.csv", sep = ";", dec = ","),
-           '4'= read.csv(inFile$datapath)
+           '3'= sleep,
+           '4'= read.csv(inFile$datapath),
+           '5'= if(input$upload)
+                  read.csv(input$url, sep = ";", dec = ",")
     )
   })
   

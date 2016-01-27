@@ -1,9 +1,9 @@
 source('funciones/generalTools.r')
 
-data_sets <- list("iris" = 1, "airquality" = 2, "cars" = 3, "new" = 4)
+data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3, "Upload file" = 4, "URL file" = 5)
 #vista que muestra el listado de data set utilizados
 viewData <- function() {
-  fluidPage(
+  fluidRow(
     column(width = 12,
            #BreadCrumds de reduccion de la dimencionalidad     
            HTML('
