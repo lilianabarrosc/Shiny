@@ -9,7 +9,7 @@ library('RegressionLibs')
 #install.packages("Amelia") or sudo apt-get install r-cran-amelia
 #install.packages("Amelia", repos="http://r.iq.harvard.edu", type = "source")
 #http://gking.harvard.edu/amelia/ 
-library('Amelia')
+#library('Amelia')
 #install.packages("VIM") #sudo apt-get install r-cran-rcppeigen para amazon
 library('VIM')
 #install.packages("clusterSim")
@@ -45,16 +45,17 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                      #imageOutput("home")
                      titlePanel("Welcome to Güiña!"),
                      sidebarLayout(
-                       sidebarPanel(imageOutput("home")),
-                       mainPanel(
-                         p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
+                       sidebarPanel(p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
                            Chile. This smart predator relies on its senses to identify and capture the prey, 
-                           usually sheltered in the dense and obscure forest."),
-                         p("This clever feline served us as inspiration to build a data mining tools for 
-                           visualizing an analyzing data. From our perspective, the data miner acts as a 
-                           furtive predator of precious information hidden in the dark data forest."),
-                         p("Coincidentally the name Güiña begins with the three letters GUI which also 
-                           stands for the acronym for Graphical User Interface (GUI).")
+                                      usually sheltered in the dense and obscure forest."),
+                                    p("This clever feline served us as inspiration to build a data mining tools for 
+                                      visualizing an analyzing data. From our perspective, the data miner acts as a 
+                                      furtive predator of precious information hidden in the dark data forest."),
+                                    p("Coincidentally the name Güiña begins with the three letters GUI which also 
+                                      stands for the acronym for Graphical User Interface (GUI).")
+                         ),
+                       mainPanel(
+                         imageOutput("home")
                          )
                       )
                  )
@@ -261,10 +262,13 @@ server <- function(input, output, session) {
 #     }
     
     #plot(dat[,1], col = cols[1])
-
     myPalette <- c(input$col1, input$col2, input$col3)
-    ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
-                      names(only_file_nums())[[input$y1]], colours = myPalette)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
+                        names(only_file_nums())[[input$y1]], colours = myPalette)
+    })
+
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -309,8 +313,12 @@ server <- function(input, output, session) {
     }
     myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
-    ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                 names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
+    withProgress({
+      setProgress(message = "This may take a while...")
+        ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
+                     names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
+    })
+    
   })
   
   #*********************************************
@@ -347,7 +355,10 @@ server <- function(input, output, session) {
       return()
     }
     #missmap(selectedData1(), main = "Missing values vs observed")
-    matrixplot(selectedData1())
+    withProgress({
+      setProgress(message = "This may take a while...")
+      matrixplot(selectedData1())
+    })
   })
   
 #   #---------descarga del grafico opcion 1
@@ -381,9 +392,12 @@ server <- function(input, output, session) {
     if(is.null(input$attributes2) || is.na(input$attributes2)){
       return()
     }
-    aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
-         sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
-         ylab=c("Histogram of missing data","Pattern"))
+    withProgress({
+      setProgress(message = "This may take a while...")
+      aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
+           sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
+           ylab=c("Histogram of missing data","Pattern"))
+    })
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -418,7 +432,10 @@ server <- function(input, output, session) {
   
   #llamado a la funcion lof, la cual devuelve una lista
   res <- reactive({
-    LOFCraft(missingV(), input$threshold, c(5:10)) ##calling LOF 
+    withProgress({
+      setProgress(message = "This may take a while...")
+      LOFCraft(missingV(), input$threshold, c(5:10)) ##calling LOF 
+    })
   })
   
   ## scores for the original data
@@ -439,12 +456,18 @@ server <- function(input, output, session) {
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
-     DensityPlot(outlier.scores(), ncol(outlier.scores()))
+    withProgress({
+      setProgress(message = "This may take a while...")
+      DensityPlot(outlier.scores(), ncol(outlier.scores()))
+    })
   })
   
   #Grafico resultante tras realizar corte del primer density
   output$densityPlotResult <- renderPlot({
-    DensityPlot(withoutOutliers.scores(), ncol(outlier.scores())) #Generating a plot of outliers scores
+    withProgress({
+      setProgress(message = "This may take a while...")
+      DensityPlot(withoutOutliers.scores(), ncol(outlier.scores())) #Generating a plot of outliers scores
+    })
   })
   
   #Cantaidad de outlier existentes
@@ -512,9 +535,18 @@ server <- function(input, output, session) {
     if (is.null(input$normalizationType))
       return()
     switch(input$normalizationType,
-           '1'= normalizeData(missingV()),
-           '2'= normalizeData(missingV(), input$min, input$max),
-           '3'= data.Normalization(missingV(),type=input$type_normalization ,normalization= input$type)
+           '1'=  withProgress({
+                  setProgress(message = "This may take a while...")
+                  normalizeData(missingV())
+                  }),
+           '2'=  withProgress({
+                  setProgress(message = "This may take a while...")
+                  normalizeData(missingV(), input$min, input$max)
+                  }),
+           '3'=  withProgress({
+                   setProgress(message = "This may take a while...") 
+                   data.Normalization(missingV(),type=input$type_normalization ,normalization= input$type)
+                  })
     )
   })
   
@@ -568,7 +600,10 @@ server <- function(input, output, session) {
     if(is.null(input$attributes3) || is.na(input$attributes3)){
       return()
     }
-    elbowPlot(pca())
+    withProgress({
+      setProgress(message = "This may take a while...")
+      elbowPlot(pca())
+    })
   })
   
   #Informacion resumen de los pc's obtenidos
@@ -596,7 +631,10 @@ server <- function(input, output, session) {
   
   #grafico para SVD
   output$svd <- renderPlot({
-    plot(cumsum(s()$d^2/sum(s()$d^2))) 
+    withProgress({
+      setProgress(message = "This may take a while...")
+      plot(cumsum(s()$d^2/sum(s()$d^2))) 
+    })
   })
   
   output$s <- renderPrint({
@@ -627,47 +665,11 @@ server <- function(input, output, session) {
   output$nremoval <- renderPlot({
     #iris.x <- iris[,1:4]
     ir.pca <- prcomp(selectedDataNremoval(), center = TRUE, scale. = TRUE)
-    elbowPlot(ir.pca)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      elbowPlot(ir.pca)
+    })
   })
-  
-  #************************************************
-  #-------------> Outlier
-  
-  output$rsidualFitted <- renderImage({
-    list(
-      src = "images/residual_f.png",
-      contentType = 'image/png',
-      width = 400,
-      height = 400,
-      alt = "Home")
-  }, deleteFile = FALSE)
-  
-  output$sacaleLocation <- renderImage({
-    list(
-      src = "images/scale.png",
-      contentType = 'image/png',
-      width = 400,
-      height = 400,
-      alt = "Home")
-  }, deleteFile = FALSE)
-  
-  output$normalQQ <- renderImage({
-    list(
-      src = "images/normal.png",
-      contentType = 'image/png',
-      width = 400,
-      height = 400,
-      alt = "Home")
-  }, deleteFile = FALSE)
-  
-  output$residualLeverage <- renderImage({
-    list(
-      src = "images/residual_l.png",
-      contentType = 'image/png',
-      width = 400,
-      height = 400,
-      alt = "Home")
-  }, deleteFile = FALSE)
   
   #-------------------------------------------------------
   #-----------------------> Train <-----------------------
@@ -701,7 +703,10 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$summary_lm <- renderPrint({
-    summary(fit())
+    withProgress({
+      setProgress(message = "This may take a while...")
+      summary(fit())
+    })
   })
   
   #-------------------------------------------------------
@@ -718,7 +723,10 @@ server <- function(input, output, session) {
   #grafico residual vs fitted
   output$ResidualsFitted <- renderPlot({
     myPalette <- c(input$col1, input$col2, input$col3)
-    ResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      ResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -729,7 +737,10 @@ server <- function(input, output, session) {
   #grafico Standarized Residuals v/s Fitted Values
   output$StResidualsFitted <- renderPlot({
     myPalette <- c(input$col1, input$col2, input$col3)
-    StResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      StResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -739,7 +750,10 @@ server <- function(input, output, session) {
   
   #grafico normal Q-Q
   output$NormalQQ <- renderPlot({
-    NormalQQ(diagnostic(), input$lm_y)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      NormalQQ(diagnostic(), input$lm_y)
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -750,7 +764,10 @@ server <- function(input, output, session) {
   #grafico residual vs leverage
   output$StResidualsLeverange <- renderPlot({
     myPalette <- c(input$col1, input$col2, input$col3)
-    StResidualsLeverange(diagnostic(), input$lm_y, colours = myPalette)
+    withProgress({
+      setProgress(message = "This may take a while...")
+      StResidualsLeverange(diagnostic(), input$lm_y, colours = myPalette)
+    })
   })
   
   #muestra informacion de los puntos seleccionados
