@@ -6,7 +6,14 @@ head <- function() {
                                              tags$img(src='images/gato.jpg',height='60',width='200'))
 }
 
-#opciones del sidebar
+#opciones del sidebar para todo usuario (pagina principal o de inicio)
+sidebarHome <- function(){
+  dashboardSidebar(sidebarMenu(
+    menuItem("Home", tabName = "home", icon = icon("home"))
+  ))
+}
+
+#opciones del sidebar para usuario logeado
 sidebar <- function() {
   dashboardSidebar(sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),

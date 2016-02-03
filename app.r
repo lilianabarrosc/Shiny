@@ -28,9 +28,12 @@ source('funciones/data.r')
 source('funciones/regresion.r')
 source('funciones/outlier.r')
 source('funciones/LOF.R')
+source('funciones/home.r')
 
 #variable global que con el color de los slider
 dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
+my_username <- c("test","admin") #dos usuarios test y admin
+my_password <- c("test","123") # las claves de los usuarios
 
 dbHeader <- dashboardHeader()
 dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
@@ -39,27 +42,9 @@ dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/log
 body <- dashboardBody(includeCSS("css/styles.css"),
   tabItems( 
     #Tab del home
-    tabItem(tabName = "home", #h2("Working...")
-            fluidRow(
-              column(12,
-                     #imageOutput("home")
-                     titlePanel("Welcome to Güiña!"),
-                     sidebarLayout(
-                       sidebarPanel(p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
-                           Chile. This smart predator relies on its senses to identify and capture the prey, 
-                                      usually sheltered in the dense and obscure forest."),
-                                    p("This clever feline served us as inspiration to build a data mining tools for 
-                                      visualizing an analyzing data. From our perspective, the data miner acts as a 
-                                      furtive predator of precious information hidden in the dark data forest."),
-                                    p("Coincidentally the name Güiña begins with the three letters GUI which also 
-                                      stands for the acronym for Graphical User Interface (GUI).")
-                         ),
-                       mainPanel(
-                         imageOutput("home")
-                         )
-                      )
-                 )
-            )
+    tabItem(tabName = "home",
+            #llamado a funcion home
+            home()
           ),
     #Tab del data
     tabItem(tabName = "source",
@@ -100,7 +85,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
-ui <- dashboardPage(skin = "green", dbHeader, sidebar(), body)
+ui <- dashboardPage(skin = "green", dbHeader, uiOutput("side"), body)
 
 
 # This function generates the client-side HTML for a URL input
@@ -141,7 +126,54 @@ server <- function(input, output, session) {
     height = 250,
     alt = "Logo")
   }, deleteFile = FALSE)
-    
+  
+  #---------------> login
+  #inicio la variable user
+  USER <- reactiveValues(Logged = FALSE,role=NULL)
+  
+  #se valida el nombre del usuario con la contraseña ingresada
+  observe({ 
+    if (USER$Logged == FALSE) {
+      if (!is.null(input$Login)) {
+        if (input$Login > 0) {
+          Username <- isolate(input$userName)
+          Password <- isolate(input$passwd)
+          Id.username <- which(my_username == Username)
+          Id.password <- which(my_password == Password)
+          if (length(Id.username) > 0 & length(Id.password) > 0) {
+            if (Id.username == Id.password) {
+              USER$Logged <- TRUE
+              USER$role=get_role(Username)
+              
+            }
+          } 
+        }
+      }
+    }
+  })
+  
+  #Se muestran las opciones correspondientes para un usuario logeado o no
+  observe({
+    if (USER$Logged == FALSE){ # si no esta logeado, solo se muestra el home
+      
+      output$signIn <- renderUI({
+        loginRegister()
+      })
+      
+      #menu del sidebar
+      output$side <- renderUI({
+        sidebarHome()
+      })
+      
+    }
+    if (USER$Logged == TRUE){ # el usuario esta logeado, se muestran todas las opciones
+      
+      #menu del sidebar
+      output$side <- renderUI({
+        sidebar()
+      })
+    }
+  })
   
   # -------------> Lectura de archivo
 #   output$contents <- renderDataTable(
