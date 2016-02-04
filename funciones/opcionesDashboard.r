@@ -8,14 +8,14 @@ head <- function() {
 
 #opciones del sidebar para todo usuario (pagina principal o de inicio)
 sidebarHome <- function(){
-  dashboardSidebar(sidebarMenu(
+  sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home"))
-  ))
+  )
 }
 
 #opciones del sidebar para usuario logeado
 sidebar <- function() {
-  dashboardSidebar(sidebarMenu(
+  sidebarMenu(
     menuItem("Home", tabName = "home", icon = icon("home")),
     menuItem("Data", tabName = "data",
              menuSubItem("Source", tabName = "source", icon = shiny::icon("angle-double-right")),
@@ -46,5 +46,5 @@ sidebar <- function() {
              menuSubItem("5X2CV", tabName = "5x2")
              ),
     menuItem("Report", tabName = "report")
-  ))
+  )
 }

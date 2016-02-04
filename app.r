@@ -44,7 +44,26 @@ body <- dashboardBody(includeCSS("css/styles.css"),
     #Tab del home
     tabItem(tabName = "home",
             #llamado a funcion home
-            home()
+            #home()
+            fluidPage(
+              column(6,
+                     titlePanel("Welcome to Güiña!"),
+                     wellPanel(
+                       p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
+                         Chile. This smart predator relies on its senses to identify and capture the prey, 
+                         usually sheltered in the dense and obscure forest."),
+                       p("This clever feline served us as inspiration to build a data mining tools for 
+                         visualizing an analyzing data. From our perspective, the data miner acts as a 
+                         furtive predator of precious information hidden in the dark data forest."),
+                       p("Coincidentally the name Güiña begins with the three letters GUI which also 
+                         stands for the acronym for Graphical User Interface (GUI).")
+                       ),
+                     imageOutput("home")
+              ),
+              column(6,
+                     uiOutput("signIn")
+              )
+            )
           ),
     #Tab del data
     tabItem(tabName = "source",
@@ -85,24 +104,10 @@ body <- dashboardBody(includeCSS("css/styles.css"),
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
-ui <- dashboardPage(skin = "green", dbHeader, uiOutput("side"), body)
-
-
-# This function generates the client-side HTML for a URL input
-urlInput <- function(inputId, label, value = "") {
-  tagList(
-    # This makes web page load the JS file in the HTML head.
-    # The call to singleton ensures it's only included once
-    # in a page.
-    shiny::singleton(
-      shiny::tags$head(
-        shiny::tags$script(src = "url-input-binding.js")
-      )
-    ),
-    shiny::tags$label(label, `for` = inputId),
-    shiny::tags$input(id = inputId, type = "url", value = value)
-  )
-}
+ui <- dashboardPage(skin = "green", 
+                    dbHeader, 
+                    dashboardSidebar(uiOutput("side")), 
+                    body)
 
 #--------------------Servidor-------------------
 
@@ -167,6 +172,12 @@ server <- function(input, output, session) {
       
     }
     if (USER$Logged == TRUE){ # el usuario esta logeado, se muestran todas las opciones
+      
+      output$signIn <- renderUI({
+        fluidPage(
+                 titlePanel("Welcome!")
+        )
+      })
       
       #menu del sidebar
       output$side <- renderUI({
@@ -322,8 +333,8 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("z2", label = strz, min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
-      sliderInput("lineSize", label = "Line Size", min = 1, 
-                  max = 5, value = 2),
+#       sliderInput("lineSize", label = "Line Size", min = 1, 
+#                   max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
                   max = 0.99, value = 0.11)
     )

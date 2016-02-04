@@ -68,3 +68,9 @@
     -o-transition: width .6s ease;
     transition: width .6s ease;
 }
+
+/*margen de la imagen*/
+element.style {
+    width: 351px;
+    height: 230px;
+}
