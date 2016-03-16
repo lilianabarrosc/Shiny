@@ -125,15 +125,6 @@ server <- function(input, output, session) {
       alt = "Logo")
   }, deleteFile = FALSE)
   
-  #--------------> tipo de archivo a descargar
-  fileDownloadName <- reactive({
-    
-    if(input$radioScatterplot =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
-    if(input$radioScatterplot =="2") filename <- paste0("guiniaPlotsvj",".svg",sep="")
-    if(input$radioScatterplot =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
-    return(filename)
-  })
-  
   #-------------------------------------------------------
   #-----------------------> home <-----------------------
   
@@ -201,19 +192,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  # -------------> Lectura de archivo
-  #   output$contents <- renderDataTable(
-  #     
-  #     #inFile <- input$file1
-  #     
-  #     #if (is.null(inFile))
-  #      # return(NULL)
-  #     
-  #     #read.csv(inFile$datapath, header=TRUE, sep=',', quote = '"')
-  #     datatable(iris, colnames = c('Data set', 'Size', 'Date', 'Dimensions', 'Actions'))
-  #   )
-  
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
   
@@ -274,8 +252,8 @@ server <- function(input, output, session) {
     aux[ , nums]
   }) 
   
-  #-------------------------------------------------------
-  #-----------------------> visualization <-----------------------
+  #***************************************
+  #-----------------------> visualization
   
   strx <- "Dependent variables"
   stry <- "Response variable"
@@ -318,16 +296,22 @@ server <- function(input, output, session) {
   
   #Grafico correspondiente a scatterPlot 
   output$scatter1 <- renderPlot({
-    if(is.null(scatterPlot())) {return()}
-    #ggsave("plot.pdf", scatterPlot())
     scatterPlot()
+  })
+  
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameScatter <- reactive({
+    if(input$radioScatterplot =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioScatterplot =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioScatterplot =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
   })
   
   #-------------->dowload image plot
   observe(
     if (input$radioScatterplot == 1){
       output$downloadPlot <- downloadHandler(
-        filename = fileDownloadName(), #nombre de la imagen a descargar
+        filename = fileDownloadNameScatter(), #nombre de la imagen a descargar
         content = function(file) {
           png(file)
           print(scatterPlot())
@@ -337,7 +321,7 @@ server <- function(input, output, session) {
     }
     else if(input$radioScatterplot == 2){
       output$downloadPlot <- downloadHandler(
-        filename = fileDownloadName(), #nombre de la imagen a descargar
+        filename = fileDownloadNameScatter(), #nombre de la imagen a descargar
         content = function(file) {
           svg(file)
           print(scatterPlot())
@@ -347,7 +331,7 @@ server <- function(input, output, session) {
     }
     else if(input$radioScatterplot == 3){
       output$downloadPlot <- downloadHandler(
-        filename = fileDownloadName(), #nombre de la imagen a descargar
+        filename = fileDownloadNameScatter(), #nombre del pdf a descargar
         content = function(file) {
           pdf(file = file, width=12, height=8)
           print(scatterPlot())
@@ -393,7 +377,8 @@ server <- function(input, output, session) {
     file()[,input$y2]
   })
   
-  output$parallel <- renderPlot({
+  #funcion que genera el grafico
+  parallelplot <- reactive({
     if(is.null(input$x2) || is.na(input$x2)){
       return()
     }
@@ -404,8 +389,57 @@ server <- function(input, output, session) {
       ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
                    names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
     })
-    
   })
+  
+  #grafico paralelo
+  output$parallel <- renderPlot({
+    print(parallelplot())
+  })
+  
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameParallel <- reactive({
+    if(input$radioParallelplot =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioParallelplot =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioParallelplot =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioParallelplot == 1){
+      output$downloadPlotPrallel <- downloadHandler(
+        filename = fileDownloadNameParallel(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(parallelplot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioParallelplot == 2){
+      output$downloadPlotPrallel <- downloadHandler(
+        filename = fileDownloadNameParallel(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(parallelplot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioParallelplot == 3){
+      output$downloadPlotPrallel <- downloadHandler(
+        filename = fileDownloadNameParallel(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(parallelplot())
+          dev.off()
+        }
+      )
+    }
+  )
+  
+  #-------------------------------------------------------
+  #-----------------------> Preprocessing <-----------------------
   
   #*********************************************
   #---------------> Graficos correspondientes a missing values

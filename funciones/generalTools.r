@@ -44,6 +44,7 @@ tab_grafics <- function(plot, options){
   )
 }
 
+#funcion que retorna la vista de la paleta de colores
 colors <- function(id1, id2, id3){
   fluidRow(
     column(width = 4,

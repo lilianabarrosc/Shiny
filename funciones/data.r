@@ -51,8 +51,8 @@ tabsVisualization <- function(title, tab1, tab2) {
              ),
              tabPanel(tab2, 
                       #contenido del tab2 = parallel grafics
-                      tab_grafics("parallel", tools_general_grafics("radio1", "note1", "save1", "cancel1",
-                                                                    "download1", uiOutput("slider_range_range_parallel"), 
+                      tab_grafics("parallel", tools_general_grafics("radioParallelplot", "note1", "save1", "cancel1",
+                                                                    "downloadPlotPrallel", uiOutput("slider_range_range_parallel"), 
                                                                     uiOutput("slider_range_range_parallel2")))
              )
            ) 
