@@ -32,82 +32,84 @@ source('funciones/home.r')
 
 #variable global que con el color de los slider
 dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
+
 my_username <- c("test","admin") #dos usuarios test y admin
 my_password <- c("test","123") # las claves de los usuarios
 
+#titulo de la pagina
 dbHeader <- dashboardHeader()
 dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/logo.jpg', height='30', width='70')
 
 #Cuerpo de la pagina
 body <- dashboardBody(includeCSS("css/styles.css"),
-  tabItems( 
-    #Tab del home
-    tabItem(tabName = "home",
-            #llamado a funcion home
-            #home()
-            fluidPage(
-              column(6,
-                     titlePanel("Welcome to Güiña!"),
-                     wellPanel(
-                       p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
-                         Chile. This smart predator relies on its senses to identify and capture the prey, 
-                         usually sheltered in the dense and obscure forest."),
-                       p("This clever feline served us as inspiration to build a data mining tools for 
-                         visualizing an analyzing data. From our perspective, the data miner acts as a 
-                         furtive predator of precious information hidden in the dark data forest."),
-                       p("Coincidentally the name Güiña begins with the three letters GUI which also 
-                         stands for the acronym for Graphical User Interface (GUI).")
-                       ),
-                     imageOutput("home")
-              ),
-              column(6,
-                     uiOutput("signIn")
-              )
-            )
-          ),
-    #Tab del data
-    tabItem(tabName = "source",
-            viewData()
-    ),
-    #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
-    tabItem(tabName = "visualization",
-            tabsVisualization("Visualization", "Scatter plot", "Parallel plot")
-    ),
-    tabItem(tabName = "mvalues",
-            tabsMissingValues("Missing values", "Box plot", "Histogram","Scatter plot")
-    ),
-    tabItem(tabName = "nremoval",
-            noiseRemoval("")
-    ),
-    tabItem(tabName = "outlier",
-            localOutlier("Local outlier factor")
-    ),
-    tabItem(tabName = "normalization",
-            normalizations("Normalization")
-    ),
-    tabItem(tabName = "pca",
-            pca("")
-    ),
-    tabItem(tabName = "svd",
-            svd2("")
-    ),
-    tabItem(tabName = "lm",
-            linearRegression()
-    ),
-    tabItem(tabName = "diagnosticP",
-            tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
-                        "Normal Q-Q", "Residual vs leverage")
-    )
-    
-    #Fin tabs Analisis exploratorio
-  )
+                    tabItems(
+                        #Tab del home
+                        tabItem(tabName = "home", #h2("Working...")
+                                fluidPage(
+                                  column(6,
+                                         titlePanel("Welcome to Güiña!"),
+                                         wellPanel(
+                                           p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
+                                             Chile. This smart predator relies on its senses to identify and capture the prey, 
+                                             usually sheltered in the dense and obscure forest."),
+                                           p("This clever feline served us as inspiration to build a data mining tools for 
+                                             visualizing an analyzing data. From our perspective, the data miner acts as a 
+                                             furtive predator of precious information hidden in the dark data forest."),
+                                           p("Coincidentally the name Güiña begins with the three letters GUI which also 
+                                             stands for the acronym for Graphical User Interface (GUI).")
+                                           ),
+                                         imageOutput("home")
+                                           ),
+                                  column(6,
+                                         hr(), hr(),
+                                         uiOutput("signIn")
+                                  )
+                              )
+                          ),
+                        #Tab del data
+                        tabItem(tabName = "source",
+                                viewData()
+                        ),
+                        #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
+                        tabItem(tabName = "visualization",
+                                tabsVisualization("Visualization", "Scatter plot", "Parallel plot")
+                        ),
+                        tabItem(tabName = "mvalues",
+                                tabsMissingValues("Missing values", "Box plot", "Histogram","Scatter plot")
+                        ),
+                        tabItem(tabName = "nremoval",
+                                noiseRemoval("")
+                        ),
+                        tabItem(tabName = "outlier",
+                                localOutlier("Local outlier factor")
+                        ),
+                        tabItem(tabName = "normalization",
+                                normalizations("Normalization")
+                        ),
+                        tabItem(tabName = "pca",
+                                pca("")
+                        ),
+                        tabItem(tabName = "svd",
+                                svd2("")
+                        ),
+                        tabItem(tabName = "lm",
+                                linearRegression()
+                        ),
+                        tabItem(tabName = "diagnosticP",
+                                tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
+                                                "Normal Q-Q", "Residual vs leverage")
+                        )
+                        
+                        #Fin tabs Analisis exploratorio
+                  )
 )
 #--------------------Cliente-------------------
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
 ui <- dashboardPage(skin = "green", 
                     dbHeader, 
-                    dashboardSidebar(uiOutput("side")), 
-                    body)
+                    dashboardSidebar(sidebarMenuOutput("side")),
+                    body #dashboardBody()
+                    )
 
 #--------------------Servidor-------------------
 
@@ -125,11 +127,11 @@ server <- function(input, output, session) {
   #--------------> home
   output$home <- renderImage({
     list(
-    src = "images/logo.png",
-    contentType = 'image/png',
-    width = 400,
-    height = 250,
-    alt = "Logo")
+      src = "images/logo.png",
+      contentType = 'image/png',
+      width = 400,
+      height = 250,
+      alt = "Logo")
   }, deleteFile = FALSE)
   
   #---------------> login
@@ -166,8 +168,8 @@ server <- function(input, output, session) {
       })
       
       #menu del sidebar
-      output$side <- renderUI({
-        sidebarHome()
+      output$side <- renderMenu({
+        sidebar(FALSE)
       })
       
     }
@@ -175,28 +177,30 @@ server <- function(input, output, session) {
       
       output$signIn <- renderUI({
         fluidPage(
-                 titlePanel("Welcome!")
+          titlePanel("Welcome!")
         )
       })
       
       #menu del sidebar
-      output$side <- renderUI({
-        sidebar()
+      output$side <- renderMenu({
+        sidebar(TRUE, USER$role)
       })
+
     }
   })
   
+  
   # -------------> Lectura de archivo
-#   output$contents <- renderDataTable(
-#     
-#     #inFile <- input$file1
-#     
-#     #if (is.null(inFile))
-#      # return(NULL)
-#     
-#     #read.csv(inFile$datapath, header=TRUE, sep=',', quote = '"')
-#     datatable(iris, colnames = c('Data set', 'Size', 'Date', 'Dimensions', 'Actions'))
-#   )
+  #   output$contents <- renderDataTable(
+  #     
+  #     #inFile <- input$file1
+  #     
+  #     #if (is.null(inFile))
+  #      # return(NULL)
+  #     
+  #     #read.csv(inFile$datapath, header=TRUE, sep=',', quote = '"')
+  #     datatable(iris, colnames = c('Data set', 'Size', 'Date', 'Dimensions', 'Actions'))
+  #   )
   
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
@@ -207,14 +211,14 @@ server <- function(input, output, session) {
       return()
     switch(input$select_file,
            #Cargar archivo desde el equipo o mediante una URL
-            '4' = fileInput('file1', 'Choose CSV File',
+           '4' = fileInput('file1', 'Choose CSV File',
                            accept=c('text/csv', 'text/comma-separated-values,text/plain', 
                                     '.csv')),
-            '5' = column(6, 
+           '5' = column(6, 
                         textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
                         actionButton("upload", label = "Upload")
-                    )
-      )
+           )
+    )
   })
   
   #Seleccion de data set a utilizar
@@ -228,7 +232,7 @@ server <- function(input, output, session) {
            '3'= sleep,
            '4'= read.csv(inFile$datapath),
            '5'= if(input$upload)
-                  read.csv(input$url, sep = ";", dec = ",")
+             read.csv(input$url, sep = ";", dec = ",")
     )
   })
   
@@ -249,7 +253,7 @@ server <- function(input, output, session) {
   #----------> dimensionalidad del archivo
   #Con dim puedo saber la cantidad de atributos y observaciones que posee el archivo,
   #en dim(data)[1] se pueden encontrar la cantidad de observaciones y en dim(data)[2] la 
-
+  
   #*************************************************
   #----------> Sacar columnas con valores nominales
   only_file_nums <- reactive({
@@ -292,17 +296,17 @@ server <- function(input, output, session) {
       return()
     }
     
-#     #Progress
-#     progress <- shiny::Progress$new(session, min=1, max=10)
-#     on.exit(progress$close())
-#     
-#     progress$set(message = 'Calculation in progress',
-#                  detail = 'This may take a while...')
-#     
-#     for (i in 1:8) {
-#       progress$set(value = i)
-#       Sys.sleep(0.5)
-#     }
+    #     #Progress
+    #     progress <- shiny::Progress$new(session, min=1, max=10)
+    #     on.exit(progress$close())
+    #     
+    #     progress$set(message = 'Calculation in progress',
+    #                  detail = 'This may take a while...')
+    #     
+    #     for (i in 1:8) {
+    #       progress$set(value = i)
+    #       Sys.sleep(0.5)
+    #     }
     
     #plot(dat[,1], col = cols[1])
     myPalette <- c(input$col1, input$col2, input$col3)
@@ -311,7 +315,7 @@ server <- function(input, output, session) {
       ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
                         names(only_file_nums())[[input$y1]], colours = myPalette)
     })
-
+    
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -333,8 +337,8 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("z2", label = strz, min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
-#       sliderInput("lineSize", label = "Line Size", min = 1, 
-#                   max = 5, value = 2),
+      sliderInput("lineSize", label = "Line Size", min = 1, 
+                  max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
                   max = 0.99, value = 0.11)
     )
@@ -358,8 +362,8 @@ server <- function(input, output, session) {
     # A ParallelPlot of all rows and all columns
     withProgress({
       setProgress(message = "This may take a while...")
-        ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                     names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
+      ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
+                   names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
     })
     
   })
@@ -374,7 +378,7 @@ server <- function(input, output, session) {
       only_file_nums()
   })
   
-   #Slider visualizacion grafico de missing values Amelia
+  #Slider visualizacion grafico de missing values Amelia
   output$slider_range_range_amelia <- renderUI({
     box(
       width = 6, status = "success",
@@ -404,14 +408,14 @@ server <- function(input, output, session) {
     })
   })
   
-#   #---------descarga del grafico opcion 1
-# #   downloadInput <- reactive({
-# #     switch(input$radio,
-# #            '1' = '.png',
-# #            '2' = '.svg',
-# #            '3' = '.pdf')
-# #   })
-#   
+  #   #---------descarga del grafico opcion 1
+  # #   downloadInput <- reactive({
+  # #     switch(input$radio,
+  # #            '1' = '.png',
+  # #            '2' = '.svg',
+  # #            '3' = '.pdf')
+  # #   })
+  #   
   #Slider visualizacion grafico de missing VIM option1
   output$slider_range_range_option1 <- renderUI({
     box(
@@ -427,7 +431,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
   selectedData2 <- reactive({
     missingV()[input$observation2[1]:input$observation2[2], 
-           input$attributes2[1]:input$attributes2[2]]
+               input$attributes2[1]:input$attributes2[2]]
   })
   
   #Opcion 2 (libreria VIM)
@@ -488,8 +492,8 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$sliderLOF <- renderUI({
-      sliderInput("threshold", label = "Threshold", min = round(min(outlier.scores()), digits=4), 
-                  max = round(max(outlier.scores()), digits=4), value = 1.25)
+    sliderInput("threshold", label = "Threshold", min = round(min(outlier.scores()), digits=4), 
+                max = round(max(outlier.scores()), digits=4), value = 1.25)
   })
   
   ## scores for the without outliers data
@@ -543,7 +547,7 @@ server <- function(input, output, session) {
                             tags$div( class = 'col-sm-4',
                                       numericInput("max", label = "Max", value = 1)
                             )
-                  ),
+           ),
            '3'= tags$div( class = 'col-sm-8',
                           selectInput("type_normalization", label = "Other normalization", 
                                       choices = list("without normalization" = "n0", 
@@ -565,7 +569,7 @@ server <- function(input, output, session) {
                                                      "normalization ((x-mean)/sqrt(sum((x-mean)^2)))" = "n12",
                                                      "positional normalization ((x-median)/sqrt(sum((x-median)^2)))" = "n12a",
                                                      "normalization with zero being the central point ((x-midrange)/(range/2))" = "n13") 
-                                      ),
+                          ),
                           radioButtons("type", label = "Type",
                                        choices = list("Column" = "column", "Row" = "row")
                           )
@@ -579,17 +583,17 @@ server <- function(input, output, session) {
       return()
     switch(input$normalizationType,
            '1'=  withProgress({
-                  setProgress(message = "This may take a while...")
-                  normalizeData(missingV())
-                  }),
+             setProgress(message = "This may take a while...")
+             normalizeData(missingV())
+           }),
            '2'=  withProgress({
-                  setProgress(message = "This may take a while...")
-                  normalizeData(missingV(), input$min, input$max)
-                  }),
+             setProgress(message = "This may take a while...")
+             normalizeData(missingV(), input$min, input$max)
+           }),
            '3'=  withProgress({
-                   setProgress(message = "This may take a while...") 
-                   data.Normalization(missingV(),type=input$type_normalization ,normalization= input$type)
-                  })
+             setProgress(message = "This may take a while...") 
+             data.Normalization(missingV(),type=input$type_normalization ,normalization= input$type)
+           })
     )
   })
   
@@ -631,7 +635,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos y observaciones para pca
   selectedDataPCA <- reactive({
     missingV()[input$observation3[1]:input$observation3[2], 
-           input$attributes3[1]:input$attributes3[2]]
+               input$attributes3[1]:input$attributes3[2]]
   })
   
   pca <- reactive({
@@ -741,7 +745,7 @@ server <- function(input, output, session) {
     else
       (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
     
-   lm(fmla, data=reduceDimensionality())
+    lm(fmla, data=reduceDimensionality())
   })
   
   #Resultado obtenido tras aplicar el  modelo
@@ -754,12 +758,12 @@ server <- function(input, output, session) {
   
   #-------------------------------------------------------
   #-----------------------> outlier <-----------------------
-
+  
   #-----------------------> Diagnostic Plots
   
-    diagnostic <- reactive({
-      diagnosticData(fit())
-    })
+  diagnostic <- reactive({
+    diagnosticData(fit())
+  })
   
   #Obtengo la seleccion de atributos y observaciones para grafico residual vs fitted
   

@@ -1,0 +1,47 @@
+#install.packages("RPostgreSQL")
+library(RPostgreSQL)
+
+#Lectura del driver para postgress
+drv <- dbDriver("PostgreSQL")
+dbListConnections(drv)
+dbGetInfo(drv)
+
+#Abrir una conexion
+#con <- dbConnect(drv, dbname="nombreBD")
+con <- dbConnect(drv, host='localhost', port='5432', dbname='nombreBD',
+                 user='userBD', password='passwordBD')
+
+summary(con)
+
+dbGetException(con) #Retorna las excepciones de la conexion
+dbListResults(con) #lista de conexiones
+dbListTables(con) #lista de tablas de la bd
+dbExistsTable(con,"TableName") #chequea la exixtencia de la tabla
+dbRemoveTable(con,"TableName") #eliminar una tabla en especifico
+dbListFields(con,"register") #retorna la lista de columnas de una tabla
+
+#enviar una consulta a una tabla determinada
+rs <- dbSendQuery(con, "select * from register")
+dbColumnInfo(rs) #informacion de atributos de una tabla previamente consultada
+
+#retorna todos los elementos de la consulta
+fetch(rs,n=-1)
+fetch(rs,n=2) # retorna los ultimos dos elementos grabados
+
+dframe <-dbReadTable(con,"register") #transforma en data set los datos de la tabla seleccionada
+
+dbWriteTable(con,"newTable",dframe) # escribe una nueva tabla con los registro del data set
+
+dbGetStatement(rs) #retorna la consulta sql realizada a la bd
+dbGetRowsAffected(rs) # retorna las filas modificadas (-1 si no las hay)
+dbHasCompleted(rs) #retorna si la consulta fue exitosa o no
+dbGetRowCount(rs) #retorna el numero de filas obtenidas de la consulta
+dbClearResult(rs) #limpiar los resultados
+
+#ejecutar una consulta y obtener un resultado
+dbGetQuery(con,"select * from register")
+
+#Cerrar la conexion
+dbDisconnect(con)
+#liberar la conexion con el driver
+dbUnloadDriver(drv)
