@@ -44,7 +44,7 @@ dbHeader$children[[2]]$children <- imageOutput("logo") #tags$img(src='images/log
 body <- dashboardBody(includeCSS("css/styles.css"),
                     tabItems(
                         #Tab del home
-                        tabItem(tabName = "home", #h2("Working...")
+                        tabItem(tabName = "home",
                                 fluidPage(
                                   column(6,
                                          titlePanel("Welcome to Güiña!"),
@@ -107,13 +107,14 @@ body <- dashboardBody(includeCSS("css/styles.css"),
 #head() y sidebar() son funciones contenidas en el archivo opcionesDashboard.r
 ui <- dashboardPage(skin = "green", 
                     dbHeader, 
-                    dashboardSidebar(sidebarMenuOutput("side")),
+                    dashboardSidebar(sidebar(TRUE, 'USER')),#sidebarMenuOutput("side")),
                     body #dashboardBody()
                     )
 
 #--------------------Servidor-------------------
 
 server <- function(input, output, session) {
+  
   #--------------> logo
   output$logo <- renderImage({
     list(
@@ -124,7 +125,18 @@ server <- function(input, output, session) {
       alt = "Logo")
   }, deleteFile = FALSE)
   
-  #--------------> home
+  #--------------> tipo de archivo a descargar
+  fileDownloadName <- reactive({
+    
+    if(input$radioScatterplot =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioScatterplot =="2") filename <- paste0("guiniaPlotsvj",".svg",sep="")
+    if(input$radioScatterplot =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------------------------------------------------
+  #-----------------------> home <-----------------------
+  
   output$home <- renderImage({
     list(
       src = "images/logo.png",
@@ -290,33 +302,60 @@ server <- function(input, output, session) {
     only_file_nums()[input$z1[1]:input$z1[2],input$x1[1]:input$x1[2]]
   })
   
-  #Grafico correspondiente a scatterPlot 
-  output$scatter1 <- renderPlot({
+  scatterPlot <- reactive({ #funcion que genera el scatterPlot
     if(is.null(input$x1) || is.na(input$x1)){
       return()
     }
     
-    #     #Progress
-    #     progress <- shiny::Progress$new(session, min=1, max=10)
-    #     on.exit(progress$close())
-    #     
-    #     progress$set(message = 'Calculation in progress',
-    #                  detail = 'This may take a while...')
-    #     
-    #     for (i in 1:8) {
-    #       progress$set(value = i)
-    #       Sys.sleep(0.5)
-    #     }
-    
-    #plot(dat[,1], col = cols[1])
+    #paleta de colores para el gráfico
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
       ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
                         names(only_file_nums())[[input$y1]], colours = myPalette)
     })
-    
   })
+  
+  #Grafico correspondiente a scatterPlot 
+  output$scatter1 <- renderPlot({
+    if(is.null(scatterPlot())) {return()}
+    #ggsave("plot.pdf", scatterPlot())
+    scatterPlot()
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioScatterplot == 1){
+      output$downloadPlot <- downloadHandler(
+        filename = fileDownloadName(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(scatterPlot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioScatterplot == 2){
+      output$downloadPlot <- downloadHandler(
+        filename = fileDownloadName(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(scatterPlot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioScatterplot == 3){
+      output$downloadPlot <- downloadHandler(
+        filename = fileDownloadName(), #nombre de la imagen a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(scatterPlot())
+          dev.off()
+        }
+      )
+    }
+  )
   
   #Slider visualizacion grafico parallel x e y
   output$slider_range_range_parallel <- renderUI({

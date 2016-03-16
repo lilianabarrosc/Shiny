@@ -45,8 +45,8 @@ tabsVisualization <- function(title, tab1, tab2) {
              id = "tabset1",
              tabPanel(tab1,
                       #contenido del tab1 = Scatter plot 1
-                      tab_grafics("scatter1",  tools_general_grafics("radio0", "note0", "save0", "cancel0",
-                                                                     "download0", uiOutput("slider_range_range_density"), 
+                      tab_grafics("scatter1",  tools_general_grafics("radioScatterplot", "note0", "save0", "cancel0",
+                                                                     "downloadPlot", uiOutput("slider_range_range_density"), 
                                                                      NULL))
              ),
              tabPanel(tab2, 
