@@ -55,3 +55,33 @@ colors <- function(id1, id2, id3){
            colourInput(id3, "Max color", "darkgreen"))
   )
 }
+
+#funcion que retorna el archivo que se va a descargar
+downloadGeneral <- function(option, plot){
+  switch (option,
+          "1" = downloadHandler(
+              filename = "guiniaPNG.png", #nombre de la imagen a descargar
+              content = function(file) {
+                png(file)
+                print(plot)
+                dev.off()
+              }
+          ),
+          "2" = downloadHandler(
+              filename = "guiniaSVG.svg", #nombre de la imagen a descargar
+              content = function(file) {
+                svg(file)
+                print(plot)
+                dev.off()
+              }
+          ),
+          "3" = downloadHandler(
+              filename = "guiniaPDF.pdf", #nombre del pdf a descargar
+              content = function(file) {
+                pdf(file = file, width=12, height=8)
+                print(plot)
+                dev.off()
+              }
+          )
+ )
+}
