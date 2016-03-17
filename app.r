@@ -469,27 +469,66 @@ server <- function(input, output, session) {
                input$attributes[1]:input$attributes[2]]
   })
   
-  #Opcion 1 (libreria Amelia)
-  output$missing1 <- renderPlot({
+  #Opcion 1 (libreria Amelia) generacion del grafico boxPlot
+  boxplot <- reactive({
     if(is.null(input$attributes) || is.na(input$attributes)){
       return()
     }
-    #missmap(selectedData1(), main = "Missing values vs observed")
+    #missmap(selectedData1(), main = "Missing values vs observed") grafico amelia
     withProgress({
       setProgress(message = "This may take a while...")
       matrixplot(selectedData1())
     })
   })
   
-  #   #---------descarga del grafico opcion 1
-  # #   downloadInput <- reactive({
-  # #     switch(input$radio,
-  # #            '1' = '.png',
-  # #            '2' = '.svg',
-  # #            '3' = '.pdf')
-  # #   })
-  #   
-  #Slider visualizacion grafico de missing VIM option1
+  #Visualizacion del grafico
+  output$missing1 <- renderPlot({
+    print(boxplot())
+  })
+  
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameboxplot <- reactive({
+    if(input$radioboxplot =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioboxplot =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioboxplot =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioboxplot == 1){
+      output$downloadPlotboxplot <- downloadHandler(
+        filename = fileDownloadNameboxplot(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(boxplot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioboxplot == 2){
+      output$downloadPlotboxplot <- downloadHandler(
+        filename = fileDownloadNameboxplot(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(boxplot())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioboxplot == 3){
+      output$downloadPlotboxplot <- downloadHandler(
+        filename = fileDownloadNameboxplot(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(boxplot())
+          dev.off()
+        }
+      )
+    }
+  )
+  
+  #Slider visualizacion grafico de missing VIM option2
   output$slider_range_range_option1 <- renderUI({
     box(
       width = 6, status = "success",
@@ -715,8 +754,7 @@ server <- function(input, output, session) {
     prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
   })
   
-  #grafico de PCA
-  output$pca <- renderPlot({
+  pcaGrafic <- function(){
     if(is.null(input$attributes3) || is.na(input$attributes3)){
       return()
     }
@@ -724,7 +762,54 @@ server <- function(input, output, session) {
       setProgress(message = "This may take a while...")
       elbowPlot(pca())
     })
+  }
+  
+  #grafico de PCA
+  output$pca <- renderPlot({
+    print(pcaGrafic())
   })
+  
+  #--------------> tipo de archivo a descargar
+  fileDownloadNamepca <- reactive({
+    if(input$radiopca =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radiopca =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radiopca =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radiopca == 1){
+      output$downloadPlotpca <- downloadHandler(
+        filename = fileDownloadNamepca(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(pcaGrafic())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radiopca == 2){
+      output$downloadPlotpca <- downloadHandler(
+        filename = fileDownloadNamepca(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(pcaGrafic())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radiopca == 3){
+      output$downloadPlotpca <- downloadHandler(
+        filename = fileDownloadNamepca(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(pcaGrafic())
+          dev.off()
+        }
+      )
+    }
+  )
   
   #Informacion resumen de los pc's obtenidos
   output$summary_pcs <- renderPrint({
@@ -838,15 +923,18 @@ server <- function(input, output, session) {
     diagnosticData(fit())
   })
   
-  #Obtengo la seleccion de atributos y observaciones para grafico residual vs fitted
-  
-  #grafico residual vs fitted
-  output$ResidualsFitted <- renderPlot({
+  #funcion para el grafico residual vs fitted
+  plotRF <- function(){
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
       ResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
     })
+  }
+  
+  #visualizacion del grafico residual vs fitted
+  output$ResidualsFitted <- renderPlot({
+    plotRF()
   })
   
   #muestra informacion de los puntos seleccionados
@@ -854,13 +942,60 @@ server <- function(input, output, session) {
     brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
   })
   
-  #grafico Standarized Residuals v/s Fitted Values
-  output$StResidualsFitted <- renderPlot({
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameRF <- reactive({
+    if(input$radioRF =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioRF =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioRF =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioRF == 1){
+      output$downloadPlotRF <- downloadHandler(
+        filename = fileDownloadNameRF(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(plotRF())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioRF == 2){
+      output$downloadPlotRF <- downloadHandler(
+        filename = fileDownloadNameRF(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(plotRF())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioRF == 3){
+      output$downloadPlotRF <- downloadHandler(
+        filename = fileDownloadNameRF(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(plotRF())
+          dev.off()
+        }
+      )
+    }
+  )
+  
+  #funcion para el grafico Standarized Residuals v/s Fitted Values
+  plotSF <- function(){
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
       StResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
     })
+  }
+  
+  #vista de grafico Standarized Residuals v/s Fitted Values
+  output$StResidualsFitted <- renderPlot({
+    plotSF()
   })
   
   #muestra informacion de los puntos seleccionados
@@ -868,12 +1003,59 @@ server <- function(input, output, session) {
     brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
   })
   
-  #grafico normal Q-Q
-  output$NormalQQ <- renderPlot({
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameSF <- reactive({
+    if(input$radioSF =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioSF =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioSF =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioSF == 1){
+      output$downloadPlotSF <- downloadHandler(
+        filename = fileDownloadNameSF(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(plotSF())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioSF == 2){
+      output$downloadPlotSF <- downloadHandler(
+        filename = fileDownloadNameSF(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(plotSF())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioSF == 3){
+      output$downloadPlotSF <- downloadHandler(
+        filename = fileDownloadNameSF(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(plotSF())
+          dev.off()
+        }
+      )
+    }
+  )
+  
+  #funcion para el grafico normal Q-Q
+  plotQQ <- function(){
     withProgress({
       setProgress(message = "This may take a while...")
       NormalQQ(diagnostic(), input$lm_y)
     })
+  }
+  
+  #visualizacion del grafico normal Q-Q
+  output$NormalQQ <- renderPlot({
+    plotQQ()
   })
   
   #muestra informacion de los puntos seleccionados
@@ -881,19 +1063,108 @@ server <- function(input, output, session) {
     brushedPoints(diagnostic(), input$NormalQQ_brush)[1:dim(reduceDimensionality())[2]]
   })
   
-  #grafico residual vs leverage
-  output$StResidualsLeverange <- renderPlot({
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameQQ <- reactive({
+    if(input$radioQQ =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioQQ =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioQQ =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioQQ == 1){
+      output$downloadPlotQQ <- downloadHandler(
+        filename = fileDownloadNameQQ(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(plotQQ())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioQQ == 2){
+      output$downloadPlotQQ <- downloadHandler(
+        filename = fileDownloadNameQQ(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(plotQQ())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioQQ == 3){
+      output$downloadPlotQQ <- downloadHandler(
+        filename = fileDownloadNameQQ(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(plotQQ())
+          dev.off()
+        }
+      )
+    }
+  )
+  
+  #funcion para el grafico residual vs leverage
+  plotRL <- function(){
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
       StResidualsLeverange(diagnostic(), input$lm_y, colours = myPalette)
     })
+  }
+  
+  #visualizacion del grafico residual vs leverage
+  output$StResidualsLeverange <- renderPlot({
+    plotRL()
   })
   
   #muestra informacion de los puntos seleccionados
   output$StResidualsLeverange_brushInfo <- renderPrint({
     brushedPoints(diagnostic(), input$StResidualsLeverange_brush)[1:dim(reduceDimensionality())[2]]
   })
+  
+  #--------------> tipo de archivo a descargar
+  fileDownloadNameRL <- reactive({
+    if(input$radioRL =="1") filename <- paste0("guiniaPlotpng",".png",sep="")
+    if(input$radioRL =="2") filename <- paste0("guiniaPlotsvg",".svg",sep="")
+    if(input$radioRL =="3") filename <- paste0("guiniaPlotpdf",".pdf",sep="")
+    return(filename)
+  })
+  
+  #-------------->dowload image plot
+  observe(
+    if (input$radioRL == 1){
+      output$downloadPlotRL <- downloadHandler(
+        filename = fileDownloadNameRL(), #nombre de la imagen a descargar
+        content = function(file) {
+          png(file)
+          print(plotRL())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioRL == 2){
+      output$downloadPlotRL <- downloadHandler(
+        filename = fileDownloadNameRL(), #nombre de la imagen a descargar
+        content = function(file) {
+          svg(file)
+          print(plotRL())
+          dev.off()
+        }
+      )
+    }
+    else if(input$radioRL == 3){
+      output$downloadPlotRL <- downloadHandler(
+        filename = fileDownloadNameRL(), #nombre del pdf a descargar
+        content = function(file) {
+          pdf(file = file, width=12, height=8)
+          print(plotRL())
+          dev.off()
+        }
+      )
+    }
+  )
 }
 
 #App

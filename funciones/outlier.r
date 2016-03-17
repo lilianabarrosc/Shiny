@@ -18,43 +18,47 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              
              tabPanel(tab1,
                       #residual vs fitted
+                      #opcion para ver los puntos en el grafico
                       plotOutput("ResidualsFitted",
                                  brush = brushOpts(
                                    id = "ResidualsFitted_brush"
                                  )
                       ),
-                      tools_general_grafics("radio7", "note7", "save7", "cancel7",
-                                            "download7", verbatimTextOutput("ResidualsFitted_brushInfo"),NULL)
+                      tools_general_grafics("radioRF", "note7", "save7", "cancel7",
+                                            "downloadPlotRF", verbatimTextOutput("ResidualsFitted_brushInfo"),NULL)
              ),
              tabPanel(tab2,
                       #scale-location
+                      #opcion para ver los puntos en el grafico
                       plotOutput("StResidualsFitted",
                                  brush = brushOpts(
                                    id = "StResidualsFitted_brush"
                                  )
                       ),
-                      tools_general_grafics("radio21", "note21", "save21", "cancel21",
-                                           "download21", verbatimTextOutput("StResidualsFitted_brushInfo"),NULL)
+                      tools_general_grafics("radioSF", "note21", "save21", "cancel21",
+                                           "downloadPlotSF", verbatimTextOutput("StResidualsFitted_brushInfo"),NULL)
              ),
              tabPanel(tab3, 
                       #normal Q-Q
+                      #opcion para ver los puntos en el grafico
                       plotOutput("NormalQQ",
                                  brush = brushOpts(
                                    id = "NormalQQ_brush"
                                  )
                       ),
-                      tools_general_grafics("radio22", "note22", "save22", "cancel22",
-                                           "download22", verbatimTextOutput("NormalQQ_brushInfo"),NULL)
+                      tools_general_grafics("radioQQ", "note22", "save22", "cancel22",
+                                           "downloadPlotQQ", verbatimTextOutput("NormalQQ_brushInfo"),NULL)
              ),
              tabPanel(tab4,
                       #residual vs leverage
+                      #opcion para ver los puntos en el grafico
                       plotOutput("StResidualsLeverange",
                                  brush = brushOpts(
                                    id = "StResidualsLeverange_brush"
                                  )
                       ),
-                      tools_general_grafics("radio23", "note23", "save23", "cancel23",
-                                          "download23", verbatimTextOutput("StResidualsLeverange_brushInfo"),NULL)
+                      tools_general_grafics("radioRL", "note23", "save23", "cancel23",
+                                          "downloadPlotRL", verbatimTextOutput("StResidualsLeverange_brushInfo"),NULL)
              )
            ) 
       )

@@ -20,8 +20,8 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
              id = "tabset2",
              tabPanel(tab1,
                       #opcion1 de visualizacion
-                      tab_grafics("missing1", tools_general_grafics("radio", "note", "save", "cancel",
-                                                                    "download", uiOutput("slider_range_range_amelia"),NULL))
+                      tab_grafics("missing1", tools_general_grafics("radioboxplot", "note", "save", "cancel",
+                                                                    "downloadPlotboxplot", uiOutput("slider_range_range_amelia"),NULL))
              ),
              tabPanel(tab2,
                       #opcion2 de visualizacion

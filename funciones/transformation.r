@@ -52,9 +52,9 @@ pca <- function(title){
            box( width = 12, title = "Options", solidHeader = TRUE,
                 collapsible = TRUE,
                 #herramientas del grafico
-                tools_general_grafics("radio4", "note4", "save4", "cancel4",
-                                      "download4", uiOutput("slider_range_range_pca"),
-                                      box(width = 6, status = "warning",
+                tools_general_grafics("radiopca", "note4", "save4", "cancel4",
+                                      "downloadPlotpca", uiOutput("slider_range_range_pca"),
+                                      box(width = 6, status = "success",
                                           actionButton("reduceDim", label = "Reduce Dimensionality"),
                                           hr(),
                                           verbatimTextOutput("summary_reduceDimensionality")
