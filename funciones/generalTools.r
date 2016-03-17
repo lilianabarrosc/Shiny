@@ -85,3 +85,29 @@ downloadGeneral <- function(option, plot){
           )
  )
 }
+
+#funcion contenedora de dos Slider
+twoSlider <- function(x, y, file, xname, yname){
+  box(
+    width = 6, status = "success",
+    h4("Range"),
+    sliderInput(x, label = xname, min = 1, 
+                max = dim(file)[2], value = c(1, 4)),
+    sliderInput(y, label = yname, min = 1, 
+                max = dim(file)[1], value = c(1, (dim(file)[1])/2))
+  )
+}
+
+#funcion contenedora de tres slider
+treeSlider <- function(x, y, z, file, xname, yname, zname){
+  box(
+    width = 6, status = "success",
+    h4("Range"),
+    sliderInput(x, label = xname, min = 1, 
+                max = dim(file)[2], value = c(1,4)),
+    sliderInput(y, label = yname, min = 1, 
+                max = dim(file)[2], value = dim(file)[2]),
+    sliderInput(z, label = zname, min = 1, 
+                max = dim(file)[1], value = c(1, dim(file)[1]))
+  )
+}

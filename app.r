@@ -263,16 +263,7 @@ server <- function(input, output, session) {
   
   #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_range_range_density <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("x1", label = strx, min = 1, 
-                  max = dim(only_file_nums())[2], value = c(1,4)),
-      sliderInput("y1", label = stry, min = 1, 
-                  max = dim(only_file_nums())[2], value = dim(only_file_nums())[2]),
-      sliderInput("z1", label = strz, min = 1, 
-                  max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1]))
-    )
+    treeSlider("x1", "y1", "z1", only_file_nums(), strx, stry, strz)
   })
   
   #seleccion de atributos y observaciones del data set
@@ -379,14 +370,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing values Amelia
   output$slider_range_range_amelia <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("attributes", label = "Attributes", min = 1, 
-                  max = dim(missingV())[2], value = c(1,4)),
-      sliderInput("observation", label = strz, min = 1, 
-                  max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
-    )
+    twoSlider("attributes","observation",missingV(),"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 1
@@ -426,14 +410,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_range_range_option1 <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("attributes2", label = "Attributes", min = 1, 
-                  max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation2", label = strz, min = 1, 
-                  max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
-    )
+    twoSlider("attributes2","observation2",missingV(),"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
@@ -457,16 +434,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_range_range_option2 <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("x3", label = strx, min = 1, 
-                  max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("y3", label = stry, min = 1, 
-                  max = dim(missingV())[2], value = 2),
-      sliderInput("z3", label = strz, min = 1, 
-                  max = dim(missingV())[1], value = c(1, dim(missingV())[1]))
-    )
+    treeSlider("x3", "y3", "z3", missingV(), strx, stry, strz)
   })
   
   #Obtengo la seleccion de atributos a comparar para la Opcion 3
@@ -629,14 +597,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico PCA
   output$slider_range_range_pca <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("attributes3", label = "Attributes", min = 1, 
-                  max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation3", label = strz, min = 1, 
-                  max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
-    )
+    twoSlider("attributes3","observation3",missingV(),"Attributes",strz)
   })
   
   
@@ -709,14 +670,7 @@ server <- function(input, output, session) {
   #-------------> Eliminacion de ruido
   #Slider visualizacion grafico ruido
   output$slider_range_range_nremoval <- renderUI({
-    box(
-      width = 6, status = "success",
-      h4("Range"),
-      sliderInput("attributes4", label = "Attributes", min = 1, 
-                  max = dim(missingV())[2], value = c(1, 4)),
-      sliderInput("observation4", label = strz, min = 1, 
-                  max = dim(missingV())[1], value = c(1, (dim(missingV())[1])/2))
-    )
+    twoSlider("attributes4","observation4",missingV(),"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para grafico ruido
