@@ -20,6 +20,7 @@ library('shinyjs')
 library('Rlof') #Outlier detection library
 #install.packages("plyr")
 library("plyr") ##required for count()
+library("shinyBS") #libreria utilizada para los alert y dialog
 
 source('funciones/opcionesDashboard.r')
 source('funciones/preprocessing.r') #si
@@ -32,9 +33,6 @@ source('funciones/home.r')
 
 #variable global que con el color de los slider
 dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
-
-my_username <- c("test","admin") #dos usuarios test y admin
-my_password <- c("test","123") # las claves de los usuarios
 
 #titulo de la pagina
 dbHeader <- dashboardHeader()
@@ -125,6 +123,13 @@ server <- function(input, output, session) {
       alt = "Logo")
   }, deleteFile = FALSE)
   
+  #--------------> conexion con la base de datos
+  #CON <- reactiveValues(conexionbd())
+  
+  #obtencion de user y password desde la bd
+  my_username <- c("test","admin") #dos usuarios test y admin
+  my_password <- c("test","123") # las claves de los usuarios
+  
   #-------------------------------------------------------
   #-----------------------> home <-----------------------
   
@@ -138,6 +143,7 @@ server <- function(input, output, session) {
   }, deleteFile = FALSE)
   
   #---------------> login
+  
   #inicio la variable user
   USER <- reactiveValues(Logged = FALSE,role=NULL)
   
@@ -146,16 +152,22 @@ server <- function(input, output, session) {
     if (USER$Logged == FALSE) {
       if (!is.null(input$Login)) {
         if (input$Login > 0) {
+          #se obtienen los valores ingresados
           Username <- isolate(input$userName)
           Password <- isolate(input$passwd)
+          #Se comparan los valores obtenidos con los registros
           Id.username <- which(my_username == Username)
           Id.password <- which(my_password == Password)
           if (length(Id.username) > 0 & length(Id.password) > 0) {
-            if (Id.username == Id.password) {
+            if (Id.username == Id.password) { #si ambas variables son true el usuario es valido
               USER$Logged <- TRUE
               USER$role=get_role(Username)
-              
+              closeAlert(session, "alertLoginID")
             }
+          }else {
+            createAlert(session, "alertLogin", "alertLoginID", title = "Oops",
+                        content = "Username and password do not match.", 
+                        style = "warning", append = FALSE)
           } 
         }
       }
@@ -190,6 +202,37 @@ server <- function(input, output, session) {
       })
 
     }
+  })
+  
+  #---------------> Register
+  observe({
+    if (!is.null(input$register)) {
+      if (input$register > 0) {
+        if(input$newUserName == "" || input$name == "" || input$lastName == ""
+           || input$email == "" || input$newPasswd == "" || input$confirmPasswd == ""){
+          createAlert(session, "alertRegister", "alertRegisterID", title = "Oops",
+                      content = "All fields marked with * are required.", 
+                      style = "warning", append = FALSE)
+        }else if(input$newPasswd != input$confirmPasswd){
+          createAlert(session, "alertRegister", "alertRegisterID", title = "Oops",
+                      content = "Password and confirm password do not match.", 
+                      style = "warning",  append = FALSE)
+        }else {
+          closeAlert(session, "alertRegisterID")
+        }
+      }
+    }
+#     if(!is.null(input$newUserName) && !is.null(input$newPasswd) && !is.null(input$confirmPasswd)){
+#       #Se puede registrar
+#       if(input$newPasswd = input$confirmPasswd){
+#         sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values (",
+#                      paste(input$newUserName,input$name,input$lastName,input$email,input$newPasswd, sep = ","),
+#                      ")")
+#         
+#         rs <- dbSendQuery(con, sql)
+#       }
+#       else{} #la contraseña no coincide
+#     }
   })
   
   #-------------------------------------------------------

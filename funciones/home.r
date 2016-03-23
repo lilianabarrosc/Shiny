@@ -5,17 +5,21 @@ loginRegister <- function(){
     # id = "tabset",
     #tab con el inicio de sesion
     tabPanel("login",
+             bsAlert("alertLogin"),
              textInput("userName", "Username"),
              passwordInput("passwd", "Password"),
              br(),actionButton("Login","Log in")
     ),
     #tab con el registro de usuario
     tabPanel("Register",
-             textInput("newUserName", "Username"),
-             textInput("email", "Email Address"),
-             passwordInput("newPasswd", "Password"),
-             passwordInput("confirmPasswd", "Confirm Password"),
-             br(),submitButton("Register Now")
+             bsAlert("alertRegister"),
+             textInput("newUserName", "*Username"),
+             textInput("name", "*Name"),
+             textInput("lastName", "*Last name"),
+             textInput("email", "*Email Address"),
+             passwordInput("newPasswd", "*Password"),
+             passwordInput("confirmPasswd", "*Confirm Password"),
+             br(),actionButton("register","Register Now") #submitButton("Register Now")
     )
   )
 }
