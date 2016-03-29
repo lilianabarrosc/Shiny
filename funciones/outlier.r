@@ -41,10 +41,10 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              tabPanel(tab3, 
                       #normal Q-Q
                       #opcion para ver los puntos en el grafico
-                      plotOutput("NormalQQ",
-                                 brush = brushOpts(
-                                   id = "NormalQQ_brush"
-                                 )
+                      plotOutput("NormalQQ"
+#                                  brush = brushOpts(
+#                                    id = "NormalQQ_brush"
+#                                  )
                       ),
                       tools_general_grafics("radioQQ", "note22", "save22", "cancel22",
                                            "downloadPlotQQ", verbatimTextOutput("NormalQQ_brushInfo"),NULL)

@@ -12,7 +12,7 @@ mean <- rowMeans(outlier.scores) #Calculating the mean of every execution
 outlier.scores <- data.frame(outlier.scores, mean) #adding mean to data frame
 
 
-library("RegressionLibs")
+#library("RegressionLibs")
 
 #DensityPlot(outlier.scores, ncol(outlier.scores)) #Generating a plot of outliers scores
 

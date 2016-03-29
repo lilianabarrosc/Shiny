@@ -48,8 +48,21 @@ noiseRemoval <- function(title){
                 <li>Preprocessing</li>
                 <li>Noise removal</li>
                 </ul>'),
-           tab_grafics("", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                                 "download5", uiOutput("slider_range_range_nremoval"), NULL))
+           box(width = 12, title = title, solidHeader = TRUE, status = "success",
+               column(6,
+                      sliderInput("limitNoise", label = "Limit noise", min = 0.01, 
+                                  max = 0.99, value = 0.15)
+                      ),
+               column(6,
+                      #h4("The total number of..."),
+                      verbatimTextOutput("columnsNoise"),
+                      tags$div( class = 'col-sm-2',
+                                actionButton("rnoise", label = "Remove noise",href="")
+                      )
+                      )
+           ),
+           tab_grafics("nremoval", tools_general_grafics("radio5", "note5", "save5", "cancel5",
+                                                 "download5", uiOutput("slider_range_range_nremoval"), uiOutput("slider_range_range_nremoval2")))
            )
     )
   
