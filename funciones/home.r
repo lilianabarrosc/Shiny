@@ -1,6 +1,6 @@
 loginRegister <- function(){
   tabBox(
-    title = "Login",
+    title = "",
     width = 12,
     # id = "tabset",
     #tab con el inicio de sesion

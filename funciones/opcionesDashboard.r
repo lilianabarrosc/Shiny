@@ -27,8 +27,8 @@ sidebar <- function(isLogged, username) {
              ),
              menuItem("Preprocessing", tabName = "preprocessing", icon=shiny::icon("wrench"),
                       menuSubItem("Missing Values", tabName = "mvalues", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Noise removal", tabName = "nremoval", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Local outlier factor", tabName = "outlier", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Local outlier factor", tabName = "outlier", icon = shiny::icon("angle-double-right")),
+                      menuSubItem("Noise removal", tabName = "nremoval", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Transformation", tabName = "transformation", icon=shiny::icon("sliders"),
                       menuSubItem("Normalization", tabName = "normalization", icon = shiny::icon("angle-double-right")),
@@ -42,12 +42,6 @@ sidebar <- function(isLogged, username) {
              ),
              menuItem("Outlier detection", tabName = "odetection", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))
-             ),
-             menuItem("Predict", tabName = "predict", icon= shiny::icon("fire")),
-             menuItem("Validation", tabName = "validation", icon= shiny::icon("percent"),
-                      menuSubItem("Ten fold cross", tabName = "tenfc", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Test/traning", tabName = "test", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("5X2CV", tabName = "5x2")
              ),
              menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
           )

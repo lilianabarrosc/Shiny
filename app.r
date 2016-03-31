@@ -24,6 +24,8 @@ library("plyr") ##required for count()
 library("shinyBS") #libreria utilizada para los alert y dialog
 #install.packages('DAAG')
 library('DAAG') #libreria para cross validation
+#install.packages("RPostgreSQL")
+library('RPostgreSQL') #Libreria para postgress
 
 #source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')
@@ -35,6 +37,7 @@ source('funciones/outlier.r')
 source('funciones/LOF.R')
 source('funciones/home.r')
 source('funciones/validation.r')
+source('funciones/dataBase.r')
 
 #variable global que con el color de los slider
 dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
@@ -101,12 +104,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         tabItem(tabName = "diagnosticP",
                                 tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
                                                 "Normal Q-Q", "Residual vs leverage")
-                        ),
-                        tabItem(tabName = "tenfc",
-                                tenFoldCross()
                         )
-                        
-                        #Fin tabs Analisis exploratorio
                   )
 )
 #--------------------Cliente-------------------
@@ -221,12 +219,15 @@ server <- function(input, output, session) {
                       style = "warning",  append = FALSE)
         }else{ #Se puede registrar
           closeAlert(session, "alertRegisterID")
-          # registro en la bd
-          #         sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values (",
-          #                      paste(input$newUserName,input$name,input$lastName,input$email,input$newPasswd, sep = ","),
-          #                      ")")
-          #         
-          #         rs <- dbSendQuery(con, sql)
+#           #registro en la bd
+#           drv <- dbDriver("PostgreSQL")
+#           con <- conexionbd(drv)
+#           sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values (",
+#                        paste(input$newUserName,input$name,input$lastName,input$email,input$newPasswd, sep = ","),
+#                        ")")
+#           
+#           rs <- dbSendQuery(con, sql)
+#           desconexionbd(con, drv)
         }
       }
     }
@@ -800,6 +801,30 @@ server <- function(input, output, session) {
   #-------------------------------------------------------
   #-----------------------> Train <-----------------------
   
+  #-----------------------> validation type
+  #salida dinamica para solicitar unn archivo o un % para particionar
+  output$testFile <- renderUI({
+    if (is.null(input$select_validation))
+      return()
+    switch(input$select_validation,
+           '2' = fileInput('fileTest', 'Test File',
+                           accept=c('text/csv', 'text/comma-separated-values,text/plain','.csv')),
+           '3' = numericInput("porcentTest", "Train size in %", 0.75, 
+                              min = 0.0, max = 1, step = 0.02)
+    )
+  })
+  
+  #particion en porcentaje de train y test
+  train_ind <- function(){
+    dataset <- data.frame(reduceDimensionality())
+    smp_size <- floor(input$porcentTest * nrow(dataset))
+    set.seed(123)
+    sample(seq_len(nrow(dataset)), size = smp_size)
+    #     train <- dataset[train_ind, ]
+    #     test <- dataset[-train_ind, ]
+    #     return(list(train, test))
+  }
+  
   #-----------------------> lm
   #seleccion de la variable dependiente
   output$select_box_lm_y <- renderUI({
@@ -824,7 +849,15 @@ server <- function(input, output, session) {
     else
       (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
     
-    lm(fmla, data=reduceDimensionality())
+    if (is.null(input$select_validation))
+      return()
+
+    switch (input$select_validation,
+      '1' = lm(fmla, data=reduceDimensionality()),     
+      '3' = lm(Sepal.Length ~ ., data = data.frame( 
+                   reduceDimensionality()[train_ind(), ]))
+    )
+    #lm(fmla, data=reduceDimensionality())
   })
   
   #Resultado obtenido tras aplicar el  modelo
@@ -833,6 +866,20 @@ server <- function(input, output, session) {
       setProgress(message = "This may take a while...")
       summary(fit())
     })
+  })
+  
+  validation <- reactive({
+    if (is.null(input$select_validation))
+      return()
+    switch(input$select_validation,
+           '1' = CVlm(reduceDimensionality(), fit(), m=10), # ten-fold cross validation
+           '3' = predict(fit(), data.frame(reduceDimensionality()[-train_ind(), ]))
+           
+    )
+  })
+  
+  output$resulValidation <- renderPrint({
+    validation()
   })
   
   #-------------------------------------------------------
@@ -941,20 +988,49 @@ server <- function(input, output, session) {
   
   #-------------------------------------------------------
   #-----------------------> validation <-----------------------
-  crossValidation <- function(){
-    CVlm(reduceDimensionality(), fit(), m=10) # ten-fold cross validation
-  }
   
-  #grafico de la validacion
-  output$crossPlot <- renderPlot({
-    crossValidation()
-  })
-  
-  #Resultado de ten fold cross
-  output$validationTFC <- renderPrint({
-    crossValidation() # ten-fold cross validation
-  })
-  
+#   #-----------------------> cross Validation
+#   #funcion que aplica la validacion cruzada
+#   crossValidation <- function(){
+#     CVlm(reduceDimensionality(), fit(), m=10) # ten-fold cross validation
+#   }
+#   
+#   #grafico de la validacion
+#   output$crossPlot <- renderPlot({
+#     crossValidation()
+#   })
+#   
+#   #Resultado de ten fold cross
+#   output$validationTFC <- renderPrint({
+#     crossValidation() # ten-fold cross validation
+#   })
+#   
+#   #-----------------------> test/train validation
+#   train_ind <- function(){
+#     dataset <- data.frame(reduceDimensionality())
+#     data(dataset)
+#     smp_size <- floor(input$porcentTest * nrow(dataset))
+#     set.seed(123)
+#     sample(seq_len(nrow(dataset)), size = smp_size)
+# #     train <- dataset[train_ind, ]
+# #     test <- dataset[-train_ind, ]
+# #     return(list(train, test))
+#   }
+#   
+#   output$validationTT <- renderPrint({
+#     train <- reduceDimensionality()[train_ind(), ]
+#     str(train) 
+#   })
+#   
+#   output$validationTT2 <- renderPrint({
+#     test <- reduceDimensionality()[-train_ind(), ]
+#     str(test)
+#   })
+#   
+#   output$predict <- renderPrint({
+#     test <- reduceDimensionality()[-train_ind(), ]
+#     predict(fit(), test)
+#   })
 }
 
 #App
