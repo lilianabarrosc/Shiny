@@ -1,10 +1,7 @@
-#install.packages("RPostgreSQL")
-library(RPostgreSQL) #Libreria para postgress
 
 #función que retorna una conexion con la base de datos especificada.
-conexionbd <- function(){
+conexionbd <- function(drv){
   #Lectura del driver para postgress
-  drv <- dbDriver("PostgreSQL")
   dbListConnections(drv)
   dbGetInfo(drv)
   
@@ -14,7 +11,7 @@ conexionbd <- function(){
 }
 
 #funcion encargada de cerrar la conexion con la bd
-desconexionbd <- function(){
+desconexionbd <- function(con, drv){
   #Cerrar la conexion
   dbDisconnect(con)
   #liberar la conexion con el driver

@@ -8,6 +8,12 @@ linearRegression <- function() {
               </ul>')
           ),
      box(
+       width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
+       radioButtons("select_validation", label = "", selected = 1,
+                    choices = list("KxCV" = 1, "Test file" = 2, "% test" = 3)),
+       uiOutput("testFile")
+     ),
+     box(
        width = 12, title = "Linear Regression", solidHeader = TRUE, status = "success",
        "By default, the system will use", em("all"), "the independent variables to predict
        the last column in the data.", br(),
@@ -17,6 +23,12 @@ linearRegression <- function() {
        uiOutput("select_box_lm_x"),
        #actionButton("button_lm", "Apply")
        verbatimTextOutput("summary_lm")
-     )
+     ),
+    box(
+      width = 12, title = "Prediction", solidHeader = TRUE, status = "success",
+      "It shows the predicted value for each testing instance provided by the user.",
+      br(),
+      verbatimTextOutput("resulValidation")
+    )
   )
 }
