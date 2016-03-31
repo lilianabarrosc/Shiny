@@ -21,34 +21,35 @@ sidebar <- function(isLogged, username) {
               ),
              menuItem("Home", tabName = "home", icon = icon("home")),
              menuItem("Data", tabName = "data",
-                      menuSubItem("Source", tabName = "source", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Visualization", tabName = "visualization", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Source", tabName = "source", icon = shiny::icon("folder-open")),
+                      menuSubItem("Visualization", tabName = "visualization", icon = shiny::icon("area-chart")),
+                      icon = shiny::icon("database")
              ),
-             menuItem("Preprocessing", tabName = "preprocessing", icon("cog", lib = "glyphicon"),
+             menuItem("Preprocessing", tabName = "preprocessing", icon=shiny::icon("wrench"),
                       menuSubItem("Missing Values", tabName = "mvalues", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Noise removal", tabName = "nremoval", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Local outlier factor", tabName = "outlier", icon = shiny::icon("angle-double-right"))
              ),
-             menuItem("Transformation", tabName = "transformation", icon("cog", lib = "glyphicon"),
+             menuItem("Transformation", tabName = "transformation", icon=shiny::icon("sliders"),
                       menuSubItem("Normalization", tabName = "normalization", icon = shiny::icon("angle-double-right")),
                       menuSubItem("PCA", tabName = "pca", icon = shiny::icon("angle-double-right")),
                       menuSubItem("SVD", tabName = "svd", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Colinearity Test", tabName = "colinearityT", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Attribute selection", tabName = "attributeS", icon = shiny::icon("angle-double-right"))
              ),
-             menuItem("Regression", tabName = "regression", icon("cog", lib = "glyphicon"),
+             menuItem("Regression", tabName = "regression", icon= shiny::icon("cogs"),
                       menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right"))
              ),
-             menuItem("Outlier detection", tabName = "odetection", icon("cog", lib = "glyphicon"),
+             menuItem("Outlier detection", tabName = "odetection", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))
              ),
-             menuItem("Predict", tabName = "predict"),
-             menuItem("Validation", tabName = "validation", icon("cog", lib = "glyphicon"),
+             menuItem("Predict", tabName = "predict", icon= shiny::icon("fire")),
+             menuItem("Validation", tabName = "validation", icon= shiny::icon("percent"),
                       menuSubItem("Ten fold cross", tabName = "tenfc", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Test/traning", tabName = "test", icon = shiny::icon("angle-double-right")),
                       menuSubItem("5X2CV", tabName = "5x2")
              ),
-             menuItem("Report", tabName = "report")
+             menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
           )
     }
 }
