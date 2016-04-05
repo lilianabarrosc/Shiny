@@ -580,40 +580,42 @@ server <- function(input, output, session) {
   #************************************************
   #-------------> Local outlier factor
   
-  #llamado a la funcion lof, la cual devuelve una lista
-  res <- reactive({
-    if(!is.null(input$thresholdt)){
-      LOFCraft(data = missingV(), threshold = input$thresholdt, kk =c(5:10)) ##calling LOF
-    } else {
-      LOFCraft(data = missingV(), kk =c(5:10)) ##calling LOF
-    }
-    
-  })
-  
   ## scores for the original data
   outlier.scores <- reactive({
-    data.frame(res()[1]) 
+    lof(missingV(), k= c(5:10))
   })
   
   #Slider visualizacion grafico de missing VIM option2
   output$sliderLOF <- renderUI({
-    #     sliderInput("thresholdt", label = "Threshold", min = round(min(outlier.scores()), digits=4), 
-    #                 max = round(max(outlier.scores()), digits=4), value = 1.25)
     minimo <- round(min(outlier.scores()), digits=2)
-    sliderInput("thresholdt", "Threshold", min = 0,
-                max = 2, value = 1.25, step= 0.01)
+    maximo <- round(max(outlier.scores()), digits=2)
+    sliderInput("thresholdt", "Threshold", min = minimo,
+                max = maximo, value = 1.25, step= 0.01)
+  })
+  
+  #llamado a la funcion lof, la cual devuelve una lista
+  res <- reactive({
+    if(is.na(outlier.scores()) && is.null(outlier.scores())){return}
+    else{
+      if(!is.null(input$thresholdt)){
+      LOFCraft(data = missingV(), threshold = input$thresholdt, data.frame(outlier.scores())) ##calling LOF
+      } else {
+        LOFCraft(data = missingV(), data.frame(outlier.scores())) ##calling LOF
+      }
+    }
+    
   })
   
   ## scores for the without outliers data
   withoutOutliers.scores <- reactive({
-    data.frame(res()[2]) ## scores of data without outliers
+    data.frame(res()[1]) ## scores of data without outliers
   })
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
     withProgress({
       setProgress(message = "This may take a while...")
-      DensityPlot(outlier.scores(), ncol(outlier.scores()))
+      DensityPlot(data.frame(outlier.scores()), ncol(data.frame(outlier.scores())))
     })
   })
   
@@ -627,17 +629,17 @@ server <- function(input, output, session) {
   
   #Cantaidad de outlier existentes
   output$howManyOutliers <- renderPrint({
-    as.numeric(res()[4])
+    as.numeric(res()[3])
   })
   
   #Posicion de los outlier en el archivo
   output$posOutliers <- renderPrint({
-    data.frame(res()[5])  ## the positions of the outliers in the original data and theirs respective scores
+    data.frame(res()[4])  ## the positions of the outliers in the original data and theirs respective scores
   })
   
   #without outliers data
   output$strWithoutOutliers <- renderPrint({
-    dataWithoutOutliers<-data.frame(res()[3])  ##the data without outliers
+    dataWithoutOutliers<-data.frame(res()[2])  ##the data without outliers
     str(dataWithoutOutliers)
   })
   

@@ -1,13 +1,12 @@
 
-LOFCraft <- function(data=iris[,-5],threshold=2.0,kk = c(5:10)) 
+LOFCraft <- function(data=iris[,-5],threshold=2.0,outlier.scores) 
 {
   
 #threshold=3.1
 #data=iris[,-5]
 #k=c(5:10)
 
-library('Rlof') #Outlier detection library
-outlier.scores <- lof(data, k= kk)
+#outlier.scores <- lof(data, k= kk)
 mean <- rowMeans(outlier.scores) #Calculating the mean of every execution
 outlier.scores <- data.frame(outlier.scores, mean) #adding mean to data frame
 
@@ -47,7 +46,7 @@ else{
     #class(outlier.scores)
   }
 
-return(list(outlier.scores,withoutOutliers.scores,dataWithoutOutliers,numberOfOutliersFound,outliers))
+return(list(withoutOutliers.scores,dataWithoutOutliers,numberOfOutliersFound,outliers))
 }
 
 

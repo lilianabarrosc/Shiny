@@ -10,7 +10,7 @@ linearRegression <- function() {
      box(
        width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
        radioButtons("select_validation", label = "", selected = 1,
-                    choices = list("KxCV" = 1, "Test file" = 2, "% test" = 3)),
+                    choices = list("10xCV" = 1, "Test file" = 2, "% test" = 3)),
        uiOutput("testFile")
      ),
      box(
