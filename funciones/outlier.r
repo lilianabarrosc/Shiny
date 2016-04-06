@@ -15,8 +15,8 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              the so-called diagnostic pĺots. These plots permit the detection of outliers using a visual tool 
              that relates the predicted value versus the actual value. 
              ",
-             
              tabPanel(tab1,
+                      bsAlert("alertRF"),
                       #residual vs fitted
                       #opcion para ver los puntos en el grafico
                       plotOutput("ResidualsFitted",
@@ -29,6 +29,7 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              ),
              tabPanel(tab2,
                       #scale-location
+                      bsAlert("alertSL"),
                       #opcion para ver los puntos en el grafico
                       plotOutput("StResidualsFitted",
                                  brush = brushOpts(
@@ -40,6 +41,7 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              ),
              tabPanel(tab3, 
                       #normal Q-Q
+                      bsAlert("alertQQ"),
                       #opcion para ver los puntos en el grafico
                       plotOutput("NormalQQ"
 #                                  brush = brushOpts(
@@ -51,6 +53,7 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              ),
              tabPanel(tab4,
                       #residual vs leverage
+                      bsAlert("alertRL"),
                       #opcion para ver los puntos en el grafico
                       plotOutput("StResidualsLeverange",
                                  brush = brushOpts(

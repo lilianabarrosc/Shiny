@@ -13,7 +13,7 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
              radioButtons(radio,NULL,
                           choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
                           selected = 1),
-             downloadButton(download, "Download")
+             downloadButton(download, "Download", class = "btn-success")
            ),
            #box para los apuntes
            box(
@@ -106,7 +106,7 @@ treeSlider <- function(x, y, z, file, xname, yname, zname){
     sliderInput(x, label = xname, min = 1, 
                 max = dim(file)[2], value = c(1,4)),
     sliderInput(y, label = yname, min = 1, 
-                max = dim(file)[2], value = dim(file)[2]),
+                max = dim(file)[2], value = 3),
     sliderInput(z, label = zname, min = 1, 
                 max = dim(file)[1], value = c(1, dim(file)[1]))
   )

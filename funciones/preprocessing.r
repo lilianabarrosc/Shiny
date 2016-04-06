@@ -20,16 +20,19 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
              id = "tabset2",
              tabPanel(tab1,
                       #opcion1 de visualizacion
+                      bsAlert("alertMissing1"),
                       tab_grafics("missing1", tools_general_grafics("radioboxplot", "note", "save", "cancel",
                                                                     "downloadPlotboxplot", uiOutput("slider_range_range_amelia"),NULL))
              ),
              tabPanel(tab2,
                       #opcion2 de visualizacion
+                      bsAlert("alertMissing2"),
                       tab_grafics("missing2", tools_general_grafics("radio2", "note2", "save2", "cancel2",
                                                                     "download2", uiOutput("slider_range_range_option1"), NULL))
              ),
              tabPanel(tab3,
                       #opcion3 de visualizacion
+                      bsAlert("alertMissing3"),
                       tab_grafics("missing3", tools_general_grafics("radio3", "note3", "save3", "cancel3",
                                                                     "download3", uiOutput("slider_range_range_option2"), NULL))
              )
@@ -48,6 +51,7 @@ noiseRemoval <- function(title){
                 <li>Preprocessing</li>
                 <li>Noise removal</li>
                 </ul>'),
+           bsAlert("alertNoise"),
            box(width = 12, title = title, solidHeader = TRUE, status = "success",
                column(6,
                       sliderInput("limitNoise", label = "Limit noise", min = 0.01, 
@@ -81,9 +85,11 @@ localOutlier <- function(title){
     ),
     box(width = 12, title = title, solidHeader = TRUE, status = "success",
         column(width = 6,
+               bsAlert("alertlof1"),
                plotOutput("densityPlot")
         ),
         column(width = 6,
+               bsAlert("alertlof2"),
                plotOutput("densityPlotResult")
         ),
         column(width = 6,

@@ -5,6 +5,11 @@ source('funciones/dataBase.r')
 #--------------------Servidor-------------------
 
 server <- function(input, output, session) {
+  #--------------> variables globales
+  strx <- "Dependent variables"
+  stry <- "Response variable"
+  strz <- "Observations"
+  titleAlert <- "Oops"
   
   #--------------> logo
   output$logo <- renderImage({
@@ -58,7 +63,7 @@ server <- function(input, output, session) {
               closeAlert(session, "alertLoginID")
             }
           }else {
-            createAlert(session, "alertLogin", "alertLoginID", title = "Oops",
+            createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
                         content = "Username and password do not match.", 
                         style = "warning", append = FALSE)
           } 
@@ -97,11 +102,11 @@ server <- function(input, output, session) {
       if (input$register > 0) { # se presiona el boton para registrarse
         if(input$newUserName == "" || input$name == "" || input$lastName == ""
            || input$email == "" || input$newPasswd == "" || input$confirmPasswd == ""){
-          createAlert(session, "alertRegister", "alertRegisterID", title = "Oops",
+          createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
                       content = "All fields marked with * are required.", 
                       style = "warning", append = FALSE)
         }else if(input$newPasswd != input$confirmPasswd){
-          createAlert(session, "alertRegister", "alertRegisterID", title = "Oops",
+          createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
                       content = "Password and confirm password do not match.", 
                       style = "warning",  append = FALSE)
         }else{ #Se puede registrar
@@ -183,10 +188,6 @@ server <- function(input, output, session) {
   #***************************************
   #-----------------------> visualization
   
-  strx <- "Dependent variables"
-  stry <- "Response variable"
-  strz <- "Observations"
-  
   #----------> Graficos de visualizacion
   
   #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
@@ -215,7 +216,15 @@ server <- function(input, output, session) {
   
   #Grafico correspondiente a scatterPlot 
   output$scatter1 <- renderPlot({
-    scatterPlot()
+    tryCatch({
+      closeAlert(session, "alertScatter1ID")
+      scatterPlot()
+    }, error = function(e) {
+      createAlert(session, "alertScatter1", "alertScatter1ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
+    })
+    
   })
   
   #-------------->dowload image plot
@@ -275,7 +284,14 @@ server <- function(input, output, session) {
   
   #grafico paralelo
   output$parallel <- renderPlot({
-    parallelplot()
+    tryCatch({
+      closeAlert(session, "alertParallelID")
+      parallelplot()
+    }, error = function(e) {
+      createAlert(session, "alertParallel", "alertParallelID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
+    })
   })
   
   #-------------->dowload image plot
@@ -321,7 +337,14 @@ server <- function(input, output, session) {
   
   #Visualizacion del grafico
   output$missing1 <- renderPlot({
-    boxPlotfunction()
+    tryCatch({
+      closeAlert(session, "alertMissing1ID")
+      boxPlotfunction()
+    }, error = function(e) {
+      createAlert(session, "alertMissing1", "alertMissing1ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
+    })
   })
   
   #-------------->dowload image plot
@@ -345,11 +368,18 @@ server <- function(input, output, session) {
     if(is.null(input$attributes2) || is.na(input$attributes2)){
       return()
     }
-    withProgress({
-      setProgress(message = "This may take a while...")
-      aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
-           sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
-           ylab=c("Histogram of missing data","Pattern"))
+    tryCatch({
+      closeAlert(session, "alertmissing2ID")
+      withProgress({
+        setProgress(message = "This may take a while...")
+        aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
+             sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
+             ylab=c("Histogram of missing data","Pattern"))
+      })
+    }, error = function(e) {
+      createAlert(session, "alertmissing2", "alertmissing2ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
     })
   })
   
@@ -368,7 +398,14 @@ server <- function(input, output, session) {
     if(is.null(input$x3) || is.na(input$x3)){
       return()
     }
-    scattmatrixMiss(dat3(), interactive = F, highlight = c(names(missingV())[[input$y3]]))
+    tryCatch({
+      closeAlert(session, "alertMissing3ID")
+      scattmatrixMiss(dat3(), interactive = F, highlight = c(names(missingV())[[input$y3]]))
+    }, error = function(e) {
+      createAlert(session, "alertMissing3", "alertMissing3ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
+    })
   })
   
   #************************************************
@@ -396,8 +433,7 @@ server <- function(input, output, session) {
       columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
       #  columnsNoise <- as.data.frame(columnsNoise[,1] + ncol(missingV()))
       as.data.frame(missingV()[,-columnsNoise[,1]])
-    }
-    else{missingV()}
+    }else {missingV()}
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -459,9 +495,16 @@ server <- function(input, output, session) {
   
   #Calcular el numero de columnas con ruido
   output$columnsNoise <- renderPrint({
-    diffValues <- calculateDiff(noiseR())
-    columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
-    paste("Have ", paste(nrow(columnsNoise), " noise columns."))
+    tryCatch({
+      closeAlert(session, "alertNoiseID")
+      diffValues <- calculateDiff(noiseR())
+      columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
+      paste("Have ", paste(nrow(columnsNoise), " noise columns."))
+    }, error = function(e) {
+      createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
+                  content = "Missing values in data", 
+                  style = "warning")
+    })
   })
   
   #************************************************
@@ -500,17 +543,31 @@ server <- function(input, output, session) {
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
-    withProgress({
-      setProgress(message = "This may take a while...")
-      DensityPlot(data.frame(outlier.scores()), ncol(data.frame(outlier.scores())))
+    tryCatch({
+      withProgress({
+        closeAlert(session, "alertlof1ID")
+        setProgress(message = "This may take a while...")
+        DensityPlot(data.frame(outlier.scores()), ncol(data.frame(outlier.scores())))
+      })
+    }, error = function(e) {
+      createAlert(session, "alertlof1", "alertlof1ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
     })
   })
   
   #Grafico resultante tras realizar corte del primer density
   output$densityPlotResult <- renderPlot({
-    withProgress({
-      setProgress(message = "This may take a while...")
-      DensityPlot(withoutOutliers.scores(), ncol(outlier.scores())) #Generating a plot of outliers scores
+    tryCatch({
+      withProgress({
+        closeAlert(session, "alertlof2ID")
+        setProgress(message = "This may take a while...")
+        DensityPlot(withoutOutliers.scores(), ncol(outlier.scores())) #Generating a plot of outliers scores
+      })
+    }, error = function(e) {
+      createAlert(session, "alertlof2", "alertlof2ID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
     })
   })
   
@@ -644,7 +701,15 @@ server <- function(input, output, session) {
   
   #grafico de PCA
   output$pca <- renderPlot({
-    pcaGrafic()
+    tryCatch({
+      closeAlert(session, "alertPCAID")
+      pcaGrafic()
+    }, error = function(e) {
+      createAlert(session, "alertPCA", "alertPCAID", title = titleAlert,
+                  content = paste("",e), 
+                  style = "warning")
+    })
+    
   })
   
   #-------------->dowload image plot
@@ -791,7 +856,13 @@ server <- function(input, output, session) {
   
   #visualizacion del grafico residual vs fitted
   output$ResidualsFitted <- renderPlot({
-    plotRF()
+    tryCatch({
+      closeAlert(session, "alertRFID")
+      plotRF()
+    }, error = function(e) {
+      createAlert(session, "alertRF", "alertRFID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -815,7 +886,13 @@ server <- function(input, output, session) {
   
   #vista de grafico Standarized Residuals v/s Fitted Values
   output$StResidualsFitted <- renderPlot({
-    plotSF()
+    tryCatch({
+      closeAlert(session, "alertSFID")
+      plotSF()
+    }, error = function(e) {
+      createAlert(session, "alertSF", "alertSFID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -838,7 +915,13 @@ server <- function(input, output, session) {
   
   #visualizacion del grafico normal Q-Q
   output$NormalQQ <- renderPlot({
-    plotQQ()
+    tryCatch({
+      closeAlert(session, "alertQQID")
+      plotQQ()
+    }, error = function(e) {
+      createAlert(session, "alertQQ", "alertQQID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
   })
   
   #   #muestra informacion de los puntos seleccionados
@@ -862,7 +945,13 @@ server <- function(input, output, session) {
   
   #visualizacion del grafico residual vs leverage
   output$StResidualsLeverange <- renderPlot({
-    plotRL()
+    tryCatch({
+      closeAlert(session, "alertRLID")
+      plotRL()
+    }, error = function(e) {
+      createAlert(session, "alertRL", "alertRLID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
   })
   
   #muestra informacion de los puntos seleccionados
@@ -874,50 +963,4 @@ server <- function(input, output, session) {
   observe({
     output$downloadPlotRL <- downloadGeneral(input$radioRL, plotRL())
   })
-  
-  #-------------------------------------------------------
-  #-----------------------> validation <-----------------------
-  
-  #   #-----------------------> cross Validation
-  #   #funcion que aplica la validacion cruzada
-  #   crossValidation <- function(){
-  #     CVlm(reduceDimensionality(), fit(), m=10) # ten-fold cross validation
-  #   }
-  #   
-  #   #grafico de la validacion
-  #   output$crossPlot <- renderPlot({
-  #     crossValidation()
-  #   })
-  #   
-  #   #Resultado de ten fold cross
-  #   output$validationTFC <- renderPrint({
-  #     crossValidation() # ten-fold cross validation
-  #   })
-  #   
-  #   #-----------------------> test/train validation
-  #   train_ind <- function(){
-  #     dataset <- data.frame(reduceDimensionality())
-  #     data(dataset)
-  #     smp_size <- floor(input$porcentTest * nrow(dataset))
-  #     set.seed(123)
-  #     sample(seq_len(nrow(dataset)), size = smp_size)
-  # #     train <- dataset[train_ind, ]
-  # #     test <- dataset[-train_ind, ]
-  # #     return(list(train, test))
-  #   }
-  #   
-  #   output$validationTT <- renderPrint({
-  #     train <- reduceDimensionality()[train_ind(), ]
-  #     str(train) 
-  #   })
-  #   
-  #   output$validationTT2 <- renderPrint({
-  #     test <- reduceDimensionality()[-train_ind(), ]
-  #     str(test)
-  #   })
-  #   
-  #   output$predict <- renderPrint({
-  #     test <- reduceDimensionality()[-train_ind(), ]
-  #     predict(fit(), test)
-  #   })
 }

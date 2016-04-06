@@ -37,7 +37,8 @@ pca <- function(title){
                 <ul class="breadcrumb">
                 <li>Transformation</li>
                 <li>PCA</li>
-                </ul>')
+                </ul>'),
+           bsAlert("alertPCA")
     ),
     column(width = 12,
            plotOutput("pca"),
