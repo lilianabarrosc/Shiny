@@ -836,6 +836,7 @@ server <- function(input, output, session) {
     )
   })
   
+  #grafico para la validacionn cruzada
   observe({
     if(input$select_validation == '1'){
       output$crossPlot <- renderPlot({
@@ -844,7 +845,7 @@ server <- function(input, output, session) {
     }
   })
   
-  output$resulValidation <- renderPrint({
+  output$resultValidation <- renderPrint({
     validation()
   })
   
@@ -852,6 +853,7 @@ server <- function(input, output, session) {
   #seleccion de la variable de respuesta
   output$select_response <- renderUI({
     numVariables <- dim(reduceDimensionality())[2]
+    #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
     namesVariables <- names(reduceDimensionality())
     selectInput("pls_response", label = h4("Response variable"), 
                 choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
@@ -859,28 +861,33 @@ server <- function(input, output, session) {
   
   #seleccion de la variables predictoras
   output$select_predictors <- renderUI({
-    selectInput("pls_predictors", label = h4("Predictors variables"), 
+    selectInput("pls_predictors", label = h4("Predictor variables"), 
                 choices = names(reduceDimensionality()), multiple = TRUE)
   })
   
   #Aplicando el modelo pls
   fit2 <- reactive({
-    data.frame(reduceDimensionality())
-    if(is.null(input$pls_predictors)){
-      withProgress({
-        setProgress(message = "This may take a while...")
-        #sacar la variable de respuesta del data set
-        predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
-        plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
-      })
-    }else{
-      withProgress({
-        setProgress(message = "This may take a while...")
-        #sacar la variable de respuesta del data set
-        predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
-        plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
-      })
-    }
+    tryCatch({
+      closeAlert(session, "alertplsID")
+      #Se aplica el modelo pls
+      if(is.null(input$pls_predictors)){
+        withProgress({
+          setProgress(message = "This may take a while...")
+          #sacar la variable de respuesta del data set
+          predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
+          plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
+        })
+      }else{
+        withProgress({
+          setProgress(message = "This may take a while...")
+          predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
+          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[input$pls_response], crosval = TRUE)
+        })
+      }
+    }, error = function(e) {
+      createAlert(session, "alertpls", "alertplsID", title = titleAlert,
+                  content = "Predictors must contain more than one column", style = "warning")
+    })
   })
   
   #Resultado obtenido tras aplicar el  modelo

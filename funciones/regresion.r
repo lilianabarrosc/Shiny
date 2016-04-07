@@ -31,7 +31,7 @@ linearRegression <- function() {
       conditionalPanel("input.select_validation == 1",
                        plotOutput("crossPlot")
       ),
-      verbatimTextOutput("resulValidation")
+      verbatimTextOutput("resultValidation")
     )
   )
 }
@@ -47,6 +47,10 @@ pls <- function(){
            ),
     box(
       width = 12, title = "Partial Least Squares Regression", solidHeader = TRUE, status = "success",
+      "By default, the system will use", em("all"), "the independent variables to predict
+       the last column in the data.", br(),
+      "If you wish, you may use the selector tool to predict something else.",
+      bsAlert("alertpls"),
       column(6,
              uiOutput("select_predictors"),
              numericInput("comps", h4("components"), min = 2, value = 2)
