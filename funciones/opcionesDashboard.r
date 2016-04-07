@@ -38,7 +38,8 @@ sidebar <- function(isLogged, username) {
                       menuSubItem("Attribute selection", tabName = "attributeS", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Regression", tabName = "regression", icon= shiny::icon("cogs"),
-                      menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right")),
+                      menuSubItem("PLS", tabName = "pls", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Outlier detection", tabName = "odetection", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))

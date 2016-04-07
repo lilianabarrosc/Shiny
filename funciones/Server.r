@@ -803,14 +803,15 @@ server <- function(input, output, session) {
     else
       (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
     
-    if (is.null(input$select_validation))
-      return()
-    
-    switch (input$select_validation,
-            '1' = lm(fmla, data=reduceDimensionality()),     
-            '3' = lm(Sepal.Length ~ ., data = data.frame( 
-              reduceDimensionality()[train_ind(), ]))
-    )
+    if (is.null(input$select_validation)){return()}
+    else{
+      switch (input$select_validation,
+              '1' = lm(fmla, data=reduceDimensionality()),
+              '2' = lm(fmla, data=reduceDimensionality()),
+              '3' = lm(Sepal.Length ~ ., data = data.frame( 
+                reduceDimensionality()[train_ind(), ]))
+      )
+    }
     #lm(fmla, data=reduceDimensionality())
   })
   
@@ -827,13 +828,69 @@ server <- function(input, output, session) {
       return()
     switch(input$select_validation,
            '1' = CVlm(reduceDimensionality(), fit(), m=10), # ten-fold cross validation
+           '2' = if(!is.null(input$fileTest)){
+                   predict(fit(), input$fileTest)
+                 },
            '3' = predict(fit(), data.frame(reduceDimensionality()[-train_ind(), ]))
            
     )
   })
   
+  observe({
+    if(input$select_validation == '1'){
+      output$crossPlot <- renderPlot({
+        CVlm(reduceDimensionality(), fit(), m=10)
+      })
+    }
+  })
+  
   output$resulValidation <- renderPrint({
     validation()
+  })
+  
+  #-----------------------> pls
+  #seleccion de la variable de respuesta
+  output$select_response <- renderUI({
+    numVariables <- dim(reduceDimensionality())[2]
+    namesVariables <- names(reduceDimensionality())
+    selectInput("pls_response", label = h4("Response variable"), 
+                choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
+  })
+  
+  #seleccion de la variables predictoras
+  output$select_predictors <- renderUI({
+    selectInput("pls_predictors", label = h4("Predictors variables"), 
+                choices = names(reduceDimensionality()), multiple = TRUE)
+  })
+  
+  #Aplicando el modelo pls
+  fit2 <- reactive({
+    data.frame(reduceDimensionality())
+    if(is.null(input$pls_predictors)){
+      withProgress({
+        setProgress(message = "This may take a while...")
+        #sacar la variable de respuesta del data set
+        predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
+        plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
+      })
+    }else{
+      withProgress({
+        setProgress(message = "This may take a while...")
+        #sacar la variable de respuesta del data set
+        predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
+        plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
+      })
+    }
+  })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$summary_pls <- renderPrint({
+    fit2()
+  })
+  
+  #grafico correspondiente al modelo pls
+  output$plotPLS <- renderPlot({
+    plot(fit2())
   })
   
   #-------------------------------------------------------

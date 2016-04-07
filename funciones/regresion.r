@@ -28,7 +28,39 @@ linearRegression <- function() {
       width = 12, title = "Prediction", solidHeader = TRUE, status = "success",
       "It shows the predicted value for each testing instance provided by the user.",
       br(),
+      conditionalPanel("input.select_validation == 1",
+                       plotOutput("crossPlot")
+      ),
       verbatimTextOutput("resulValidation")
+    )
+  )
+}
+
+pls <- function(){
+  fluidRow(
+    column(width = 12,
+           HTML('
+                <ul class="breadcrumb">
+                <li>Regression</li>
+                <li>Partial Least Squares Regression (PLS)</li>
+                </ul>')
+           ),
+    box(
+      width = 12, title = "Partial Least Squares Regression", solidHeader = TRUE, status = "success",
+      column(6,
+             uiOutput("select_predictors"),
+             numericInput("comps", h4("components"), min = 2, value = 2)
+      ),
+      column(6,
+             uiOutput("select_response"),
+             selectInput("crosval", label = h4("Cross validation"), 
+                  choices = c("TRUE","FAlSE"), selected = "TRUE")
+      ),
+      #actionButton("button_lm", "Apply")
+      column(12,
+             verbatimTextOutput("summary_pls"), #resultado obtenido
+             plotOutput("plotPLS")
+      )
     )
   )
 }

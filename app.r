@@ -26,6 +26,8 @@ library("shinyBS") #libreria utilizada para los alert y dialog
 library('DAAG') #libreria para cross validation
 #install.packages("RPostgreSQL")
 library('RPostgreSQL') #Libreria para postgress
+#install.packages("plsdepot")
+library('plsdepot')
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')
@@ -97,6 +99,9 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         ),
                         tabItem(tabName = "lm",
                                 linearRegression()
+                        ),
+                        tabItem(tabName = "pls",
+                                pls()
                         ),
                         tabItem(tabName = "diagnosticP",
                                 tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
