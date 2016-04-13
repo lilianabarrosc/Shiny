@@ -21,20 +21,20 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
              tabPanel(tab1,
                       #opcion1 de visualizacion
                       bsAlert("alertMissing1"),
-                      tab_grafics("missing1", tools_general_grafics("radioboxplot", "note", "save", "cancel",
-                                                                    "downloadPlotboxplot", uiOutput("slider_range_range_amelia"),NULL))
+                      tab_grafics("boxplot", tools_general_grafics("radio_boxplot", "note", "save", "cancel",
+                                                                    "download_boxplot", uiOutput("slider_missingValues"),NULL))
              ),
              tabPanel(tab2,
                       #opcion2 de visualizacion
                       bsAlert("alertMissing2"),
-                      tab_grafics("missing2", tools_general_grafics("radio2", "note2", "save2", "cancel2",
-                                                                    "download2", uiOutput("slider_range_range_option1"), NULL))
+                      tab_grafics("histogramPlot", tools_general_grafics("radio2", "note2", "save2", "cancel2",
+                                                                    "download2", uiOutput("slider_histogramPlot"), NULL))
              ),
              tabPanel(tab3,
                       #opcion3 de visualizacion
                       bsAlert("alertMissing3"),
-                      tab_grafics("missing3", tools_general_grafics("radio3", "note3", "save3", "cancel3",
-                                                                    "download3", uiOutput("slider_range_range_option2"), NULL))
+                      tab_grafics("missingScatterPlot", tools_general_grafics("radio3", "note3", "save3", "cancel3",
+                                                                    "download3", uiOutput("slider_missingScatter"), NULL))
              )
            ) 
            )
@@ -66,7 +66,7 @@ noiseRemoval <- function(title){
                       )
            ),
            tab_grafics("nremoval", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                                 "download5", uiOutput("slider_range_range_nremoval"), uiOutput("slider_range_range_nremoval2")))
+                                                 "download5", uiOutput("slider_nremoval"), uiOutput("slider_nremoval2")))
            )
     )
   

@@ -129,7 +129,7 @@ server <- function(input, output, session) {
   #-----------------------> data <-----------------------
   
   #----------> data set
-  output$ui <- renderUI({
+  output$data_extern <- renderUI({
     if (is.null(input$select_file))
       return()
     switch(input$select_file,
@@ -191,36 +191,35 @@ server <- function(input, output, session) {
   #----------> Graficos de visualizacion
   
   #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
-  output$slider_range_range_density <- renderUI({
-    treeSlider("x1", "y1", "z1", only_file_nums(), strx, stry, strz)
+  output$slider_Scatterplot <- renderUI({
+    treeSlider("x_scatter", "y_scatter", "z_scatter", only_file_nums(), strx, stry, strz)
   })
   
   #seleccion de atributos y observaciones del data set
-  dat1 <- reactive({
-    only_file_nums()[input$z1[1]:input$z1[2],input$x1[1]:input$x1[2]]
+  dat_Scatterplot <- reactive({
+    only_file_nums()[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
   })
   
   scatterPlot <- reactive({ #funcion que genera el scatterPlot
-    if(is.null(input$x1) || is.na(input$x1)){
+    if(is.null(input$x_scatter) || is.na(input$x_scatter)){
       return()
     }
-    
     #paleta de colores para el gráfico
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      ScatterplotMatrix(dat1(), c(input$x1[1]:input$x1[2]), only_file_nums()[,input$y1], 
-                        names(only_file_nums())[[input$y1]], colours = myPalette)
+      ScatterplotMatrix(dat_Scatterplot(), c(input$x_scatter[1]:input$x_scatter[2]), only_file_nums()[,input$y_scatter], 
+                        names(only_file_nums())[[input$y_scatter]], colours = myPalette)
     })
   })
   
   #Grafico correspondiente a scatterPlot 
-  output$scatter1 <- renderPlot({
+  output$scatter_plot <- renderPlot({
     tryCatch({
-      closeAlert(session, "alertScatter1ID")
+      closeAlert(session, "alertScatterID")
       scatterPlot()
     }, error = function(e) {
-      createAlert(session, "alertScatter1", "alertScatter1ID", title = titleAlert,
+      createAlert(session, "alertScatter", "alertScatterID", title = titleAlert,
                   content = paste("",e), 
                   style = "warning")
     })
@@ -229,27 +228,27 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlot <- downloadGeneral(input$radioScatterplot, scatterPlot())
+    output$download_Scatterplot <- downloadGeneral(input$radio_Scatterplot, scatterPlot())
   })
   
   #Slider visualizacion grafico parallel x e y
-  output$slider_range_range_parallel <- renderUI({
+  output$slider_parallelPlot <- renderUI({
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("x2", label = strx, min = 1, 
+      sliderInput("x_parallel", label = strx, min = 1, 
                   max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
-      sliderInput("y2", label = stry, min = 1, 
+      sliderInput("y_parallel", label = stry, min = 1, 
                   max = dim(file())[2], value = 2)
     )
   })
   
   #Slider visualizacion grafico parallel observations y alfa
-  output$slider_range_range_parallel2 <- renderUI({
+  output$slider_parallelPlot2 <- renderUI({
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("z2", label = strz, min = 1, 
+      sliderInput("z_parallel", label = strz, min = 1, 
                   max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
       sliderInput("lineSize", label = "Line Size", min = 1, 
                   max = 5, value = 2),
@@ -260,25 +259,25 @@ server <- function(input, output, session) {
   
   
   #seleccion de atributos y observaciones del data set
-  datParallelx <- reactive({
-    only_file_nums()[input$z2[1]:input$z2[2],input$x2[1]:input$x2[2]]
+  data_Parallelx <- reactive({
+    only_file_nums()[input$z_parallel[1]:input$z_parallel[2],input$x_parallel[1]:input$x_parallel[2]]
   })
   
-  datParallely <- reactive({
-    file()[,input$y2]
+  data_Parallely <- reactive({
+    file()[,input$y_parallel]
   })
   
   #funcion que genera el grafico
   parallelplot <- reactive({
-    if(is.null(input$x2) || is.na(input$x2)){
+    if(is.null(input$x_parallel) || is.na(input$x_parallel)){
       return()
     }
     myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
     withProgress({
       setProgress(message = "This may take a while...")
-      ParallelPlot(datParallelx(), seq(1,nrow(datParallelx()),1), seq(1,ncol(datParallelx()),1), datParallely(), 
-                   names(file())[[input$y2]], 1, input$alphaLine, TRUE, colours = myPalette)
+      ParallelPlot(data_Parallelx(), seq(1,nrow(data_Parallelx()),1), seq(1,ncol(data_Parallelx()),1), data_Parallely(), 
+                   names(file())[[input$y_parallel]], 1, input$alphaLine, TRUE, colours = myPalette)
     })
   })
   
@@ -296,7 +295,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotPrallel <- downloadGeneral(input$radioParallelplot, parallelplot())
+    output$download_parallelplot <- downloadGeneral(input$radio_parallelplot, parallelplot())
   })
   
   #-------------------------------------------------------
@@ -312,13 +311,13 @@ server <- function(input, output, session) {
       only_file_nums()
   })
   
-  #Slider visualizacion grafico de missing values Amelia
-  output$slider_range_range_amelia <- renderUI({
+  #Slider visualizacion grafico de missing values
+  output$slider_missingValues <- renderUI({
     twoSlider("attributes","observation",missingV(),"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 1
-  selectedData1 <- reactive({
+  data_boxPlot <- reactive({
     missingV()[input$observation[1]:input$observation[2], 
                input$attributes[1]:input$attributes[2]]
   })
@@ -331,12 +330,12 @@ server <- function(input, output, session) {
     #missmap(selectedData1(), main = "Missing values vs observed") grafico amelia
     withProgress({
       setProgress(message = "This may take a while...")
-      matrixplot(selectedData1())
+      matrixplot(data_boxPlot())
     })
   }
   
   #Visualizacion del grafico
-  output$missing1 <- renderPlot({
+  output$boxplot <- renderPlot({
     tryCatch({
       closeAlert(session, "alertMissing1ID")
       boxPlotfunction()
@@ -349,30 +348,30 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotboxplot <- downloadGeneral(input$radioboxplot, boxPlotfunction())
+    output$download_boxplot <- downloadGeneral(input$radio_boxplot, boxPlotfunction())
   })
   
   #Slider visualizacion grafico de missing VIM option2
-  output$slider_range_range_option1 <- renderUI({
-    twoSlider("attributes2","observation2",missingV(),"Attributes",strz)
+  output$slider_histogramPlot <- renderUI({
+    twoSlider("attributes_histogram","observation_histogram",missingV(),"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
-  selectedData2 <- reactive({
-    missingV()[input$observation2[1]:input$observation2[2], 
-               input$attributes2[1]:input$attributes2[2]]
+  data_histogramPlot <- reactive({
+    missingV()[input$observation_histogram[1]:input$observation_histogram[2], 
+               input$attributes_histogram[1]:input$attributes_histogram[2]]
   })
   
   #Opcion 2 (libreria VIM)
-  output$missing2 <- renderPlot({
-    if(is.null(input$attributes2) || is.na(input$attributes2)){
+  output$histogramPlot <- renderPlot({
+    if(is.null(input$attributes_histogram) || is.na(input$attributes_histogram)){
       return()
     }
     tryCatch({
       closeAlert(session, "alertmissing2ID")
       withProgress({
         setProgress(message = "This may take a while...")
-        aggr(selectedData2(), col=c('red','dark grey'), numbers=TRUE, 
+        aggr(data_histogramPlot(), col=c('red','dark grey'), numbers=TRUE, 
              sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
              ylab=c("Histogram of missing data","Pattern"))
       })
@@ -384,23 +383,24 @@ server <- function(input, output, session) {
   })
   
   #Slider visualizacion grafico de missing VIM option2
-  output$slider_range_range_option2 <- renderUI({
-    treeSlider("x3", "y3", "z3", missingV(), strx, stry, strz)
+  output$slider_missingScatter <- renderUI({
+    treeSlider("x_missingScatter", "y_missingScatter", "z_missingScatter", missingV(), strx, stry, strz)
   })
   
   #Obtengo la seleccion de atributos a comparar para la Opcion 3
-  dat3 <- reactive({
-    missingV()[input$z3[1]:input$z3[2],input$x3[1]:input$x3[2]]
+  data_missingScatter <- reactive({
+    missingV()[input$z_missingScatter[1]:input$z_missingScatter[2],
+               input$x_missingScatter[1]:input$x_missingScatter[2]]
   })
   
   #Option 3 (matricial)
-  output$missing3 <- renderPlot({
-    if(is.null(input$x3) || is.na(input$x3)){
+  output$missingScatterPlot <- renderPlot({
+    if(is.null(input$x_missingScatter) || is.na(input$x_missingScatter)){
       return()
     }
     tryCatch({
       closeAlert(session, "alertMissing3ID")
-      scattmatrixMiss(dat3(), interactive = F, highlight = c(names(missingV())[[input$y3]]))
+      scattmatrixMiss(data_missingScatter(), interactive = F, highlight = c(names(missingV())[[input$y_missingScatter]]))
     }, error = function(e) {
       createAlert(session, "alertMissing3", "alertMissing3ID", title = titleAlert,
                   content = paste("",e), 
@@ -437,19 +437,19 @@ server <- function(input, output, session) {
   })
   
   #Slider visualizacion grafico parallel x e y
-  output$slider_range_range_nremoval <- renderUI({
+  output$slider_nremoval <- renderUI({
     box(
       width = 6, status = "success",
       h4("Range"),
-      sliderInput("attributes4", label = strx, min = 1, 
+      sliderInput("attributes_nremoval", label = strx, min = 1, 
                   max = dim(noiseR())[2], value = c(1, dim(noiseR())[2])),
-      sliderInput("observation4", label = stry, min = 1, 
+      sliderInput("observation_nremoval", label = stry, min = 1, 
                   max = dim(file())[2], value = 2)
     )
   })
   
   #Slider visualizacion grafico parallel observations y alfa
-  output$slider_range_range_nremoval2 <- renderUI({
+  output$slider_nremoval2 <- renderUI({
     box(
       width = 6, status = "success",
       h4("Range"),
@@ -471,17 +471,17 @@ server <- function(input, output, session) {
   #seleccion de atributos y observaciones del data set
   datNremovalx <- reactive({
     noiseR()[input$ZNremoval[1]:input$ZNremoval[2],
-             input$attributes4[1]:input$attributes4[2]] 
+             input$attributes_nremoval[1]:input$attributes_nremoval[2]] 
   })
   
   #seleccion de la variable de respuesta
   datNremovaly <- reactive({
-    file()[,input$observation4]
+    file()[,input$observation_nremoval]
   })
   
   #grafico de ruido
   output$nremoval <- renderPlot({
-    if(is.null(input$attributes4) || is.na(input$attributes4)){
+    if(is.null(input$attributes_nremoval) || is.na(input$attributes_nremoval)){
       return()
     }
     myPalette <- c(input$col1, input$col2, input$col3)
@@ -489,7 +489,7 @@ server <- function(input, output, session) {
     withProgress({
       setProgress(message = "This may take a while...")
       ParallelPlot(datNremovalx(), seq(1,nrow(datNremovalx()),1), seq(1,ncol(datNremovalx()),1), datNremovaly(), 
-                   names(file())[[input$observation4]], 1, input$alphaLineNremoval, TRUE, colours = myPalette)
+                   names(file())[[input$observation_nremoval]], 1, input$alphaLineNremoval, TRUE, colours = myPalette)
     })
   })
   
@@ -524,7 +524,7 @@ server <- function(input, output, session) {
   })
   
   #llamado a la funcion lof, la cual devuelve una lista
-  res <- reactive({
+  res_lof <- reactive({
     if(is.na(outlier.scores()) && is.null(outlier.scores())){return}
     else{
       if(!is.null(input$thresholdt)){
@@ -535,10 +535,10 @@ server <- function(input, output, session) {
     }
     
   })
-  
+
   ## scores for the without outliers data
   withoutOutliers.scores <- reactive({
-    data.frame(res()[1]) ## scores of data without outliers
+    data.frame(res_lof()[1]) ## scores of data without outliers
   })
   
   #grafico inicial density plot
@@ -573,24 +573,28 @@ server <- function(input, output, session) {
   
   #Cantaidad de outlier existentes
   output$howManyOutliers <- renderPrint({
-    as.numeric(res()[3])
+    as.numeric(res_lof()[3])
   })
   
   #Posicion de los outlier en el archivo
   output$posOutliers <- renderPrint({
-    data.frame(res()[4])  ## the positions of the outliers in the original data and theirs respective scores
+    data.frame(res_lof()[4])  ## the positions of the outliers in the original data and theirs respective scores
   })
   
   #without outliers data
   output$strWithoutOutliers <- renderPrint({
-    dataWithoutOutliers<-data.frame(res()[2])  ##the data without outliers
+    dataWithoutOutliers<-data.frame(res_lof()[2])  ##the data without outliers
     str(dataWithoutOutliers)
   })
+  
+  
+  #-------------------------------------------------------
+  #-----------------------> Transformation <-----------------------
   
   #************************************************
   #-------------> Normalization
   #salida dinamica de rango para normalizacion
-  output$range <- renderUI({
+  output$range_normalization <- renderUI({
     if (is.null(input$normalizationType))
       return()
     switch(input$normalizationType,
@@ -674,23 +678,23 @@ server <- function(input, output, session) {
   #-------------> Reduccion de la dimencionalidad
   
   #Slider visualizacion grafico PCA
-  output$slider_range_range_pca <- renderUI({
-    twoSlider("attributes3","observation3",missingV(),"Attributes",strz)
+  output$slider_pca <- renderUI({
+    twoSlider("attributes_pca","observation_pca",missingV(),"Attributes",strz)
   })
   
   
   #Obtengo la seleccion de atributos y observaciones para pca
-  selectedDataPCA <- reactive({
-    missingV()[input$observation3[1]:input$observation3[2], 
-               input$attributes3[1]:input$attributes3[2]]
+  data_pca<- reactive({
+    missingV()[input$observation_pca[1]:input$observation_pca[2], 
+               input$attributes_pca[1]:input$attributes_pca[2]]
   })
   
   pca <- reactive({
-    prcomp(selectedDataPCA(), center = TRUE, scale. = TRUE)
+    prcomp(data_pca(), center = TRUE, scale. = TRUE)
   })
   
   pcaGrafic <- function(){
-    if(is.null(input$attributes3) || is.na(input$attributes3)){
+    if(is.null(input$attributes_pca) || is.na(input$attributes_pca)){
       return()
     }
     withProgress({
@@ -714,7 +718,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotpca <- downloadGeneral(input$radiopca, pcaGrafic())
+    output$download_pcaPlot <- downloadGeneral(input$radio_pca, pcaGrafic())
   })
   
   #Informacion resumen de los pc's obtenidos
@@ -753,11 +757,11 @@ server <- function(input, output, session) {
   })
   
   #-------------------------------------------------------
-  #-----------------------> Train <-----------------------
+  #-----------------------> Regresion <-----------------------
   
   #-----------------------> validation type
   #salida dinamica para solicitar unn archivo o un % para particionar
-  output$testFile <- renderUI({
+  output$ui_lm <- renderUI({
     if (is.null(input$select_validation))
       return()
     switch(input$select_validation,
@@ -769,7 +773,7 @@ server <- function(input, output, session) {
   })
   
   #particion en porcentaje de train y test
-  train_ind <- function(){
+  train_lm <- function(){
     dataset <- data.frame(reduceDimensionality())
     smp_size <- floor(input$porcentTest * nrow(dataset))
     set.seed(123)
@@ -781,21 +785,21 @@ server <- function(input, output, session) {
   
   #-----------------------> lm
   #seleccion de la variable dependiente
-  output$select_box_lm_y <- renderUI({
+  output$select_lm_y <- renderUI({
     numVariables <- dim(reduceDimensionality())[2]
     namesVariables <- names(reduceDimensionality())
-    selectInput("lm_y", label = h4("Dependent variable"), 
+    selectInput("lm_y", label = h4("Response variable"), 
                 choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
   })
   
   #seleccion de la variable independiente
-  output$select_box_lm_x <- renderUI({
-    selectInput("lm_x", label = h4("Independent variable"), 
+  output$select_lm_x <- renderUI({
+    selectInput("lm_x", label = h4("Predictor variables"), 
                 choices = names(reduceDimensionality()), multiple = TRUE)
   })
   
   #Aplicando el modelo lm
-  fit <- reactive({
+  model_lm <- reactive({
     if(is.null(input$lm_x)){
       (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
     }
@@ -809,7 +813,7 @@ server <- function(input, output, session) {
               '1' = lm(fmla, data=reduceDimensionality()),
               '2' = lm(fmla, data=reduceDimensionality()),
               '3' = lm(Sepal.Length ~ ., data = data.frame( 
-                reduceDimensionality()[train_ind(), ]))
+                reduceDimensionality()[train_lm(), ]))
       )
     }
     #lm(fmla, data=reduceDimensionality())
@@ -819,19 +823,19 @@ server <- function(input, output, session) {
   output$summary_lm <- renderPrint({
     withProgress({
       setProgress(message = "This may take a while...")
-      summary(fit())
+      summary(model_lm())
     })
   })
   
-  validation <- reactive({
+  validation_lm <- reactive({
     if (is.null(input$select_validation))
       return()
     switch(input$select_validation,
-           '1' = CVlm(reduceDimensionality(), fit(), m=10), # ten-fold cross validation
+           '1' = CVlm(reduceDimensionality(), model_lm(), m=10), # ten-fold cross validation
            '2' = if(!is.null(input$fileTest)){
-                   predict(fit(), input$fileTest)
+                   predict(model_lm(), input$fileTest)
                  },
-           '3' = predict(fit(), data.frame(reduceDimensionality()[-train_ind(), ]))
+           '3' = predict(model_lm(), data.frame(reduceDimensionality()[-train_lm(), ]))
            
     )
   })
@@ -840,18 +844,18 @@ server <- function(input, output, session) {
   observe({
     if(input$select_validation == '1'){
       output$crossPlot <- renderPlot({
-        CVlm(reduceDimensionality(), fit(), m=10)
+        CVlm(reduceDimensionality(), model_lm(), m=10)
       })
     }
   })
   
-  output$resultValidation <- renderPrint({
-    validation()
+  output$resultValidation_lm <- renderPrint({
+    validation_lm()
   })
   
   #-----------------------> pls
   #seleccion de la variable de respuesta
-  output$select_response <- renderUI({
+  output$select_plsx <- renderUI({
     numVariables <- dim(reduceDimensionality())[2]
     #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
     namesVariables <- names(reduceDimensionality())
@@ -860,13 +864,13 @@ server <- function(input, output, session) {
   })
   
   #seleccion de la variables predictoras
-  output$select_predictors <- renderUI({
+  output$select_plsy <- renderUI({
     selectInput("pls_predictors", label = h4("Predictor variables"), 
                 choices = names(reduceDimensionality()), multiple = TRUE)
   })
   
   #Aplicando el modelo pls
-  fit2 <- reactive({
+  fit_pls <- reactive({
     tryCatch({
       closeAlert(session, "alertplsID")
       #Se aplica el modelo pls
@@ -890,14 +894,25 @@ server <- function(input, output, session) {
     })
   })
   
+  #Select para ver los resultados obtenidos tras aplicar pls
+  output$select_pls <- renderUI({
+    selectInput("pls_varible", label = h4("PLS regresion"), 
+                choices = names(fit_pls()), selected = names(fit_pls())[1])
+  })
+  
   #Resultado obtenido tras aplicar el  modelo
   output$summary_pls <- renderPrint({
-    fit2()
+    paste(fit_pls(),paste("$",input$pls_varible))
   })
   
   #grafico correspondiente al modelo pls
   output$plotPLS <- renderPlot({
-    plot(fit2())
+    plot(fit_pls())
+  })
+  
+  #resultado de la validacion
+  output$resultValidationpls <- renderPrint({
+    names(fit_pls())
   })
   
   #-------------------------------------------------------

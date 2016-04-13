@@ -18,7 +18,7 @@ normalizations <- function(title){
                                                "Other normalization" = 3)
                    )
          ),
-         uiOutput("range")
+         uiOutput("range_normalization")
     ),
     tabBox(width = 12,
            tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
@@ -53,8 +53,8 @@ pca <- function(title){
            box( width = 12, title = "Options", solidHeader = TRUE,
                 collapsible = TRUE,
                 #herramientas del grafico
-                tools_general_grafics("radiopca", "note4", "save4", "cancel4",
-                                      "downloadPlotpca", uiOutput("slider_range_range_pca"),
+                tools_general_grafics("radio_pca", "note4", "save4", "cancel4",
+                                      "download_pcaPlot", uiOutput("slider_pca"),
                                       box(width = 6, status = "success",
                                           bsButton("reduceDim", label = "Reduce Dimensionality", style = "success"),
                                           hr(),
