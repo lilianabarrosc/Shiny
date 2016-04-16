@@ -62,7 +62,10 @@ pls <- function(){
       ),
       #actionButton("button_lm", "Apply")
       uiOutput("select_pls"),
-      verbatimTextOutput("summary_pls"), #resultado obtenido
+      h4("Standard coefficients"),
+      verbatimTextOutput("coef_pls"), #coeficientes estandar
+      h4("Statistical pls"),
+      verbatimTextOutput("statistical_pls"), #resultado obtenido
       plotOutput("plotPLS")
     )
 #     box(

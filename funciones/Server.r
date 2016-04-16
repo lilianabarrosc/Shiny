@@ -43,7 +43,7 @@ server <- function(input, output, session) {
   #---------------> login
   
   #inicio la variable user
-  USER <- reactiveValues(Logged = FALSE,role=NULL)
+  USER <- reactiveValues(Logged = FALSE, role=NULL)
   
   #se valida el nombre del usuario con la contraseña ingresada
   observe({ 
@@ -111,15 +111,16 @@ server <- function(input, output, session) {
                       style = "warning",  append = FALSE)
         }else{ #Se puede registrar
           closeAlert(session, "alertRegisterID")
-          #           #registro en la bd
-          #           drv <- dbDriver("PostgreSQL")
-          #           con <- conexionbd(drv)
-          #           sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values (",
-          #                        paste(input$newUserName,input$name,input$lastName,input$email,input$newPasswd, sep = ","),
-          #                        ")")
-          #           
-          #           rs <- dbSendQuery(con, sql)
-          #           desconexionbd(con, drv)
+          #registro en la bd
+          drv <- dbDriver("PostgreSQL")
+          con <- conexionbd(drv)
+          inputs <- paste(isolate(input$newUserName),isolate(input$name),isolate(input$lastName),
+                          isolate(input$email),isolate(input$newPasswd), sep = "','")
+          sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values ('",
+                       inputs, "')")
+          rs <- dbSendQuery(con, sql) #dbSendQuery(con, "insert into user_guinia (user_name,password) values ('user','1234')") 
+          desconexionbd(con, drv)
+          USER$Logged <- TRUE
         }
       }
     }
@@ -728,7 +729,7 @@ server <- function(input, output, session) {
   
   reduceDimensionality <- reactive({
     if(input$reduceDim){
-      selectedDataPCA()
+      data_pca()
     }
     else
       missingV()
@@ -785,18 +786,10 @@ server <- function(input, output, session) {
   
   #-----------------------> lm
   #seleccion de la variable dependiente
-  output$select_lm_y <- renderUI({
-    numVariables <- dim(reduceDimensionality())[2]
-    namesVariables <- names(reduceDimensionality())
-    selectInput("lm_y", label = h4("Response variable"), 
-                choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
-  })
+  output$select_lm_y <- slider_modelSimple("lm_y", reduceDimensionality())
   
   #seleccion de la variable independiente
-  output$select_lm_x <- renderUI({
-    selectInput("lm_x", label = h4("Predictor variables"), 
-                choices = names(reduceDimensionality()), multiple = TRUE)
-  })
+  output$select_lm_x <- slider_modelMultiple("lm_x", reduceDimensionality())
   
   #Aplicando el modelo lm
   model_lm <- reactive({
@@ -855,22 +848,13 @@ server <- function(input, output, session) {
   
   #-----------------------> pls
   #seleccion de la variable de respuesta
-  output$select_plsx <- renderUI({
-    numVariables <- dim(reduceDimensionality())[2]
-    #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
-    namesVariables <- names(reduceDimensionality())
-    selectInput("pls_response", label = h4("Response variable"), 
-                choices = namesVariables, selected = names(reduceDimensionality())[numVariables])
-  })
+  output$select_plsx <- slider_modelSimple("pls_response", reduceDimensionality())
   
   #seleccion de la variables predictoras
-  output$select_plsy <- renderUI({
-    selectInput("pls_predictors", label = h4("Predictor variables"), 
-                choices = names(reduceDimensionality()), multiple = TRUE)
-  })
+  output$select_plsy <- slider_modelMultiple("pls_predictors", reduceDimensionality())
   
   #Aplicando el modelo pls
-  fit_pls <- reactive({
+  model_pls <- reactive({
     tryCatch({
       closeAlert(session, "alertplsID")
       #Se aplica el modelo pls
@@ -879,13 +863,13 @@ server <- function(input, output, session) {
           setProgress(message = "This may take a while...")
           #sacar la variable de respuesta del data set
           predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
-          plsreg1(predictors, reduceDimensionality()[input$pls_response], crosval = TRUE)
+          plsreg1(predictors, reduceDimensionality()[,input$pls_response], crosval = TRUE)
         })
       }else{
         withProgress({
           setProgress(message = "This may take a while...")
           predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
-          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[input$pls_response], crosval = TRUE)
+          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[,input$pls_response], crosval = TRUE)
         })
       }
     }, error = function(e) {
@@ -894,25 +878,44 @@ server <- function(input, output, session) {
     })
   })
   
-  #Select para ver los resultados obtenidos tras aplicar pls
-  output$select_pls <- renderUI({
-    selectInput("pls_varible", label = h4("PLS regresion"), 
-                choices = names(fit_pls()), selected = names(fit_pls())[1])
-  })
+#   #Select para ver los resultados obtenidos tras aplicar pls
+#   output$select_pls <- renderUI({
+#     selectInput("pls_varible", label = h4("PLS regresion"), 
+#                 choices = names(fit_pls()), selected = names(fit_pls())[1])
+#   })
   
   #Resultado obtenido tras aplicar el  modelo
-  output$summary_pls <- renderPrint({
-    paste(fit_pls(),paste("$",input$pls_varible))
+  output$coef_pls <- renderPrint({
+    model_pls()$std.coefs
   })
   
+  #Estadisticos RME, R2, IA
+  statistical_resultlm <- function(){
+    overfittedRMSE <- rmse(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted RMSE
+    overfittedR2 <- cor(model_pls()$y.pred, reduceDimensionality()[,input$pls_response])^2 #overfitted R2
+    overfittedIA <- d(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted IA
+    
+    Statistical <- as.data.frame(array(0, dim=c(1,4)))
+    names(Statistical) <- c("Name", "RMSE", "R2", "IA")
+    Statistical[1,2] <- overfittedRMSE
+    Statistical[1,3] <- overfittedR2
+    Statistical[1,4] <- overfittedIA
+    return(Statistical) 
+  }
+  
+  #Muestra los estadisticos de pls
+  output$statistical_pls <- renderPrint({
+    statistical_resultlm()
+  })
+
   #grafico correspondiente al modelo pls
   output$plotPLS <- renderPlot({
-    plot(fit_pls())
+    plot(model_pls())
   })
   
   #resultado de la validacion
   output$resultValidationpls <- renderPrint({
-    names(fit_pls())
+    names(model_pls())
   })
   
   #-------------------------------------------------------

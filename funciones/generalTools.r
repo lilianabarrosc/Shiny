@@ -111,3 +111,20 @@ treeSlider <- function(x, y, z, file, xname, yname, zname){
                 max = dim(file)[1], value = c(1, dim(file)[1]))
   )
 }
+
+slider_modelSimple <- function(x,data){
+  renderUI({
+    numVariables <- dim(data)[2]
+    #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
+    namesVariables <- names(data)
+    selectInput(x, label = h4("Response variable"), 
+                choices = namesVariables, selected = names(data)[numVariables])
+  })
+}
+
+slider_modelMultiple <- function(y, data){
+  renderUI({
+    selectInput(y, label = h4("Predictor variables"), 
+                choices = names(data), multiple = TRUE)
+  })
+}
