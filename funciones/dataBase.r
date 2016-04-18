@@ -1,10 +1,6 @@
 
 #función que retorna una conexion con la base de datos especificada.
 conexionbd <- function(drv){
-  #Lectura del driver para postgress
-  dbListConnections(drv)
-  dbGetInfo(drv)
-  
   #Abrir una conexion
   return (dbConnect(drv, host='localhost', port='5432', dbname='Guinia_bd',
                    user='postgres', password='liliana10'))

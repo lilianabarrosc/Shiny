@@ -8,7 +8,7 @@ loginRegister <- function(){
              bsAlert("alertLogin"),
              textInput("userName", "Username"),
              passwordInput("passwd", "Password"),
-             br(),bsButton("Login","Log in",  style = "success")
+             br(), bsButton("Login","Log in",  style = "success")
     ),
     #tab con el registro de usuario
     tabPanel("Register",

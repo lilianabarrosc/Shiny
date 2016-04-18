@@ -1,8 +1,12 @@
-library('shiny')
+
 source('funciones/LOF.R')
 source('funciones/dataBase.r')
 
 #--------------------Servidor-------------------
+
+#--------------> conexion con la base de datos
+drv <- dbDriver("PostgreSQL")
+con <- conexionbd(drv)
 
 server <- function(input, output, session) {
   #--------------> variables globales
@@ -21,13 +25,6 @@ server <- function(input, output, session) {
       alt = "Logo")
   }, deleteFile = FALSE)
   
-  #--------------> conexion con la base de datos
-  #CON <- reactiveValues(conexionbd())
-  
-  #obtencion de user y password desde la bd
-  my_username <- c("test","admin") #dos usuarios test y admin
-  my_password <- c("test","123") # las claves de los usuarios
-  
   #-------------------------------------------------------
   #-----------------------> home <-----------------------
   
@@ -44,31 +41,52 @@ server <- function(input, output, session) {
   
   #inicio la variable user
   USER <- reactiveValues(Logged = FALSE, role=NULL)
-  
   #se valida el nombre del usuario con la contraseña ingresada
-  observe({ 
+  #observe({
+  observeEvent(input$Login, {
+    #obtencion de user y password desde la bd
     if (USER$Logged == FALSE) {
-      if (!is.null(input$Login)) {
-        if (input$Login > 0) {
-          #se obtienen los valores ingresados
-          Username <- isolate(input$userName)
-          Password <- isolate(input$passwd)
-          #Se comparan los valores obtenidos con los registros
-          Id.username <- which(my_username == Username)
-          Id.password <- which(my_password == Password)
-          if (length(Id.username) > 0 & length(Id.password) > 0) {
-            if (Id.username == Id.password) { #si ambas variables son true el usuario es valido
-              USER$Logged <- TRUE
-              USER$role=get_role(Username)
-              closeAlert(session, "alertLoginID")
-            }
-          }else {
+#       if (!is.null(input$Login)) {
+#         if (input$Login > 0 ) {
+          if (input$userName != "" & input$passwd != ""){ 
+            #se obtienen los valores ingresados
+            Username <- "admin"#isolate(input$userName)
+            Password <- isolate(input$passwd)
+            
+            sql <- paste("select password from user_guinia where user_name ='",
+                         Username, "'")
+            tryCatch({
+              rs <- dbSendQuery(con, sql)
+              #obtengo el valor de la bd
+              my_password <- fetch(rs,n=-1) #la funcion fetch() devuelve un frame
+              #print(paste(">>>",dbGetStatement(rs)))
+              if (nrow(my_password) > 0){ #length(Id.username) > 0 & length(Id.password) > 0) {
+                #Se comparan los valores obtenidos con los registros
+                if (as.character(my_password) == Password){ #Id.username == Id.password) { #si ambas variables son true el usuario es valido
+                  closeAlert(session, "alertLoginID")
+                  USER$Logged <- TRUE
+                  USER$role=get_role(Username)
+                  desconexionbd(con, drv)
+                }
+                else{ #la contraseña no coinside
+                  createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+                              content = "Username and password do not match.", 
+                              style = "warning", append = FALSE)
+                }
+              }
+            },error = function(e) {
+              print(e)
+              createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+                          content = "Username does not exist", 
+                          style = "warning", append = FALSE)
+            })
+          }else { #existen campos vacios
             createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                        content = "Username and password do not match.", 
+                        content = "There are empty fields.", 
                         style = "warning", append = FALSE)
-          } 
-        }
-      }
+          }
+#         }
+#       }
     }
   })
   
@@ -112,15 +130,20 @@ server <- function(input, output, session) {
         }else{ #Se puede registrar
           closeAlert(session, "alertRegisterID")
           #registro en la bd
-          drv <- dbDriver("PostgreSQL")
-          con <- conexionbd(drv)
           inputs <- paste(isolate(input$newUserName),isolate(input$name),isolate(input$lastName),
                           isolate(input$email),isolate(input$newPasswd), sep = "','")
           sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values ('",
                        inputs, "')")
-          rs <- dbSendQuery(con, sql) #dbSendQuery(con, "insert into user_guinia (user_name,password) values ('user','1234')") 
-          desconexionbd(con, drv)
-          USER$Logged <- TRUE
+          tryCatch({
+            rs <- dbSendQuery(con, sql)
+            session$onSessionEnded(desconexionbd(con, drv))
+            USER$Logged <- TRUE
+          },error = function(e) {
+            createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
+                        content = "Username already exists.", 
+                        style = "warning", append = FALSE)
+          })
+          #rs <- dbSendQuery(con, sql) #dbSendQuery(con, "insert into user_guinia (user_name,password) values ('user','1234')") 
         }
       }
     }
