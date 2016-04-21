@@ -150,6 +150,8 @@ server <- function(input, output, session) {
   
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
+  #Variable contiene el data set atualizado
+  DATA_SET <- reactiveValues(name = NULL, data = NULL)
   
   #----------> data set
   output$data_extern <- renderUI({
@@ -187,18 +189,37 @@ server <- function(input, output, session) {
     )
   })
   
+  observe({ #Se asigna el data set seleccionado a la varible global
+    if (input$select_file==4 && is.null(input$file1) && is.null(input$upload))
+      return()
+    else if(input$select_file==5 && is.null(input$upload))
+      return()
+    #obtener el nombre del data set
+    switch(input$select_file,
+           '1'= DATA_SET$name <-"iris",
+           '2'= DATA_SET$name <-"airquality",
+           '3'= DATA_SET$name <-"sleep",
+           '4'= DATA_SET$name <- input$file1$name,
+           '5'= observe({
+             splitURL <- strsplit(input$url, "/")
+             DATA_SET$name <- splitURL[[1]][length(splitURL[[1]])]
+           })
+    )
+    DATA_SET$data <- file()
+  })
+  
   #muestro un resumen del data set seleccionado
   output$str_data <- renderPrint({
     if (input$select_file==4 && is.null(input$file1))
       return()
-    str(file())
+    str(DATA_SET$data)
   })
   
   #muestro un sumary del data set seleccionado
   output$summary_data <- renderPrint({
     if (input$select_file==4 && is.null(input$file1))
       return()
-    summary(file())
+    summary(DATA_SET$data)
   })
   
   #----------> dimensionalidad del archivo
@@ -207,10 +228,10 @@ server <- function(input, output, session) {
   
   #*************************************************
   #----------> Sacar columnas con valores nominales
-  only_file_nums <- reactive({
+  observe({
     aux <- data.frame(file())
     nums <- sapply(aux, is.numeric)
-    aux[ , nums]
+    DATA_SET$data <- aux[ , nums]
   }) 
   
   #***************************************
@@ -220,12 +241,12 @@ server <- function(input, output, session) {
   
   #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_Scatterplot <- renderUI({
-    treeSlider("x_scatter", "y_scatter", "z_scatter", only_file_nums(), strx, stry, strz)
+    treeSlider("x_scatter", "y_scatter", "z_scatter", DATA_SET$data, strx, stry, strz)
   })
   
   #seleccion de atributos y observaciones del data set
   dat_Scatterplot <- reactive({
-    only_file_nums()[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
+    DATA_SET$data[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
   })
   
   scatterPlot <- reactive({ #funcion que genera el scatterPlot
@@ -236,8 +257,8 @@ server <- function(input, output, session) {
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      ScatterplotMatrix(dat_Scatterplot(), c(input$x_scatter[1]:input$x_scatter[2]), only_file_nums()[,input$y_scatter], 
-                        names(only_file_nums())[[input$y_scatter]], colours = myPalette)
+      ScatterplotMatrix(dat_Scatterplot(), c(input$x_scatter[1]:input$x_scatter[2]), DATA_SET$data[,input$y_scatter], 
+                        names(DATA_SET$data)[[input$y_scatter]], colours = myPalette)
     })
   })
   
@@ -265,7 +286,7 @@ server <- function(input, output, session) {
       width = 6, status = "success",
       h4("Range"),
       sliderInput("x_parallel", label = strx, min = 1, 
-                  max = dim(only_file_nums())[2], value = c(1, dim(only_file_nums())[2])),
+                  max = dim(DATA_SET$data)[2], value = c(1, dim(DATA_SET$data)[2])),
       sliderInput("y_parallel", label = stry, min = 1, 
                   max = dim(file())[2], value = 2)
     )
@@ -277,7 +298,7 @@ server <- function(input, output, session) {
       width = 6, status = "success",
       h4("Range"),
       sliderInput("z_parallel", label = strz, min = 1, 
-                  max = dim(only_file_nums())[1], value = c(1, dim(only_file_nums())[1])),
+                  max = dim(DATA_SET$data)[1], value = c(1, dim(DATA_SET$data)[1])),
       sliderInput("lineSize", label = "Line Size", min = 1, 
                   max = 5, value = 2),
       sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
@@ -288,7 +309,7 @@ server <- function(input, output, session) {
   
   #seleccion de atributos y observaciones del data set
   data_Parallelx <- reactive({
-    only_file_nums()[input$z_parallel[1]:input$z_parallel[2],input$x_parallel[1]:input$x_parallel[2]]
+    DATA_SET$data[input$z_parallel[1]:input$z_parallel[2],input$x_parallel[1]:input$x_parallel[2]]
   })
   
   data_Parallely <- reactive({
@@ -331,22 +352,19 @@ server <- function(input, output, session) {
   
   #*********************************************
   #---------------> Graficos correspondientes a missing values
-  
-  missingV <- reactive({
+  observe({
     if(input$deleteMS)
-      na.omit(only_file_nums())
-    else
-      only_file_nums()
+      DATA_SET$data <- na.omit(DATA_SET$data)
   })
   
   #Slider visualizacion grafico de missing values
   output$slider_missingValues <- renderUI({
-    twoSlider("attributes","observation",missingV(),"Attributes",strz)
+    twoSlider("attributes","observation",DATA_SET$data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 1
   data_boxPlot <- reactive({
-    missingV()[input$observation[1]:input$observation[2], 
+    DATA_SET$data[input$observation[1]:input$observation[2], 
                input$attributes[1]:input$attributes[2]]
   })
   
@@ -381,12 +399,12 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_histogramPlot <- renderUI({
-    twoSlider("attributes_histogram","observation_histogram",missingV(),"Attributes",strz)
+    twoSlider("attributes_histogram","observation_histogram",DATA_SET$data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
   data_histogramPlot <- reactive({
-    missingV()[input$observation_histogram[1]:input$observation_histogram[2], 
+    DATA_SET$data[input$observation_histogram[1]:input$observation_histogram[2], 
                input$attributes_histogram[1]:input$attributes_histogram[2]]
   })
   
@@ -412,12 +430,12 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_missingScatter <- renderUI({
-    treeSlider("x_missingScatter", "y_missingScatter", "z_missingScatter", missingV(), strx, stry, strz)
+    treeSlider("x_missingScatter", "y_missingScatter", "z_missingScatter", DATA_SET$data, strx, stry, strz)
   })
   
   #Obtengo la seleccion de atributos a comparar para la Opcion 3
   data_missingScatter <- reactive({
-    missingV()[input$z_missingScatter[1]:input$z_missingScatter[2],
+    DATA_SET$data[input$z_missingScatter[1]:input$z_missingScatter[2],
                input$x_missingScatter[1]:input$x_missingScatter[2]]
   })
   
@@ -428,7 +446,7 @@ server <- function(input, output, session) {
     }
     tryCatch({
       closeAlert(session, "alertMissing3ID")
-      scattmatrixMiss(data_missingScatter(), interactive = F, highlight = c(names(missingV())[[input$y_missingScatter]]))
+      scattmatrixMiss(data_missingScatter(), interactive = F, highlight = c(names(DATA_SET$data)[[input$y_missingScatter]]))
     }, error = function(e) {
       createAlert(session, "alertMissing3", "alertMissing3ID", title = titleAlert,
                   content = paste("",e), 
@@ -457,11 +475,11 @@ server <- function(input, output, session) {
   
   noiseR <- reactive({
     if(input$rnoise){
-      diffValues <- calculateDiff(missingV())
+      diffValues <- calculateDiff(DATA_SET$data)
       columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
       #  columnsNoise <- as.data.frame(columnsNoise[,1] + ncol(missingV()))
-      as.data.frame(missingV()[,-columnsNoise[,1]])
-    }else {missingV()}
+      as.data.frame(DATA_SET$data[,-columnsNoise[,1]])
+    }else {DATA_SET$data}
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -540,7 +558,7 @@ server <- function(input, output, session) {
   
   ## scores for the original data
   outlier.scores <- reactive({
-    lof(missingV(), k= c(5:10))
+    lof(DATA_SET$data, k= c(5:10))
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -556,9 +574,9 @@ server <- function(input, output, session) {
     if(is.na(outlier.scores()) && is.null(outlier.scores())){return}
     else{
       if(!is.null(input$thresholdt)){
-        LOFCraft(data = missingV(), threshold = input$thresholdt, data.frame(outlier.scores())) ##calling LOF
+        LOFCraft(data = DATA_SET$data, threshold = input$thresholdt, data.frame(outlier.scores())) ##calling LOF
       } else {
-        LOFCraft(data = missingV(), data.frame(outlier.scores())) ##calling LOF
+        LOFCraft(data = DATA_SET$data, data.frame(outlier.scores())) ##calling LOF
       }
     }
     
@@ -670,22 +688,22 @@ server <- function(input, output, session) {
     switch(input$normalizationType,
            '1'=  withProgress({
              setProgress(message = "This may take a while...")
-             normalizeData(missingV())
+             normalizeData(DATA_SET$data)
            }),
            '2'=  withProgress({
              setProgress(message = "This may take a while...")
-             normalizeData(missingV(), input$min, input$max)
+             normalizeData(DATA_SET$data, input$min, input$max)
            }),
            '3'=  withProgress({
              setProgress(message = "This may take a while...") 
-             data.Normalization(missingV(),type=input$type_normalization ,normalization= input$type)
+             data.Normalization(DATA_SET$data,type=input$type_normalization ,normalization= input$type)
            })
     )
   })
   
   #muestro los primeros 10 atributos del data set original
   output$original_data <- renderPrint({#renderDataTable(
-    missingV()[1:10,]
+    DATA_SET$data[1:10,]
     #options = list(paging = FALSE, searching = FALSE)
   })
   
@@ -707,13 +725,13 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico PCA
   output$slider_pca <- renderUI({
-    twoSlider("attributes_pca","observation_pca",missingV(),"Attributes",strz)
+    twoSlider("attributes_pca","observation_pca",DATA_SET$data,"Attributes",strz)
   })
   
   
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca<- reactive({
-    missingV()[input$observation_pca[1]:input$observation_pca[2], 
+    DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
                input$attributes_pca[1]:input$attributes_pca[2]]
   })
   
@@ -760,7 +778,7 @@ server <- function(input, output, session) {
   
   #------------SVD
   s <- reactive({
-    dat <- as.matrix(missingV())
+    dat <- as.matrix(DATA_SET$data)
     svd(dat)
   })
   
@@ -784,7 +802,7 @@ server <- function(input, output, session) {
     }
     else{
       print("hola else")
-      data.frame(missingV())
+      data.frame(DATA_SET$data)
     }
   })
   
@@ -854,9 +872,11 @@ server <- function(input, output, session) {
   
   #tipo de validacion para el modelo
   validation_lm <- reactive({
-    if (is.null(input$fileTest))#is.null(input$select_validation))
+    if (is.null(input$select_validation))
       return()
     if(input$select_validation == '2' && is.null(input$fileTest))
+      return()
+    if(is.null(model_lm()))
       return()
     
     switch(input$select_validation,
@@ -870,15 +890,10 @@ server <- function(input, output, session) {
   })
   
   #grafico para la validacionn cruzada
-  reactive({
-    #if(is.null(model_lm())){ return()}
-    if(input$select_validation == '1'){
-      output$crossPlot <- renderPlot({
-        CVlm(reduceDimensionality(), model_lm(), m=10)
-      })
-    }
+  output$crossPlot <- renderPlot({
+    CVlm(reduceDimensionality(), model_lm(), m=10)
   })
-  
+      
   output$resultValidation_lm <- renderPrint({
     validation_lm()
   })
