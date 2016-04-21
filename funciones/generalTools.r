@@ -57,10 +57,10 @@ colors <- function(id1, id2, id3){
 }
 
 #funcion que retorna el archivo que se va a descargar
-downloadGeneral <- function(option, plot){
+downloadGeneral <- function(option, plot, name){
   switch (option,
           "1" = downloadHandler(
-              filename = "guiniaPNG.png", #nombre de la imagen a descargar
+              filename = paste(name, '.png', sep=''), #nombre de la imagen a descargar
               content = function(file) {
                 png(file)
                 print(plot)
@@ -68,7 +68,7 @@ downloadGeneral <- function(option, plot){
               }
           ),
           "2" = downloadHandler(
-              filename = "guiniaSVG.svg", #nombre de la imagen a descargar
+              filename = paste(name, '.svg', sep=''), #nombre de la imagen a descargar
               content = function(file) {
                 svg(file)
                 print(plot)
@@ -76,7 +76,7 @@ downloadGeneral <- function(option, plot){
               }
           ),
           "3" = downloadHandler(
-              filename = "guiniaPDF.pdf", #nombre del pdf a descargar
+              filename = paste(name, '.pdf', sep=''), #nombre del pdf a descargar
               content = function(file) {
                 pdf(file = file, width=12, height=8)
                 print(plot)
@@ -112,19 +112,14 @@ treeSlider <- function(x, y, z, file, xname, yname, zname){
   )
 }
 
-slider_modelSimple <- function(x,data){
-  renderUI({
+slider_model <- function(x,y,data){
     numVariables <- dim(data)[2]
     #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
     namesVariables <- names(data)
-    selectInput(x, label = h4("Response variable"), 
-                choices = namesVariables, selected = names(data)[numVariables])
-  })
-}
-
-slider_modelMultiple <- function(y, data){
-  renderUI({
-    selectInput(y, label = h4("Predictor variables"), 
-                choices = names(data), multiple = TRUE)
-  })
+    column(12,
+       selectInput(x, label = h4("Response variable"), 
+                   choices = namesVariables, selected = names(data)[numVariables]),
+       selectInput(y, label = h4("Predictor variables"), 
+                   choices = namesVariables, multiple = TRUE)
+       )
 }

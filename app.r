@@ -27,7 +27,7 @@ library('DAAG') #libreria para cross validation
 #install.packages("RPostgreSQL")
 library('RPostgreSQL') #Libreria para postgress
 #install.packages("plsdepot")
-library('plsdepot')
+library('plsdepot') #Libreria para utilizar pls
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')
@@ -37,9 +37,6 @@ source('funciones/data.r')
 source('funciones/regresion.r')
 source('funciones/outlier.r')
 source('funciones/home.r')
-
-#variable global que con el color de los slider
-dataset <- NULL #Nombre del data set seleccionado, el cual no contiene valores nominales.
 
 #titulo de la pagina
 dbHeader <- dashboardHeader()
@@ -103,7 +100,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         tabItem(tabName = "pls",
                                 pls()
                         ),
-                        tabItem(tabName = "diagnosticP",
+                        tabItem(tabName = "lmEvaluation",
                                 tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
                                                 "Normal Q-Q", "Residual vs leverage")
                         )

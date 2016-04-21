@@ -1,12 +1,11 @@
-
 source('funciones/LOF.R')
 source('funciones/dataBase.r')
 
 #--------------------Servidor-------------------
 
 #--------------> conexion con la base de datos
-drv <- dbDriver("PostgreSQL")
-con <- conexionbd(drv)
+# drv <- dbDriver("PostgreSQL")
+# con <- conexionbd(drv)
 
 server <- function(input, output, session) {
   #--------------> variables globales
@@ -46,47 +45,47 @@ server <- function(input, output, session) {
   observeEvent(input$Login, {
     #obtencion de user y password desde la bd
     if (USER$Logged == FALSE) {
-#       if (!is.null(input$Login)) {
-#         if (input$Login > 0 ) {
-          if (input$userName != "" & input$passwd != ""){ 
-            #se obtienen los valores ingresados
-            Username <- "admin"#isolate(input$userName)
-            Password <- isolate(input$passwd)
-            
-            sql <- paste("select password from user_guinia where user_name ='",
-                         Username, "'")
-            tryCatch({
-              rs <- dbSendQuery(con, sql)
-              #obtengo el valor de la bd
-              my_password <- fetch(rs,n=-1) #la funcion fetch() devuelve un frame
-              #print(paste(">>>",dbGetStatement(rs)))
-              if (nrow(my_password) > 0){ #length(Id.username) > 0 & length(Id.password) > 0) {
-                #Se comparan los valores obtenidos con los registros
-                if (as.character(my_password) == Password){ #Id.username == Id.password) { #si ambas variables son true el usuario es valido
-                  closeAlert(session, "alertLoginID")
-                  USER$Logged <- TRUE
-                  USER$role=get_role(Username)
-                  desconexionbd(con, drv)
-                }
-                else{ #la contraseña no coinside
-                  createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                              content = "Username and password do not match.", 
-                              style = "warning", append = FALSE)
-                }
-              }
-            },error = function(e) {
-              print(e)
+      #       if (!is.null(input$Login)) {
+      #         if (input$Login > 0 ) {
+      if (input$userName != "" & input$passwd != ""){ 
+        #se obtienen los valores ingresados
+        Username <- "admin"#isolate(input$userName)
+        Password <- isolate(input$passwd)
+        
+        sql <- paste("select password from user_guinia where user_name ='",
+                     Username, "'")
+        tryCatch({
+          rs <- dbSendQuery(con, sql)
+          #obtengo el valor de la bd
+          my_password <- fetch(rs,n=-1) #la funcion fetch() devuelve un frame
+          #print(paste(">>>",dbGetStatement(rs)))
+          if (nrow(my_password) > 0){ #length(Id.username) > 0 & length(Id.password) > 0) {
+            #Se comparan los valores obtenidos con los registros
+            if (as.character(my_password) == Password){ #Id.username == Id.password) { #si ambas variables son true el usuario es valido
+              closeAlert(session, "alertLoginID")
+              USER$Logged <- TRUE
+              USER$role=get_role(Username)
+              desconexionbd(con, drv)
+            }
+            else{ #la contraseña no coinside
               createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                          content = "Username does not exist", 
+                          content = "Username and password do not match.", 
                           style = "warning", append = FALSE)
-            })
-          }else { #existen campos vacios
-            createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                        content = "There are empty fields.", 
-                        style = "warning", append = FALSE)
+            }
           }
-#         }
-#       }
+        },error = function(e) {
+          print(e)
+          createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+                      content = "Username does not exist", 
+                      style = "warning", append = FALSE)
+        })
+      }else { #existen campos vacios
+        createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+                    content = "There are empty fields.", 
+                    style = "warning", append = FALSE)
+      }
+      #         }
+      #       }
     }
   })
   
@@ -171,15 +170,20 @@ server <- function(input, output, session) {
   #Seleccion de data set a utilizar
   file <- reactive({
     inFile <- input$file1
-    if (is.null(input$select_file) && is.null(input$url))
+    if (input$select_file == '4' && is.null(inFile)){
       return()
+    }
+    
+    if(input$select_file == '5' && is.null(input$url)){return()}
+    
     switch(input$select_file,
            '1'= iris,
            '2'= airquality,
            '3'= sleep,
            '4'= read.csv(inFile$datapath),
-           '5'= if(input$upload)
-             read.csv(input$url, sep = ";", dec = ",")
+           '5'= if(input$upload){
+                  read.csv(input$url, sep = ";", dec = ",")
+                }
     )
   })
   
@@ -559,7 +563,7 @@ server <- function(input, output, session) {
     }
     
   })
-
+  
   ## scores for the without outliers data
   withoutOutliers.scores <- reactive({
     data.frame(res_lof()[1]) ## scores of data without outliers
@@ -750,14 +754,6 @@ server <- function(input, output, session) {
     summary(pca())
   })
   
-  reduceDimensionality <- reactive({
-    if(input$reduceDim){
-      data_pca()
-    }
-    else
-      missingV()
-  })
-  
   output$summary_reduceDimensionality <- renderPrint({
     summary(reduceDimensionality())
   })
@@ -778,6 +774,18 @@ server <- function(input, output, session) {
   
   output$s <- renderPrint({
     s()$d
+  })
+  
+  #data luego de aplicar un metodo de reduccion como pls
+  reduceDimensionality <- reactive({
+    if(input$reduceDim){
+      data_pca()
+      print("hola if")
+    }
+    else{
+      print("hola else")
+      data.frame(missingV())
+    }
   })
   
   #-------------------------------------------------------
@@ -809,30 +817,31 @@ server <- function(input, output, session) {
   
   #-----------------------> lm
   #seleccion de la variable dependiente
-  output$select_lm_y <- slider_modelSimple("lm_y", reduceDimensionality())
-  
-  #seleccion de la variable independiente
-  output$select_lm_x <- slider_modelMultiple("lm_x", reduceDimensionality())
+  output$select_lm <- renderUI({
+    slider_model("lm_y", "lm_x", reduceDimensionality())
+    })
   
   #Aplicando el modelo lm
   model_lm <- reactive({
-    if(is.null(input$lm_x)){
-      (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
+    if(!is.null(input$lm_y)){
+      if(is.null(input$lm_x)){
+        (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
+      }
+      #input$lm_y
+      else
+        (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
+      
+      if (is.null(input$select_validation)){return()}
+      else{
+        switch (input$select_validation,
+                '1' = lm(fmla, data=reduceDimensionality()),
+                '2' = lm(fmla, data=reduceDimensionality()),
+                '3' = lm(Sepal.Length ~ ., data = data.frame( 
+                  reduceDimensionality()[train_lm(), ]))
+        )
+      }
+      #lm(fmla, data=reduceDimensionality()) 
     }
-    #input$lm_y
-    else
-      (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
-    
-    if (is.null(input$select_validation)){return()}
-    else{
-      switch (input$select_validation,
-              '1' = lm(fmla, data=reduceDimensionality()),
-              '2' = lm(fmla, data=reduceDimensionality()),
-              '3' = lm(Sepal.Length ~ ., data = data.frame( 
-                reduceDimensionality()[train_lm(), ]))
-      )
-    }
-    #lm(fmla, data=reduceDimensionality())
   })
   
   #Resultado obtenido tras aplicar el  modelo
@@ -843,21 +852,26 @@ server <- function(input, output, session) {
     })
   })
   
+  #tipo de validacion para el modelo
   validation_lm <- reactive({
-    if (is.null(input$select_validation))
+    if (is.null(input$fileTest))#is.null(input$select_validation))
       return()
+    if(input$select_validation == '2' && is.null(input$fileTest))
+      return()
+    
     switch(input$select_validation,
            '1' = CVlm(reduceDimensionality(), model_lm(), m=10), # ten-fold cross validation
-           '2' = if(!is.null(input$fileTest)){
-                   predict(model_lm(), input$fileTest)
-                 },
+           '2' = { inFile <- input$fileTest
+                    predict(model_lm(), read.csv(inFile$datapath))
+                  },
            '3' = predict(model_lm(), data.frame(reduceDimensionality()[-train_lm(), ]))
            
     )
   })
   
   #grafico para la validacionn cruzada
-  observe({
+  reactive({
+    #if(is.null(model_lm())){ return()}
     if(input$select_validation == '1'){
       output$crossPlot <- renderPlot({
         CVlm(reduceDimensionality(), model_lm(), m=10)
@@ -871,10 +885,9 @@ server <- function(input, output, session) {
   
   #-----------------------> pls
   #seleccion de la variable de respuesta
-  output$select_plsx <- slider_modelSimple("pls_response", reduceDimensionality())
-  
-  #seleccion de la variables predictoras
-  output$select_plsy <- slider_modelMultiple("pls_predictors", reduceDimensionality())
+  output$select_pls <- renderUI({
+    slider_model("pls_response", "pls_predictors", reduceDimensionality())  
+  })
   
   #Aplicando el modelo pls
   model_pls <- reactive({
@@ -901,11 +914,11 @@ server <- function(input, output, session) {
     })
   })
   
-#   #Select para ver los resultados obtenidos tras aplicar pls
-#   output$select_pls <- renderUI({
-#     selectInput("pls_varible", label = h4("PLS regresion"), 
-#                 choices = names(fit_pls()), selected = names(fit_pls())[1])
-#   })
+  #   #Select para ver los resultados obtenidos tras aplicar pls
+  #   output$select_pls <- renderUI({
+  #     selectInput("pls_varible", label = h4("PLS regresion"), 
+  #                 choices = names(fit_pls()), selected = names(fit_pls())[1])
+  #   })
   
   #Resultado obtenido tras aplicar el  modelo
   output$coef_pls <- renderPrint({
@@ -930,7 +943,7 @@ server <- function(input, output, session) {
   output$statistical_pls <- renderPrint({
     statistical_resultlm()
   })
-
+  
   #grafico correspondiente al modelo pls
   output$plotPLS <- renderPlot({
     plot(model_pls())
