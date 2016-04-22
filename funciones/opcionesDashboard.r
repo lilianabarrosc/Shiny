@@ -38,9 +38,11 @@ sidebar <- function(isLogged, username) {
              ),
              menuItem("Regression", tabName = "regression", icon= shiny::icon("cogs"),
                       menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("PLS", tabName = "pls", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("PLS", tabName = "pls", icon = shiny::icon("angle-double-right")),
+                      menuSubItem("Ridge", tabName = "ridge", icon = shiny::icon("angle-double-right")),
+                      menuSubItem("RGLM", tabName = "rglm", icon = shiny::icon("angle-double-right"))
              ),
-             menuItem("Lineal model evaluation", tabName = "lmEvaluation", icon= shiny::icon("eye"),
+             menuItem("Linear model evaluation", tabName = "lmEvaluation", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right")),
                       menuSubItem("Colinearity Test", tabName = "colinearityT", icon = shiny::icon("angle-double-right"))
              ),

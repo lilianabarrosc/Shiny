@@ -184,7 +184,10 @@ server <- function(input, output, session) {
            '3'= sleep,
            '4'= read.csv(inFile$datapath),
            '5'= if(input$upload){
-                  read.csv(input$url, sep = ";", dec = ",")
+                 withProgress({
+                   setProgress(message = "This may take a while...")
+                   read.csv(input$url, sep = ";", dec = ",")
+                 })
                 }
     )
   })
@@ -229,6 +232,8 @@ server <- function(input, output, session) {
   #*************************************************
   #----------> Sacar columnas con valores nominales
   observe({
+    if(is.null(file()))
+      return()
     aux <- data.frame(file())
     nums <- sapply(aux, is.numeric)
     DATA_SET$data <- aux[ , nums]
@@ -277,7 +282,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_Scatterplot <- downloadGeneral(input$radio_Scatterplot, scatterPlot())
+    output$download_Scatterplot <- downloadGeneral(input$radio_Scatterplot, output$scatter_plot, DATA_SET$name)
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -344,7 +349,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_parallelplot <- downloadGeneral(input$radio_parallelplot, parallelplot())
+    output$download_parallelplot <- downloadGeneral(input$radio_parallelplot, parallelplot(), DATA_SET$name)
   })
   
   #-------------------------------------------------------
@@ -394,7 +399,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_boxplot <- downloadGeneral(input$radio_boxplot, boxPlotfunction())
+    output$download_boxplot <- downloadGeneral(input$radio_boxplot, boxPlotfunction(), DATA_SET$name)
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -764,7 +769,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_pcaPlot <- downloadGeneral(input$radio_pca, pcaGrafic())
+    output$download_pcaPlot <- downloadGeneral(input$radio_pca, pcaGrafic(), DATA_SET$name)
   })
   
   #Informacion resumen de los pc's obtenidos
@@ -872,21 +877,26 @@ server <- function(input, output, session) {
   
   #tipo de validacion para el modelo
   validation_lm <- reactive({
-    if (is.null(input$select_validation))
-      return()
-    if(input$select_validation == '2' && is.null(input$fileTest))
-      return()
-    if(is.null(model_lm()))
-      return()
-    
-    switch(input$select_validation,
-           '1' = CVlm(reduceDimensionality(), model_lm(), m=10), # ten-fold cross validation
-           '2' = { inFile <- input$fileTest
-                    predict(model_lm(), read.csv(inFile$datapath))
-                  },
-           '3' = predict(model_lm(), data.frame(reduceDimensionality()[-train_lm(), ]))
-           
-    )
+    tryCatch({
+      if (is.null(input$select_validation))
+        return()
+      if(input$select_validation == '2' && is.null(input$fileTest))
+        return()
+      if(is.null(model_lm()))
+        return()
+      closeAlert(session,"alertValidationID")
+      switch(input$select_validation,
+             '1' = CVlm(reduceDimensionality(), model_lm(), m=10), # ten-fold cross validation
+             '2' = { inFile <- input$fileTest
+                      predict(model_lm(), read.csv(inFile$datapath))
+                    },
+             '3' = predict(model_lm(), data.frame(reduceDimensionality()[-train_lm(), ]))
+             
+      )
+    }, error = function(e) {
+      createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
+                  content = "Predictors must contain more than one column", style = "warning")
+    })
   })
   
   #grafico para la validacionn cruzada
@@ -904,6 +914,11 @@ server <- function(input, output, session) {
     slider_model("pls_response", "pls_predictors", reduceDimensionality())  
   })
   
+  #numero de componentes para el modelo
+  output$componentes_pls <- renderUI({
+    numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(reduceDimensionality()) )
+  })
+  
   #Aplicando el modelo pls
   model_pls <- reactive({
     tryCatch({
@@ -914,13 +929,15 @@ server <- function(input, output, session) {
           setProgress(message = "This may take a while...")
           #sacar la variable de respuesta del data set
           predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
-          plsreg1(predictors, reduceDimensionality()[,input$pls_response], crosval = TRUE)
+          plsreg1(predictors, reduceDimensionality()[,input$pls_response], 
+                  crosval = input$crosval, comps = input$comp_pls)
         })
       }else{
         withProgress({
           setProgress(message = "This may take a while...")
           predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
-          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[,input$pls_response], crosval = TRUE)
+          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[,input$pls_response], 
+                  crosval = input$crosval, comps = input$comp_pls)
         })
       }
     }, error = function(e) {
@@ -937,11 +954,16 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$coef_pls <- renderPrint({
+    if(is.null(model_pls()))
+      return()
     model_pls()$std.coefs
   })
   
   #Estadisticos RME, R2, IA
   statistical_resultlm <- function(){
+    if(is.null(model_pls()))
+      return()
+    
     overfittedRMSE <- rmse(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted RMSE
     overfittedR2 <- cor(model_pls()$y.pred, reduceDimensionality()[,input$pls_response])^2 #overfitted R2
     overfittedIA <- d(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted IA
@@ -961,6 +983,8 @@ server <- function(input, output, session) {
   
   #grafico correspondiente al modelo pls
   output$plotPLS <- renderPlot({
+    if(is.null(model_pls()))
+      return()
     plot(model_pls())
   })
   
@@ -970,12 +994,12 @@ server <- function(input, output, session) {
   })
   
   #-------------------------------------------------------
-  #-----------------------> outlier <-----------------------
+  #-----------------------> Linear Model Evaluation <-----------------------
   
   #-----------------------> Diagnostic Plots
   
   diagnostic <- reactive({
-    diagnosticData(fit())
+    diagnosticData(model_lm())
   })
   
   #funcion para el grafico residual vs fitted
@@ -1005,7 +1029,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotRF <- downloadGeneral(input$radioRF, plotRF())
+    output$downloadPlotRF <- downloadGeneral(input$radioRF, plotRF(), DATA_SET$name)
   })
   
   #funcion para el grafico Standarized Residuals v/s Fitted Values
@@ -1035,7 +1059,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotSF <- downloadGeneral(input$radioSF, plotSF())
+    output$downloadPlotSF <- downloadGeneral(input$radioSF, plotSF(), DATA_SET$name)
   })
   
   #funcion para el grafico normal Q-Q
@@ -1064,7 +1088,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotQQ <- downloadGeneral(input$radioQQ, plotQQ())
+    output$downloadPlotQQ <- downloadGeneral(input$radioQQ, plotQQ(), DATA_SET$name)
   })
   
   #funcion para el grafico residual vs leverage
@@ -1094,6 +1118,27 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$downloadPlotRL <- downloadGeneral(input$radioRL, plotRL())
+    output$downloadPlotRL <- downloadGeneral(input$radioRL, plotRL(), DATA_SET$name)
   })
+  
+  #-----------------------> Colinearity Test
+  
+  #resultado de aplicar el test de colinealidad
+  output$colinearity_result <- renderPrint({
+    vif(model_lm())
+  })
+  
+  #tolerancia del test de colinealidad
+  output$colinearity_tolerance <- renderPrint({
+    #1/vif(model_lm())
+    Rsq = summary(model_lm)$r.squared
+    
+    1/(1 - Rsq)
+  })
+  
+  #promedio del test de colinealidad
+  output$colinearity_mean <- renderPrint({
+    mean(vif(model_lm()))
+  })
+  
 }

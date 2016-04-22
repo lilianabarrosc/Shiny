@@ -6,7 +6,7 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
            #BreadCrumds de outlier    
            HTML('
                 <ul class="breadcrumb">
-                <li>Outlier</li>
+                <li>Linear model evaluation</li>
                 <li>Diagnostic Plots</li>
                 </ul>'),
            tabBox(
@@ -65,5 +65,43 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
              )
            ) 
       )
+  )
+}
+
+colinearityTest <- function(){
+  fluidRow(
+    column(width = 12,
+           #BreadCrumds de outlier    
+           HTML('
+                <ul class="breadcrumb">
+                <li>Linear model evaluation</li>
+                <li>Colinearity Test</li>
+                </ul>')
+    ),
+    box(width = 12, title = "Colinearity Test", solidHeader = TRUE, status = "success",
+      h4("Result"),
+      verbatimTextOutput("colinearity_result"),
+      h4("Tolerance"),
+      verbatimTextOutput("colinearity_tolerance"),
+      h4("Means"),
+      verbatimTextOutput("colinearity_mean")
+    ),
+    box(width = 12, title = "Your can be applied here:", solidHeader = TRUE, status = "success",
+        tags$ul(tags$li(
+          p(style = "text-align:justify;","If the largest colinearity test is greater than 10 then 
+            there is cause for concern (Bowerman & O'Connell. 1990; Myres, 1990).")
+        )),
+        tags$ul(tags$li(
+          p(style = "text-align:justify;","If the average colinearity test is substantially greater 
+            than 1 then the regression may be biased ( Bowerman & O'Connell. 1990; Myres, 1990).")               
+        )),
+        tags$ul(tags$li(
+          p(style = "text-align:justify;","Tolerance below 0.1 indicates a serious problem.")               
+        )),
+        tags$ul(tags$li(
+          p(style = "text-align:justify;","Tolerance below 0.2 indicates a potencial problem
+            (Menard, 1995).")               
+        ))
+    )
   )
 }

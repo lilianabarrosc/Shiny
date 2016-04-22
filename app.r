@@ -35,7 +35,7 @@ source('funciones/preprocessing.r')
 source('funciones/transformation.r')
 source('funciones/data.r')
 source('funciones/regresion.r')
-source('funciones/outlier.r')
+source('funciones/linearModelEvaluation.r')
 source('funciones/home.r')
 
 #titulo de la pagina
@@ -51,13 +51,13 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                                   column(6,
                                          titlePanel("Welcome to Güiña!"),
                                          wellPanel(
-                                           p("The Güiña is a small cat that is endemic from the evergreen forest of southern 
+                                           p(style = "text-align:justify;", "The Güiña is a small cat that is endemic from the evergreen forest of southern 
                                              Chile. This smart predator relies on its senses to identify and capture the prey, 
                                              usually sheltered in the dense and obscure forest."),
-                                           p("This clever feline served us as inspiration to build a data mining tools for 
+                                           p(style = "text-align:justify;", "This clever feline served us as inspiration to build a data mining tools for 
                                              visualizing an analyzing data. From our perspective, the data miner acts as a 
                                              furtive predator of precious information hidden in the dark data forest."),
-                                           p("Coincidentally the name Güiña begins with the three letters GUI which also 
+                                           p(style = "text-align:justify;", "Coincidentally the name Güiña begins with the three letters GUI which also 
                                              stands for the acronym for Graphical User Interface (GUI).")
                                            ),
                                          imageOutput("home")
@@ -100,9 +100,18 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         tabItem(tabName = "pls",
                                 pls()
                         ),
-                        tabItem(tabName = "lmEvaluation",
+                        tabItem(tabName = "ridge",
+                                ridge()
+                        ),
+                        tabItem(tabName = "rglm",
+                                rglm()
+                        ),
+                        tabItem(tabName = "diagnosticP",
                                 tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
                                                 "Normal Q-Q", "Residual vs leverage")
+                        ),
+                        tabItem(tabName = "colinearityT",
+                                colinearityTest()
                         )
                   )
 )
