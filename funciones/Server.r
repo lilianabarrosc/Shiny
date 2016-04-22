@@ -815,17 +815,6 @@ server <- function(input, output, session) {
   #-----------------------> Regresion <-----------------------
   
   #-----------------------> validation type
-  #salida dinamica para solicitar unn archivo o un % para particionar
-  output$ui_lm <- renderUI({
-    if (is.null(input$select_validation))
-      return()
-    switch(input$select_validation,
-           '2' = fileInput('fileTest', 'Test File',
-                           accept=c('text/csv', 'text/comma-separated-values,text/plain','.csv')),
-           '3' = numericInput("porcentTest", "Train size in %", 0.75, 
-                              min = 0.0, max = 1, step = 0.02)
-    )
-  })
   
   #particion en porcentaje de train y test
   train_lm <- function(){
@@ -859,7 +848,7 @@ server <- function(input, output, session) {
         switch (input$select_validation,
                 '1' = lm(fmla, data=reduceDimensionality()),
                 '2' = lm(fmla, data=reduceDimensionality()),
-                '3' = lm(Sepal.Length ~ ., data = data.frame( 
+                '3' = lm(fmla, data = data.frame( 
                   reduceDimensionality()[train_lm(), ]))
         )
       }

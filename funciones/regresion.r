@@ -1,3 +1,4 @@
+#vista del modelo lineal
 linearRegression <- function() {
   fluidRow(
     column(width = 12,
@@ -7,12 +8,13 @@ linearRegression <- function() {
               <li>Linear Regression</li>
               </ul>')
           ),
-     box(
-       width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
-       radioButtons("select_validation", label = "", selected = 1,
-                    choices = list("10xCV" = 1, "Test file" = 2, "% test" = 3)),
-       uiOutput("ui_lm")
-     ),
+    validation("validationType_lm", "fileTest_lm", "porcentTest_lm"),
+#      box(
+#        width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
+#        radioButtons("select_validation", label = "", selected = 1,
+#                     choices = list("10xCV" = 1, "Test file" = 2, "% test" = 3)),
+#        uiOutput("ui_lm")
+#      ),
      box(
        width = 12, title = "Linear Regression", solidHeader = TRUE, status = "success",
        p(style = "text-align:justify;","By default, the system will use", em("all"), "the independent variables to predict
@@ -36,6 +38,7 @@ linearRegression <- function() {
   )
 }
 
+#vista del modelo pls
 pls <- function(){
   fluidRow(
     column(width = 12,
@@ -45,6 +48,7 @@ pls <- function(){
                 <li>Partial Least Squares Regression (PLS)</li>
                 </ul>')
            ),
+    validation("validationType_pls", "fileTest_pls", "porcentTest_pls"),
     box(
       width = 12, title = "Partial Least Squares Regression", solidHeader = TRUE, status = "success",
       p(style = "text-align:justify;","By default, the system will use", em("all"), "the independent variables to predict
@@ -77,6 +81,7 @@ pls <- function(){
   )
 }
 
+#vista del modelo ridge
 ridge <- function() {
   fluidRow(
     column(width = 12,
@@ -86,12 +91,14 @@ ridge <- function() {
                 <li>Ridge</li>
                 </ul>')
            ),
+    validation("validationType_ridge", "fileTest_ridge", "porcentTest_ridge"),
     box(
       width = 12, title = "Ridge", solidHeader = TRUE, status = "success"
     )
   )
 }
 
+#vista del modelo rglm
 rglm <- function() {
   fluidRow(
     column(width = 12,
@@ -101,8 +108,30 @@ rglm <- function() {
                 <li>Random General Linear Model</li>
                 </ul>')
            ),
+    validation("validationType_rglm", "fileTest_rglm", "porcentTest_rglm"),
     box(
       width = 12, title = "Random General Linear Model", solidHeader = TRUE, status = "success"
     )
            )
+}
+
+#vista para la validación de los modelos recibe el id de los componentes, es decir,
+#idValidation para seleccionar el tipo de validacion, el idFileTest para el archivo
+#proporcionado para test y idPorcentTest para particionar test y train en carpetas de %.
+#validacion 10kfold, test/train y % test
+validation <- function(idValidationType, idFileTest, idPorcentTest){
+  box(
+    width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
+    radioButtons(idValidationType, label = "", selected = 1,
+       choices = list("10xCV" = 1, "Test file" = 2, "% test" = 3)),
+    #salida dinamica para subir archivo de test
+    conditionalPanel(paste("input.", idValidationType, "==2", sep = ''),
+       fileInput(idFileTest, 'Test File',
+                 accept=c('text/csv', 'text/comma-separated-values,text/plain','.csv'))
+    ),
+    #salida dinamica para particionar train/test
+    conditionalPanel(paste("input.", idValidationType, "==3", sep = ''),
+       numericInput(idPorcentTest, "Train size in %", 0.75, min = 0.0, max = 1, step = 0.02)
+    )
+  )
 }
