@@ -479,12 +479,17 @@ server <- function(input, output, session) {
   #   })
   
   noiseR <- reactive({
-    if(input$rnoise){
-      diffValues <- calculateDiff(DATA_SET$data)
-      columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
-      #  columnsNoise <- as.data.frame(columnsNoise[,1] + ncol(missingV()))
-      as.data.frame(DATA_SET$data[,-columnsNoise[,1]])
-    }else {DATA_SET$data}
+    if(anyNA(DATA_SET$data)){
+      createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
+                  content = "Data set have missing values", style = "warning")
+    }else{
+      if(input$rnoise){
+        diffValues <- calculateDiff(DATA_SET$data)
+        columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
+        #  columnsNoise <- as.data.frame(columnsNoise[,1] + ncol(missingV()))
+        as.data.frame(DATA_SET$data[,-columnsNoise[,1]])
+      }else {DATA_SET$data}
+    }
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -778,7 +783,7 @@ server <- function(input, output, session) {
   })
   
   output$summary_reduceDimensionality <- renderPrint({
-    summary(reduceDimensionality())
+    summary(DATA_SET$data)
   })
   
   #------------SVD
@@ -800,16 +805,21 @@ server <- function(input, output, session) {
   })
   
   #data luego de aplicar un metodo de reduccion como pls
-  reduceDimensionality <- reactive({
+  observe({
     if(input$reduceDim){
-      data_pca()
-      print("hola if")
-    }
-    else{
-      print("hola else")
-      data.frame(DATA_SET$data)
+      DATA_SET$data <- data_pca()
     }
   })
+#   reduceDimensionality <- reactive({
+#     if(input$reduceDim){
+#       data_pca()
+#       print("hola if")
+#     }
+#     else{
+#       print("hola else")
+#       data.frame(DATA_SET$data)
+#     }
+#   })
   
   #-------------------------------------------------------
   #-----------------------> Regresion <-----------------------
@@ -817,20 +827,14 @@ server <- function(input, output, session) {
   #-----------------------> validation type
   
   #particion en porcentaje de train y test
-  train_lm <- function(){
-    dataset <- data.frame(reduceDimensionality())
-    smp_size <- floor(input$porcentTest * nrow(dataset))
-    set.seed(123)
-    sample(seq_len(nrow(dataset)), size = smp_size)
-    #     train <- dataset[train_ind, ]
-    #     test <- dataset[-train_ind, ]
-    #     return(list(train, test))
-  }
+  train_lm <- reactive({
+     dataPartition(DATA_SET$data, input$porcentTest_lm)
+  })
   
   #-----------------------> lm
   #seleccion de la variable dependiente
   output$select_lm <- renderUI({
-    slider_model("lm_y", "lm_x", reduceDimensionality())
+    slider_model("lm_y", "lm_x", DATA_SET$data)
     })
   
   #Aplicando el modelo lm
@@ -843,16 +847,16 @@ server <- function(input, output, session) {
       else
         (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
       
-      if (is.null(input$select_validation)){return()}
+      if (is.null(input$validationType_lm)){return()}
       else{
-        switch (input$select_validation,
-                '1' = lm(fmla, data=reduceDimensionality()),
-                '2' = lm(fmla, data=reduceDimensionality()),
+        switch (input$validationType_lm,
+                '1' = lm(fmla, data=DATA_SET$data),
+                '2' = lm(fmla, data=DATA_SET$data),
                 '3' = lm(fmla, data = data.frame( 
-                  reduceDimensionality()[train_lm(), ]))
+                  DATA_SET$data[train_lm(), ]))
         )
       }
-      #lm(fmla, data=reduceDimensionality()) 
+      #lm(fmla, data=DATA_SET$data) 
     }
   })
   
@@ -867,19 +871,19 @@ server <- function(input, output, session) {
   #tipo de validacion para el modelo
   validation_lm <- reactive({
     tryCatch({
-      if (is.null(input$select_validation))
+      if (is.null(input$validationType_lm))
         return()
-      if(input$select_validation == '2' && is.null(input$fileTest))
+      if(input$validationType_lm == '2' && is.null(input$fileTest_lm))
         return()
       if(is.null(model_lm()))
         return()
       closeAlert(session,"alertValidationID")
-      switch(input$select_validation,
-             '1' = CVlm(reduceDimensionality(), model_lm(), m=10), # ten-fold cross validation
-             '2' = { inFile <- input$fileTest
+      switch(input$validationType_lm,
+             '1' = "",#CVlm(DATA_SET$data, model_lm(), m=10), # ten-fold cross validation
+             '2' = { inFile <- input$fileTest_lm
                       predict(model_lm(), read.csv(inFile$datapath))
                     },
-             '3' = predict(model_lm(), data.frame(reduceDimensionality()[-train_lm(), ]))
+             '3' = predict(model_lm(), data.frame(DATA_SET$data[-train_lm(), ]))
              
       )
     }, error = function(e) {
@@ -888,50 +892,72 @@ server <- function(input, output, session) {
     })
   })
   
-  #grafico para la validacionn cruzada
-  output$crossPlot <- renderPlot({
-    CVlm(reduceDimensionality(), model_lm(), m=10)
-  })
+#   #grafico para la validacionn cruzada
+#   output$crossPlot <- renderPlot({
+#     CVlm(DATA_SET$data, model_lm(), m=10)
+#   })
       
   output$resultValidation_lm <- renderPrint({
     validation_lm()
   })
   
+  #***** Colinearity Test lm
+  
+  #resultado de aplicar el test de colinealidad
+  output$colinearity_result <- renderPrint({
+    vif(model_lm())
+  })
+  
+  #tolerancia del test de colinealidad
+  output$colinearity_tolerance <- renderPrint({
+    1/vif(model_lm())
+  })
+  
+  #promedio del test de colinealidad
+  output$colinearity_mean <- renderPrint({
+    mean(vif(model_lm()))
+  })
+  
   #-----------------------> pls
   #seleccion de la variable de respuesta
   output$select_pls <- renderUI({
-    slider_model("pls_response", "pls_predictors", reduceDimensionality())  
+    slider_model("pls_response", "pls_predictors", DATA_SET$data)  
   })
   
   #numero de componentes para el modelo
   output$componentes_pls <- renderUI({
-    numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(reduceDimensionality()) )
+    numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(DATA_SET$data) )
   })
   
   #Aplicando el modelo pls
   model_pls <- reactive({
     tryCatch({
-      closeAlert(session, "alertplsID")
-      #Se aplica el modelo pls
-      if(is.null(input$pls_predictors)){
-        withProgress({
-          setProgress(message = "This may take a while...")
-          #sacar la variable de respuesta del data set
-          predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
-          plsreg1(predictors, reduceDimensionality()[,input$pls_response], 
-                  crosval = input$crosval, comps = input$comp_pls)
-        })
+      if(anyNA(DATA_SET$data)){
+        createAlert(session, "alertpls", "alertplsID", title = titleAlert,
+                    content = "Data set have missing values", style = "warning")
       }else{
-        withProgress({
-          setProgress(message = "This may take a while...")
-          predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% paste("", input$pls_response)]
-          plsreg1(predictors[,input$pls_predictors], reduceDimensionality()[,input$pls_response], 
-                  crosval = input$crosval, comps = input$comp_pls)
-        })
+        closeAlert(session, "alertplsID")
+        #Se aplica el modelo pls
+        if(is.null(input$pls_predictors)){
+          withProgress({
+            setProgress(message = "This may take a while...")
+            #sacar la variable de respuesta del data set
+            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$pls_response]
+            plsreg1(predictors, DATA_SET$data[,input$pls_response], 
+                    crosval = input$crosval, comps = input$comp_pls)
+          })
+        }else{
+          withProgress({
+            setProgress(message = "This may take a while...")
+            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$pls_response)]
+            plsreg1(predictors[,input$pls_predictors], DATA_SET$data[,input$pls_response], 
+                    crosval = input$crosval, comps = input$comp_pls)
+          })
+        }
       }
     }, error = function(e) {
       createAlert(session, "alertpls", "alertplsID", title = titleAlert,
-                  content = "Predictors must contain more than one column", style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
   
@@ -942,20 +968,23 @@ server <- function(input, output, session) {
   #   })
   
   #Resultado obtenido tras aplicar el  modelo
-  output$coef_pls <- renderPrint({
+  output$result_pls <- renderPrint({
     if(is.null(model_pls()))
       return()
-    model_pls()$std.coefs
+    list(std.coefs = model_pls()$std.coefs, 
+         R2 = model_pls()$R2,
+         cor.xyt = model_pls()$cor.xyt,
+         R2Xy = model_pls()$R2Xy)
   })
   
   #Estadisticos RME, R2, IA
-  statistical_resultlm <- function(){
+  statistical_resultpls <- function(){
     if(is.null(model_pls()))
       return()
     
-    overfittedRMSE <- rmse(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted RMSE
-    overfittedR2 <- cor(model_pls()$y.pred, reduceDimensionality()[,input$pls_response])^2 #overfitted R2
-    overfittedIA <- d(model_pls()$y.pred, reduceDimensionality()[,input$pls_response]) #overfitted IA
+    overfittedRMSE <- rmse(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted RMSE
+    overfittedR2 <- cor(model_pls()$y.pred, DATA_SET$data[,input$pls_response])^2 #overfitted R2
+    overfittedIA <- d(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted IA
     
     Statistical <- as.data.frame(array(0, dim=c(1,4)))
     names(Statistical) <- c("Name", "RMSE", "R2", "IA")
@@ -967,7 +996,7 @@ server <- function(input, output, session) {
   
   #Muestra los estadisticos de pls
   output$statistical_pls <- renderPrint({
-    statistical_resultlm()
+    statistical_resultpls()
   })
   
   #grafico correspondiente al modelo pls
@@ -979,8 +1008,68 @@ server <- function(input, output, session) {
   
   #resultado de la validacion
   output$resultValidationpls <- renderPrint({
-    names(model_pls())
+    model_pls()$Q2
   })
+  
+  #-----------------------> ridge
+  #seleccion de la variable dependiente
+  output$select_ridge <- renderUI({
+    slider_model("ridge_y", "ridge_x", DATA_SET$data)
+  })
+  
+  #Aplicando el modelo ridge
+  model_ridge <- reactive({
+    tryCatch({
+      if(anyNA(DATA_SET$data)){
+        createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+                    content = "Data set have missing values", style = "warning")
+      }else{
+        grid <- 10^seq(10, -2, length = 100)
+        closeAlert(session, "alertRidgeID")
+        #Se aplica el modelo ridge
+        if(is.null(input$ridge_x)){
+          withProgress({
+            setProgress(message = "This may take a while...")
+            #sacar la variable de respuesta del data set
+            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
+            cv.glmnet(as.matrix(predictors), DATA_SET$data[,input$ridge_y], 
+                      alpha = 0, lambda = grid)
+          })
+        }else{
+          withProgress({
+            setProgress(message = "This may take a while...")
+            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
+            cv.glmnet(as.matrix(predictors[,input$ridge_x]), DATA_SET$data[,input$ridge_y], 
+                      alpha = 0, lambda = grid)
+          })
+        }
+      }
+    }, error = function(e) {
+      createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$result_ridge <- renderPrint({
+    if(is.null(model_ridge()))
+      return()
+    summary(model_ridge())
+  })
+  
+  #grafico de lamda
+  output$plot_ridge <- renderPlot({
+    if(is.null(model_ridge()))
+      return()
+    plot(model_ridge())
+  })
+  
+  #-----------------------> rglm
+  #seleccion de la variable dependiente
+  output$select_lm <- renderUI({
+    slider_model("rglm_y", "rglm_x", DATA_SET$data)
+  })
+  
   
   #-------------------------------------------------------
   #-----------------------> Linear Model Evaluation <-----------------------
@@ -1013,7 +1102,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$ResidualsFitted_brushInfo <- renderPrint({
-    brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
+    brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
   #-------------->dowload image plot
@@ -1043,7 +1132,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$StResidualsFitted_brushInfo <- renderPrint({
-    brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(reduceDimensionality())[2]]
+    brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
   #-------------->dowload image plot
@@ -1072,7 +1161,7 @@ server <- function(input, output, session) {
   
   #   #muestra informacion de los puntos seleccionados
   #   output$NormalQQ_brushInfo <- renderPrint({
-  #     brushedPoints(diagnostic(), input$NormalQQ_brush)[1:dim(reduceDimensionality())[2]]
+  #     brushedPoints(diagnostic(), input$NormalQQ_brush)[1:dim(DATA_SET$data)[2]]
   #   })
   
   #-------------->dowload image plot
@@ -1102,32 +1191,12 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$StResidualsLeverange_brushInfo <- renderPrint({
-    brushedPoints(diagnostic(), input$StResidualsLeverange_brush)[1:dim(reduceDimensionality())[2]]
+    brushedPoints(diagnostic(), input$StResidualsLeverange_brush)[1:dim(DATA_SET$data)[2]]
   })
   
   #-------------->dowload image plot
   observe({
     output$downloadPlotRL <- downloadGeneral(input$radioRL, plotRL(), DATA_SET$name)
-  })
-  
-  #-----------------------> Colinearity Test
-  
-  #resultado de aplicar el test de colinealidad
-  output$colinearity_result <- renderPrint({
-    vif(model_lm())
-  })
-  
-  #tolerancia del test de colinealidad
-  output$colinearity_tolerance <- renderPrint({
-    #1/vif(model_lm())
-    Rsq = summary(model_lm)$r.squared
-    
-    1/(1 - Rsq)
-  })
-  
-  #promedio del test de colinealidad
-  output$colinearity_mean <- renderPrint({
-    mean(vif(model_lm()))
   })
   
 }

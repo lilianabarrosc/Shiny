@@ -1,3 +1,4 @@
+
 #vista del modelo lineal
 linearRegression <- function() {
   fluidRow(
@@ -9,31 +10,35 @@ linearRegression <- function() {
               </ul>')
           ),
     validation("validationType_lm", "fileTest_lm", "porcentTest_lm"),
-#      box(
-#        width = 12, title = "Validation type", solidHeader = TRUE, status = "success",
-#        radioButtons("select_validation", label = "", selected = 1,
-#                     choices = list("10xCV" = 1, "Test file" = 2, "% test" = 3)),
-#        uiOutput("ui_lm")
-#      ),
-     box(
-       width = 12, title = "Linear Regression", solidHeader = TRUE, status = "success",
-       p(style = "text-align:justify;","By default, the system will use", em("all"), "the independent variables to predict
-       the last column in the data.", br(),
-       "If you wish, you may use the selector tool to predict something else."),
-       bsAlert("alertlm"),
-       #opciones de entrada
-       uiOutput("select_lm"),
-       #actionButton("button_lm", "Apply")
-       verbatimTextOutput("summary_lm")
-     ),
-    box(
-      width = 12, title = "Prediction", solidHeader = TRUE, status = "success",
-      "It shows the predicted value for each testing instance provided by the user.",
-      br(),
-      conditionalPanel("input.select_validation == 1",
-                       plotOutput("crossPlot")
-      ),
-      verbatimTextOutput("resultValidation_lm")
+    optionsModel("Linear Regression", "alertlm", uiOutput("select_lm"), 
+                 tags$div( class = 'col-sm-2', bsButton("apply_lm", label = "Apply",
+                          style = "success"))),
+    tabBox(width = 12,
+           tabPanel("Model", verbatimTextOutput("summary_lm")),
+           tabPanel("Prediction", "It shows the predicted value for each testing 
+                    instance provided by the user.", 
+                    verbatimTextOutput("resultValidation_lm")),
+           tabPanel("Colinearity Test",
+                    "Result", verbatimTextOutput("colinearity_result"),
+                    "Tolerance", verbatimTextOutput("colinearity_tolerance"),
+                    "Means", verbatimTextOutput("colinearity_mean"), br(),
+                    "Your can be applied here:",
+                    tags$ul(tags$li(
+                      p(style = "text-align:justify;","If the largest colinearity test is greater than 10 then 
+                        there is cause for concern (Bowerman & O'Connell. 1990; Myres, 1990).")
+                        )),
+                    tags$ul(tags$li(
+                      p(style = "text-align:justify;","If the average colinearity test is substantially greater 
+                        than 1 then the regression may be biased ( Bowerman & O'Connell. 1990; Myres, 1990).")               
+                        )),
+                    tags$ul(tags$li(
+                      p(style = "text-align:justify;","Tolerance below 0.1 indicates a serious problem.")               
+                    )),
+                    tags$ul(tags$li(
+                      p(style = "text-align:justify;","Tolerance below 0.2 indicates a potencial problem
+                        (Menard, 1995).")               
+                      ))
+                  )
     )
   )
 }
@@ -49,35 +54,23 @@ pls <- function(){
                 </ul>')
            ),
     validation("validationType_pls", "fileTest_pls", "porcentTest_pls"),
-    box(
-      width = 12, title = "Partial Least Squares Regression", solidHeader = TRUE, status = "success",
-      p(style = "text-align:justify;","By default, the system will use", em("all"), "the independent variables to predict
-       the last column in the data.", br(),
-      "If you wish, you may use the selector tool to predict something else."),
-      bsAlert("alertpls"),
-      column(6,
-             uiOutput("select_pls")
-      ),
-      column(6,
-             uiOutput("componentes_pls"),
-             selectInput("crosval", label = h4("Cross validation"), 
-                  choices = c("TRUE","FAlSE"), selected = "TRUE")
-      ),
-      column(12,
-          #actionButton("button_lm", "Apply")
-          h4("PLS result"),
-          verbatimTextOutput("result_pls"), #coeficientes estandar
-          h4("Statistical pls"),
-          verbatimTextOutput("statistical_pls"), #resultado obtenido
-          plotOutput("plotPLS")
-      )
+    optionsModel("Partial Least Squares Regression", "alertpls", 
+                 column(6, uiOutput("select_pls")),
+                 column(6, uiOutput("componentes_pls"),
+                        selectInput("crosval", label = h4("Cross validation"), 
+                                    choices = c("TRUE","FAlSE"), selected = "TRUE"),
+                        tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
+                                                               style = "success")))
+                 ),
+    tabBox(width = 12,
+           tabPanel("Model",h4("PLS result"),
+                    verbatimTextOutput("result_pls"), #coeficientes estandar
+                    h4("Statistical pls"),
+                    verbatimTextOutput("statistical_pls") #resultado obtenido
+            ),
+           tabPanel("Prediction", verbatimTextOutput("resultValidationpls")),
+           tabPanel("Colinearity Test", plotOutput("plotPLS"))
     )
-#     box(
-#       width = 12, title = "Prediction", solidHeader = TRUE, status = "success",
-#       "It shows the predicted value for each testing instance provided by the user.",
-#       br(),
-#       verbatimTextOutput("resultValidationpls")
-#     )
   )
 }
 
@@ -92,9 +85,16 @@ ridge <- function() {
                 </ul>')
            ),
     validation("validationType_ridge", "fileTest_ridge", "porcentTest_ridge"),
-    box(
-      width = 12, title = "Ridge", solidHeader = TRUE, status = "success"
-    )
+    optionsModel("Ridge", "alertRidge", uiOutput("select_ridge"), 
+                 tags$div( class = 'col-sm-2', bsButton("apply_ridge", label = "Apply",
+                                                        style = "success"))),
+    tabBox(width = 12,
+           tabPanel("Model", verbatimTextOutput("result_ridge")),
+           tabPanel("Prediction", "It shows the predicted value for each testing 
+                    instance provided by the user."
+                    ),
+           tabPanel("Plot", plotOutput("plot_ridge"))
+          )
   )
 }
 
@@ -134,4 +134,28 @@ validation <- function(idValidationType, idFileTest, idPorcentTest){
        numericInput(idPorcentTest, "Train size in %", 0.75, min = 0.0, max = 1, step = 0.02)
     )
   )
+}
+
+#vista para las opciones de entrada de cada modelo
+#como entrada recibe el nombre del modelo el id del alert y las opciones del modelo
+optionsModel <- function(nameModel, idAlert, options, otherOptions){
+  box(
+    width = 12, title = nameModel, solidHeader = TRUE, status = "success",
+    p(style = "text-align:justify;","By default, the system will use", em("all"), "the independent variables to predict
+      the last column in the data.", br(),
+      "If you wish, you may use the selector tool to predict something else."),
+    bsAlert(idAlert),
+    #opciones de entrada para el modelo
+    options,
+    otherOptions
+  )
+}
+
+#Funcion que particiona el data set en train y test segun un porcentaje dado
+dataPartition <- function(dataSet, porcent){
+  dataset <- data.frame(dataSet)
+  smp_size <- floor(porcent * nrow(dataset))
+  print(smp_size)
+  set.seed(123)
+  return(sample(seq_len(nrow(dataset)), size = smp_size))
 }
