@@ -13,6 +13,8 @@ viewData <- function() {
                 </ul>')
     ),
     box(width = 12, status = "success",
+      bsAlert("alertUpload"),
+      bsAlert("alertRUL"),
       radioButtons("select_file", label = h3("Select data Set"), selected = 2,
                            choices = data_sets),
         # Salida de componente dinamico (subir archivo)
@@ -59,5 +61,19 @@ tabsVisualization <- function(title, tab1, tab2) {
              )
            ) 
       )
+  )
+}
+
+#funcion que contiene las URL tentativas de otros "csv"
+urls <- function(){
+  column(12,
+         column(6, 
+                textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
+                "Others URL:",br(),
+                tags$ul(tags$li("http://www.stat.wisc.edu/~gvludwig/fall_2012/midterm2_problem1.csv")),
+                tags$ul(tags$li("https://raw.githubusercontent.com/trinker/dummy/master/data/gcircles.csv")),
+                actionButton("upload", label = "Upload")),
+         column(3, selectInput("sep", "Separator:", c(",",";"))),
+         column(3, selectInput("dec", "Decimal:", c(".",",")))
   )
 }

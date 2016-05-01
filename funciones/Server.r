@@ -153,7 +153,7 @@ server <- function(input, output, session) {
   #Variable contiene el data set atualizado
   DATA_SET <- reactiveValues(name = NULL, data = NULL)
   
-  #----------> data set
+  #----------> data set nuevos que se ingresan mediante directorio o URI
   output$data_extern <- renderUI({
     if (is.null(input$select_file))
       return()
@@ -162,10 +162,8 @@ server <- function(input, output, session) {
            '4' = fileInput('file1', 'Choose CSV File',
                            accept=c('text/csv', 'text/comma-separated-values,text/plain', 
                                     '.csv')),
-           '5' = column(6, 
-                        textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
-                        actionButton("upload", label = "Upload")
-           )
+           '5' = urls()#funcion contenida en data.r
+                  
     )
   })
   
@@ -182,14 +180,28 @@ server <- function(input, output, session) {
            '1'= iris,
            '2'= airquality,
            '3'= sleep,
-           '4'= read.csv(inFile$datapath),
-           '5'= if(input$upload){
-                 withProgress({
-                   setProgress(message = "This may take a while...")
-                   read.csv(input$url, sep = ";", dec = ",")
+           '4'= tryCatch({
+                   closeAlert(session, "alertUploadID") 
+                   read.csv(inFile$datapath)
+                 }, error = function(e) {
+                   createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
+                               content = paste("",e), 
+                               style = "warning")
                  })
-                }
     )
+  })
+  
+  observeEvent(input$upload, { #if(input$upload){
+    tryCatch({
+      closeAlert(session, "alertURLID")
+      withProgress({
+        setProgress(message = "This may take a while...")
+        DATA_SET$data <- read.csv(input$url, sep = input$sep, dec = input$dec)
+      })
+    }, error = function(e) {
+      createAlert(session, "alertRUL", "alertURLID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
   })
   
   observe({ #Se asigna el data set seleccionado a la varible global
@@ -208,7 +220,9 @@ server <- function(input, output, session) {
              DATA_SET$name <- splitURL[[1]][length(splitURL[[1]])]
            })
     )
-    DATA_SET$data <- file()
+    if(input$select_file!=5){
+      DATA_SET$data <- file()
+    }
   })
   
   #muestro un resumen del data set seleccionado
