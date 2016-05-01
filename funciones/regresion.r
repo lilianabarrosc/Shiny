@@ -10,7 +10,7 @@ linearRegression <- function() {
               </ul>')
           ),
     validation("validationType_lm", "fileTest_lm", "porcentTest_lm"),
-    optionsModel("Linear Regression", "alertlm", uiOutput("select_lm"), 
+    optionsModel("Linear Regression", "alertlm", uiOutput("select_linearModel"), 
                  tags$div( class = 'col-sm-2', bsButton("apply_lm", label = "Apply",
                           style = "success"))),
     tabBox(width = 12,
@@ -89,11 +89,11 @@ ridge <- function() {
                  tags$div( class = 'col-sm-2', bsButton("apply_ridge", label = "Apply",
                                                         style = "success"))),
     tabBox(width = 12,
-           tabPanel("Model", verbatimTextOutput("result_ridge")),
+           tabPanel("Model", verbatimTextOutput("result_cvridge"),  verbatimTextOutput("result_ridge")),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user."
                     ),
-           tabPanel("Plot", plotOutput("plot_ridge"))
+           tabPanel("Parameter optimization", plotOutput("plot_ridge"))
           )
   )
 }
@@ -152,8 +152,8 @@ optionsModel <- function(nameModel, idAlert, options, otherOptions){
 }
 
 #Funcion que particiona el data set en train y test segun un porcentaje dado
-dataPartition <- function(dataSet, porcent){
-  dataset <- data.frame(dataSet)
+dataPartition <- function(data, porcent){
+  dataset <- data.frame(data)
   smp_size <- floor(porcent * nrow(dataset))
   print(smp_size)
   set.seed(123)

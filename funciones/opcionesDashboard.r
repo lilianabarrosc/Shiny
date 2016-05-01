@@ -43,8 +43,7 @@ sidebar <- function(isLogged, username) {
                       menuSubItem("RGLM", tabName = "rglm", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Linear model evaluation", tabName = "lmEvaluation", icon= shiny::icon("eye"),
-                      menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Colinearity Test", tabName = "colinearityT", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
           )

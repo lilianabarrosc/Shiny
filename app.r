@@ -29,7 +29,9 @@ library('RPostgreSQL') #Libreria para postgress
 #install.packages("plsdepot")
 library('plsdepot') #Libreria para utilizar pls
 #install.packages("glmnet")
-library('glmnet') #Libreria para utilizar ridge
+library('glmnet') #Libreria para utilizar validacion cruzada en ridge
+#install.packages("MASS")
+library('MASS') #Libreria para utilizar ridge
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')

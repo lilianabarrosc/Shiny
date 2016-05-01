@@ -362,6 +362,10 @@ server <- function(input, output, session) {
       DATA_SET$data <- na.omit(DATA_SET$data)
   })
   
+  output$sumMV <- renderPrint({
+    paste("The data set contains",sum(is.na(DATA_SET$data)), "missing values.")
+  })
+  
   #Slider visualizacion grafico de missing values
   output$slider_missingValues <- renderUI({
     twoSlider("attributes","observation",DATA_SET$data,"Attributes",strz)
@@ -740,7 +744,7 @@ server <- function(input, output, session) {
   
   
   #Obtengo la seleccion de atributos y observaciones para pca
-  data_pca<- reactive({
+  data_pca <- reactive({
     DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
                input$attributes_pca[1]:input$attributes_pca[2]]
   })
@@ -771,6 +775,23 @@ server <- function(input, output, session) {
     })
     
   })
+  
+    reduceDimensionality <- reactive({
+      if(input$reduceDim){
+        data_pca()
+        #print("hola if")
+      }
+      else{
+        #print("hola else")
+        data.frame(DATA_SET$data)
+      }
+    })
+#   
+  #data luego de aplicar un metodo de reduccion como pls
+  observeEvent(input$reduceDim, {
+    if(is.null(data_pca())){return()}
+    DATA_SET$data <- data_pca()
+    })
   
   #-------------->dowload image plot
   observe({
@@ -804,23 +825,6 @@ server <- function(input, output, session) {
     s()$d
   })
   
-  #data luego de aplicar un metodo de reduccion como pls
-  observe({
-    if(input$reduceDim){
-      DATA_SET$data <- data_pca()
-    }
-  })
-#   reduceDimensionality <- reactive({
-#     if(input$reduceDim){
-#       data_pca()
-#       print("hola if")
-#     }
-#     else{
-#       print("hola else")
-#       data.frame(DATA_SET$data)
-#     }
-#   })
-  
   #-------------------------------------------------------
   #-----------------------> Regresion <-----------------------
   
@@ -828,44 +832,46 @@ server <- function(input, output, session) {
   
   #particion en porcentaje de train y test
   train_lm <- reactive({
+    if(is.null(input$porcentTest_lm)){ return() }
      dataPartition(DATA_SET$data, input$porcentTest_lm)
   })
   
   #-----------------------> lm
-  #seleccion de la variable dependiente
-  output$select_lm <- renderUI({
-    slider_model("lm_y", "lm_x", DATA_SET$data)
-    })
+  #seleccion de la variable dependiente o de respuesta
+  output$select_linearModel <- renderUI({
+    slider_model("lm_response", "lm_predictors", data.frame(DATA_SET$data))  
+  })
   
   #Aplicando el modelo lm
   model_lm <- reactive({
-    if(!is.null(input$lm_y)){
-      if(is.null(input$lm_x)){
-        (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), ".")))
-      }
-      #input$lm_y
-      else
-        (fmla <- as.formula(paste(paste(input$lm_y, " ~ "), paste(input$lm_x, collapse= "+"))))
-      
-      if (is.null(input$validationType_lm)){return()}
-      else{
-        switch (input$validationType_lm,
-                '1' = lm(fmla, data=DATA_SET$data),
-                '2' = lm(fmla, data=DATA_SET$data),
-                '3' = lm(fmla, data = data.frame( 
-                  DATA_SET$data[train_lm(), ]))
-        )
-      }
-      #lm(fmla, data=DATA_SET$data) 
+    if(is.null(input$lm_response)){return()}
+    if(is.null(input$lm_predictors)){
+      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), ".")))
     }
+    #input$lm_y
+    else{
+      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), paste(input$lm_predictors, collapse= "+"))))
+    }
+    
+    if (is.null(input$validationType_lm)){return()}
+    else{
+      switch (input$validationType_lm,
+              '1' = lm(fmla, data=DATA_SET$data),
+              '2' = lm(fmla, data=DATA_SET$data),
+              '3' = lm(fmla, data = data.frame( 
+                        DATA_SET$data[train_lm(), ]))
+     )
+    }
+    #lm(fmla, data=DATA_SET$data) 
   })
   
   #Resultado obtenido tras aplicar el  modelo
   output$summary_lm <- renderPrint({
-    withProgress({
-      setProgress(message = "This may take a while...")
+   if(is.null(model_lm())) return()
+     withProgress({
+       setProgress(message = "This may take a while...")
       summary(model_lm())
-    })
+   })
   })
   
   #tipo de validacion para el modelo
@@ -971,10 +977,11 @@ server <- function(input, output, session) {
   output$result_pls <- renderPrint({
     if(is.null(model_pls()))
       return()
-    list(std.coefs = model_pls()$std.coefs, 
-         R2 = model_pls()$R2,
-         cor.xyt = model_pls()$cor.xyt,
-         R2Xy = model_pls()$R2Xy)
+#     list(std.coefs = model_pls()$std.coefs, 
+#          R2 = model_pls()$R2,
+#          cor.xyt = model_pls()$cor.xyt,
+#          R2Xy = model_pls()$R2Xy)
+    input$pls_predictors
   })
   
   #Estadisticos RME, R2, IA
@@ -1012,57 +1019,99 @@ server <- function(input, output, session) {
   })
   
   #-----------------------> ridge
-  #seleccion de la variable dependiente
-  output$select_ridge <- renderUI({
-    slider_model("ridge_y", "ridge_x", DATA_SET$data)
-  })
-  
-  #Aplicando el modelo ridge
-  model_ridge <- reactive({
-    tryCatch({
-      if(anyNA(DATA_SET$data)){
-        createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-                    content = "Data set have missing values", style = "warning")
-      }else{
-        grid <- 10^seq(10, -2, length = 100)
-        closeAlert(session, "alertRidgeID")
-        #Se aplica el modelo ridge
-        if(is.null(input$ridge_x)){
-          withProgress({
-            setProgress(message = "This may take a while...")
-            #sacar la variable de respuesta del data set
-            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
-            cv.glmnet(as.matrix(predictors), DATA_SET$data[,input$ridge_y], 
-                      alpha = 0, lambda = grid)
-          })
-        }else{
-          withProgress({
-            setProgress(message = "This may take a while...")
-            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
-            cv.glmnet(as.matrix(predictors[,input$ridge_x]), DATA_SET$data[,input$ridge_y], 
-                      alpha = 0, lambda = grid)
-          })
-        }
-      }
-    }, error = function(e) {
-      createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-                  content = paste("",e), style = "warning")
-    })
-  })
-  
-  #Resultado obtenido tras aplicar el  modelo
-  output$result_ridge <- renderPrint({
-    if(is.null(model_ridge()))
-      return()
-    summary(model_ridge())
-  })
-  
-  #grafico de lamda
-  output$plot_ridge <- renderPlot({
-    if(is.null(model_ridge()))
-      return()
-    plot(model_ridge())
-  })
+#   #seleccion de la variable dependiente
+#   output$select_ridge <- renderUI({
+#     slider_model("ridge_y", "ridge_x", DATA_SET$data)
+#   })
+#   
+#   #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
+#   model_cvridge <- reactive({
+#     tryCatch({
+#       if(anyNA(DATA_SET$data)){
+#         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+#                     content = "Data set have missing values", style = "warning")
+#       }else{
+#         grid <- 10^seq(10, -2, length = 100)
+#         closeAlert(session, "alertCVRidgeID")
+#         #Se aplica el modelo ridge
+#         if(is.null(input$ridge_x)){
+#           withProgress({
+#             setProgress(message = "This may take a while...")
+#             #sacar la variable de respuesta del data set
+#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
+#             cv.glmnet(as.matrix(predictors), DATA_SET$data[,input$ridge_y], 
+#                       alpha = 0, lambda = grid)
+#           })
+#         }else{
+#           withProgress({
+#             setProgress(message = "This may take a while...")
+#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
+#             cv.glmnet(as.matrix(predictors[,input$ridge_x]), DATA_SET$data[,input$ridge_y], 
+#                       alpha = 0, lambda = grid)
+#           })
+#         }
+#       }
+#     }, error = function(e) {
+#       createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
+#                   content = paste("",e), style = "warning")
+#     })
+#   })
+#   
+#   #aplicando rigde para el lambda min obtenido en model_cvridge()
+#   model_ridge <- reactive({
+# #    tryCatch({
+#       if(anyNA(DATA_SET$data)){
+#         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+#                     content = "Data set have missing values", style = "warning")
+#       }else{
+#         closeAlert(session, "alertRidgeID")
+#         #sacar la variable de respuesta del data set
+#         predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
+#         bestLambda <- model_cvridge()$lambda.min # The optimal lambda
+#         #Se aplica el modelo ridge
+#         if(is.null(input$ridge_x)){
+#           withProgress({
+#             setProgress(message = "This may take a while...")
+#             #se crea la formula para predecir
+#             #por defecto con todas las variables
+#             (fmla <- as.formula(paste(paste(input$ridge_y, " ~ "), ".")))
+#             lm.ridge(fmla, data = predictors, lambda = bestLambda)
+#           })
+#         }else{ # se agregan las variables a la formula
+#           withProgress({
+#             setProgress(message = "This may take a while...")
+#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
+#             (fmla <- as.formula(paste(paste(input$ridge_y, " ~ "), paste(input$ridge_x, collapse= "+"))))
+#             lm.ridge(fmla, data = predictors, lambda = bestLambda)
+#           })
+#         }
+#       }
+# #     }, error = function(e) {
+# #       createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+# #                   content = paste("",e), style = "warning")
+# #     })
+#   })
+#   
+#   #Resultado obtenido tras aplicar el  modelo cv
+#   output$result_cvridge <- renderPrint({
+#     if(is.null(model_cvridge()))
+#       return()
+#     summary(model_cvridge())
+#   })
+#   
+#   #Resultado obtenido tras aplicar el  modelo
+#   output$result_ridge <- renderPrint({
+#     if(is.null(model_ridge()))
+#       return()
+#     summary(model_ridge())
+#   })
+#   
+#   #grafico de lamda
+#   output$plot_ridge <- renderPlot({
+#     if(is.null(model_cvridge()))
+#       return()
+#     plot(model_cvridge())
+#   })
   
   #-----------------------> rglm
   #seleccion de la variable dependiente
@@ -1077,15 +1126,17 @@ server <- function(input, output, session) {
   #-----------------------> Diagnostic Plots
   
   diagnostic <- reactive({
+    if(is.null(model_lm)){return()}
     diagnosticData(model_lm())
   })
   
   #funcion para el grafico residual vs fitted
   plotRF <- function(){
+    if(is.null(model_lm)){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      ResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+      ResidualsFitted(diagnostic(), input$lm_response, colours = myPalette)
     })
   }
   
@@ -1102,6 +1153,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$ResidualsFitted_brushInfo <- renderPrint({
+    if(is.null(model_lm)){return()}
     brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
@@ -1112,10 +1164,11 @@ server <- function(input, output, session) {
   
   #funcion para el grafico Standarized Residuals v/s Fitted Values
   plotSF <- function(){
+    if(is.null(model_lm)){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      StResidualsFitted(diagnostic(), input$lm_y, colours = myPalette)
+      StResidualsFitted(diagnostic(), input$lm_response, colours = myPalette)
     })
   }
   
@@ -1132,6 +1185,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$StResidualsFitted_brushInfo <- renderPrint({
+    if(is.null(model_lm)){return()}
     brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
@@ -1142,9 +1196,10 @@ server <- function(input, output, session) {
   
   #funcion para el grafico normal Q-Q
   plotQQ <- function(){
+    if(is.null(model_lm)){return()}
     withProgress({
       setProgress(message = "This may take a while...")
-      NormalQQ(diagnostic(), input$lm_y)
+      NormalQQ(diagnostic(), input$lm_response)
     })
   }
   
@@ -1171,10 +1226,11 @@ server <- function(input, output, session) {
   
   #funcion para el grafico residual vs leverage
   plotRL <- function(){
+    if(is.null(model_lm)){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      StResidualsLeverange(diagnostic(), input$lm_y, colours = myPalette)
+      StResidualsLeverange(diagnostic(), input$lm_response, colours = myPalette)
     })
   }
   

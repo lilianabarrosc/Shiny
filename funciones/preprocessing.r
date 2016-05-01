@@ -11,33 +11,36 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                 <li>Missing Values</li>
                 </ul>'),
            box(width = 12, title = title, solidHeader = TRUE, status = "success",
-               tags$div( class = 'col-sm-2',
-                         bsButton("deleteMS", label = "Delete MS",style = "success")
-               )
-           ),
-           tabBox(
-             width = 12,
-             id = "tabset2",
-             tabPanel(tab1,
-                      #opcion1 de visualizacion
-                      bsAlert("alertMissing1"),
-                      tab_grafics("boxplot", tools_general_grafics("radio_boxplot", "note", "save", "cancel",
-                                                                    "download_boxplot", uiOutput("slider_missingValues"),NULL))
-             ),
-             tabPanel(tab2,
-                      #opcion2 de visualizacion
-                      bsAlert("alertMissing2"),
-                      tab_grafics("histogramPlot", tools_general_grafics("radio2", "note2", "save2", "cancel2",
-                                                                    "download2", uiOutput("slider_histogramPlot"), NULL))
-             ),
-             tabPanel(tab3,
-                      #opcion3 de visualizacion
-                      bsAlert("alertMissing3"),
-                      tab_grafics("missingScatterPlot", tools_general_grafics("radio3", "note3", "save3", "cancel3",
-                                                                    "download3", uiOutput("slider_missingScatter"), NULL))
-             )
-           ) 
-           )
+               column(4,
+                    tags$div( class = 'col-sm-2',
+                              bsButton("deleteMS", label = "Delete MS",style = "success")
+                      )
+               ),
+               column(8, verbatimTextOutput("sumMV"))
+     ),
+     tabBox(
+       width = 12,
+       id = "tabset2",
+       tabPanel(tab1,
+                #opcion1 de visualizacion
+                bsAlert("alertMissing1"),
+                tab_grafics("boxplot", tools_general_grafics("radio_boxplot", "note", "save", "cancel",
+                                                              "download_boxplot", uiOutput("slider_missingValues"),NULL))
+       ),
+       tabPanel(tab2,
+                #opcion2 de visualizacion
+                bsAlert("alertMissing2"),
+                tab_grafics("histogramPlot", tools_general_grafics("radio2", "note2", "save2", "cancel2",
+                                                              "download2", uiOutput("slider_histogramPlot"), NULL))
+       ),
+       tabPanel(tab3,
+                #opcion3 de visualizacion
+                bsAlert("alertMissing3"),
+                tab_grafics("missingScatterPlot", tools_general_grafics("radio3", "note3", "save3", "cancel3",
+                                                              "download3", uiOutput("slider_missingScatter"), NULL))
+       )
+     ) 
+    )
   )
 }
 
