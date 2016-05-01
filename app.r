@@ -32,6 +32,8 @@ library('plsdepot') #Libreria para utilizar pls
 library('glmnet') #Libreria para utilizar validacion cruzada en ridge
 #install.packages("MASS")
 library('MASS') #Libreria para utilizar ridge
+#install.packages("bootstrap")
+library('bootstrap') #Libreria para utilizar ridge
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')

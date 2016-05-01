@@ -112,7 +112,7 @@ treeSlider <- function(x, y, z, file, xname, yname, zname){
   )
 }
 
-slider_model <- function(x,y,data){
+select_model <- function(x,y,data){
     #predictors <- reduceDimensionality()[, !names(reduceDimensionality()) %in% input$pls_response]
     namesVariables <- names(data)
     column(12,

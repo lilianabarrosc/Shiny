@@ -159,3 +159,19 @@ dataPartition <- function(data, porcent){
   set.seed(123)
   return(sample(seq_len(nrow(dataset)), size = smp_size))
 }
+
+#funcion general para la validacion cruzada, recibe como parametro el modelo generado, 
+#los coeficientes a predecir (con el formato theta.predict <- function(fit,x){
+                  # cbind(1,x)%*%fit$coefficients         
+                  # }) del modelo y la variable de respuesta y los predictores;)
+#Retorna un data frame con la prediccion realizada y la variable de respuesta a modo de comparacion.
+crossValidation <- function(model, theta.predict, y, x){
+  theta.fit <- function(x,y){model}
+#   theta.predict <- function(fit,x){
+#     cbind(1,x)%*%fit$coefficients         
+#   }
+  response <- bootstrap::crossval(x, y, theta.fit, theta.predict, ngroup = 10)
+  prediction <- data.frame(cbind(response$cv.fit, y))
+  names(prediction) <- c("Prediction", "Response variable")
+  return(prediction)
+}

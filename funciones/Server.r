@@ -833,7 +833,7 @@ server <- function(input, output, session) {
   #-----------------------> lm
   #seleccion de la variable dependiente o de respuesta
   output$select_linearModel <- renderUI({
-    slider_model("lm_response", "lm_predictors", data.frame(DATA_SET$data))  
+    select_model("lm_response", "lm_predictors", data.frame(DATA_SET$data))  
   })
   
   #Aplicando el modelo lm
@@ -878,8 +878,15 @@ server <- function(input, output, session) {
       if(is.null(model_lm()))
         return()
       closeAlert(session,"alertValidationID")
+      theta.predict <- function(fit,x){ cbind(1,x)%*%fit$coefficients }
       switch(input$validationType_lm,
-             '1' = "",#CVlm(DATA_SET$data, model_lm(), m=10), # ten-fold cross validation
+             '1' = { if(is.null(input$lm_predictors)){
+                        x <- DATA_SET$data[, !names(DATA_SET$data) %in% input$lm_response]
+                      }else{
+                        predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$lm_response]
+                        x <- predictors[,input$lm_predictors]
+                      }
+                    crossValidation(model_lm(), theta.predict(), DATA_SET$data[,input$lm_response], x)}, # ten-fold cross validation funcion en regresion.r
              '2' = { inFile <- input$fileTest_lm
                       predict(model_lm(), read.csv(inFile$datapath))
                     },
@@ -921,7 +928,7 @@ server <- function(input, output, session) {
   #-----------------------> pls
   #seleccion de la variable de respuesta
   output$select_pls <- renderUI({
-    slider_model("pls_response", "pls_predictors", DATA_SET$data)  
+    select_model("pls_response", "pls_predictors", DATA_SET$data)  
   })
   
   #numero de componentes para el modelo
@@ -1015,7 +1022,7 @@ server <- function(input, output, session) {
   #-----------------------> ridge
 #   #seleccion de la variable dependiente
 #   output$select_ridge <- renderUI({
-#     slider_model("ridge_y", "ridge_x", DATA_SET$data)
+#     select_model("ridge_y", "ridge_x", DATA_SET$data)
 #   })
 #   
 #   #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
@@ -1110,7 +1117,7 @@ server <- function(input, output, session) {
   #-----------------------> rglm
   #seleccion de la variable dependiente
   output$select_lm <- renderUI({
-    slider_model("rglm_y", "rglm_x", DATA_SET$data)
+    select_model("rglm_y", "rglm_x", DATA_SET$data)
   })
   
   
