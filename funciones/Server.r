@@ -163,7 +163,6 @@ server <- function(input, output, session) {
                            accept=c('text/csv', 'text/comma-separated-values,text/plain', 
                                     '.csv')),
            '5' = urls()#funcion contenida en data.r
-                  
     )
   })
   
@@ -173,7 +172,6 @@ server <- function(input, output, session) {
     if (input$select_file == '4' && is.null(inFile)){
       return()
     }
-    
     if(input$select_file == '5' && is.null(input$url)){return()}
     
     switch(input$select_file,
@@ -185,12 +183,12 @@ server <- function(input, output, session) {
                    read.csv(inFile$datapath)
                  }, error = function(e) {
                    createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
-                               content = paste("",e), 
-                               style = "warning")
+                               content = paste("",e), style = "warning")
                  })
     )
   })
   
+  #Accion a realizar tras presionar el boton upload de la opcion URL (lee el archivo)
   observeEvent(input$upload, { #if(input$upload){
     tryCatch({
       closeAlert(session, "alertURLID")
@@ -682,25 +680,7 @@ server <- function(input, output, session) {
            ),
            '3'= tags$div( class = 'col-sm-8',
                           selectInput("type_normalization", label = "Other normalization", 
-                                      choices = list("without normalization" = "n0", 
-                                                     "standardization ((x-mean)/sd)" = "n1", 
-                                                     "positional standardization ((x-median)/mad)" = "n2",
-                                                     "unitization ((x-mean)/range)" = "n3", 
-                                                     "positional unitization ((x-median)/range)" = "n3a",
-                                                     "unitization with zero minimum ((x-min)/range)" = "n4",
-                                                     "normalization in range <-1,1> ((x-mean)/max(abs(x-mean)))" = "n5",
-                                                     "positional normalization in range <-1,1> ((x-median)/max(abs(x-median)))" = "n5a",
-                                                     "quotient transformation (x/sd)" = "n6",
-                                                     "positional quotient transformation (x/mad)" = "n6a",
-                                                     "quotient transformation (x/range)" = "n7",
-                                                     "quotient transformation (x/max)" = "n8",
-                                                     "quotient transformation (x/mean)" = "n9",
-                                                     "positional quotient transformation (x/median)" = "n9a",
-                                                     "quotient transformation (x/sum)" = "n10",
-                                                     "quotient transformation (x/sqrt(SSQ))" = "n11",
-                                                     "normalization ((x-mean)/sqrt(sum((x-mean)^2)))" = "n12",
-                                                     "positional normalization ((x-median)/sqrt(sum((x-median)^2)))" = "n12a",
-                                                     "normalization with zero being the central point ((x-midrange)/(range/2))" = "n13") 
+                                      choices = type_normalization() 
                           ),
                           radioButtons("type", label = "Type",
                                        choices = list("Column" = "column", "Row" = "row")

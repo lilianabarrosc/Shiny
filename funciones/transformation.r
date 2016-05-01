@@ -21,8 +21,8 @@ normalizations <- function(title){
          uiOutput("range_normalization")
     ),
     tabBox(width = 12,
-           tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
            tabPanel("Normalized data", "*First ten observations", verbatimTextOutput("normalized_data")),
+           tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
            tabPanel("Sumary",verbatimTextOutput("summary_normalization"))
     )
   )
@@ -80,4 +80,27 @@ svd2 <- function(title){
     
   )
    
+}
+
+#Funcion que devuelve una lista con los tipos de normalizacion
+type_normalization <- function(){
+  return(list("without normalization" = "n0", 
+       "standardization ((x-mean)/sd)" = "n1", 
+       "positional standardization ((x-median)/mad)" = "n2",
+       "unitization ((x-mean)/range)" = "n3", 
+       "positional unitization ((x-median)/range)" = "n3a",
+       "unitization with zero minimum ((x-min)/range)" = "n4",
+       "normalization in range <-1,1> ((x-mean)/max(abs(x-mean)))" = "n5",
+       "positional normalization in range <-1,1> ((x-median)/max(abs(x-median)))" = "n5a",
+       "quotient transformation (x/sd)" = "n6",
+       "positional quotient transformation (x/mad)" = "n6a",
+       "quotient transformation (x/range)" = "n7",
+       "quotient transformation (x/max)" = "n8",
+       "quotient transformation (x/mean)" = "n9",
+       "positional quotient transformation (x/median)" = "n9a",
+       "quotient transformation (x/sum)" = "n10",
+       "quotient transformation (x/sqrt(SSQ))" = "n11",
+       "normalization ((x-mean)/sqrt(sum((x-mean)^2)))" = "n12",
+       "positional normalization ((x-median)/sqrt(sum((x-median)^2)))" = "n12a",
+       "normalization with zero being the central point ((x-midrange)/(range/2))" = "n13"))
 }
