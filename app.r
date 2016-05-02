@@ -6,10 +6,10 @@ library('shinydashboard')
 #library('devtools')
 #install_github("mariytu/RegressionLibs") #Para usar esto hay que tener instalado devtools
 library('RegressionLibs')
-#install.packages("Amelia") or sudo apt-get install r-cran-amelia
+#install.packages("Amelia") or sudo apt-get install r-cran-amelia 
 #install.packages("Amelia", repos="http://r.iq.harvard.edu", type = "source")
 #http://gking.harvard.edu/amelia/ 
-#library('Amelia')
+#library('Amelia') // ya no se utiliza
 #install.packages("VIM") #sudo apt-get install r-cran-rcppeigen para amazon
 library('VIM')
 #install.packages("clusterSim")
@@ -23,7 +23,7 @@ library("plyr") ##required for count()
 #install.packages('shinyBS')
 library("shinyBS") #libreria utilizada para los alert y dialog
 #install.packages('DAAG')
-library('DAAG') #libreria para cross validation
+#library('DAAG') #libreria para cross validation // ya no se utiliza
 #install.packages("RPostgreSQL")
 library('RPostgreSQL') #Libreria para postgress
 #install.packages("plsdepot")

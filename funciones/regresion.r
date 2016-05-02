@@ -10,9 +10,10 @@ linearRegression <- function() {
               </ul>')
           ),
     validation("validationType_lm", "fileTest_lm", "porcentTest_lm"),
-    optionsModel("Linear Regression", "alertlm", uiOutput("select_linearModel"), 
-                 tags$div( class = 'col-sm-2', bsButton("apply_lm", label = "Apply",
-                          style = "success"))),
+    optionsModel("Linear Regression", "alertlm", uiOutput("select_linearModel"), NULL 
+#                  tags$div( class = 'col-sm-2', bsButton("apply_lm", label = "Apply",
+#                           style = "success"))
+                 ),
     tabBox(width = 12,
            tabPanel("Model", verbatimTextOutput("summary_lm")),
            tabPanel("Prediction", "It shows the predicted value for each testing 
@@ -58,7 +59,7 @@ pls <- function(){
                  column(6, uiOutput("select_pls")),
                  column(6, uiOutput("componentes_pls"),
                         selectInput("crosval", label = h4("Cross validation"), 
-                                    choices = c("TRUE","FAlSE"), selected = "TRUE"),
+                                    choices = c("TRUE","FALSE"), selected = "TRUE"),
                         tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
                                                                style = "success")))
                  ),
@@ -68,7 +69,7 @@ pls <- function(){
                     h4("Statistical pls"),
                     verbatimTextOutput("statistical_pls") #resultado obtenido
             ),
-           tabPanel("Prediction", verbatimTextOutput("resultValidationpls")),
+           tabPanel("Prediction", verbatimTextOutput("resultValidation_pls")),
            tabPanel("Colinearity Test", plotOutput("plotPLS"))
     )
   )

@@ -892,24 +892,19 @@ server <- function(input, output, session) {
              '2' = { inFile <- input$fileTest_lm
                       Prediction <-predict(model_lm(), read.csv(inFile$datapath))
                       response_variable <- DATA_SET$data[,input$lm_response]
-                      data.frame(cbind(prediction, response_variable))
+                      data.frame(cbind(Prediction, response_variable))
                     },
              '3' = { Prediction <- predict(model_lm(), data.frame(DATA_SET$data[-train_lm(), ]))
                      response_variable <- DATA_SET$data[,input$lm_response]
-                    data.frame(cbind(prediction, response_variable))
+                    data.frame(cbind(Prediction, response_variable))
                    }
              
       )
     }, error = function(e) {
       createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
-                  content = "Predictors must contain more than one column", style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
-  
-#   #grafico para la validacionn cruzada
-#   output$crossPlot <- renderPlot({
-#     CVlm(DATA_SET$data, model_lm(), m=10)
-#   })
       
   output$resultValidation_lm <- renderPrint({
     validation_lm()
@@ -938,6 +933,12 @@ server <- function(input, output, session) {
     select_model("pls_response", "pls_predictors", DATA_SET$data)  
   })
   
+  #particion en porcentaje de train y test
+  train_pls <- reactive({
+    if(is.null(input$porcentTest_lm)){ return() }
+    dataPartition(DATA_SET$data, input$porcentTest_pls)
+  })
+  
   #numero de componentes para el modelo
   output$componentes_pls <- renderUI({
     numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(DATA_SET$data) )
@@ -951,6 +952,8 @@ server <- function(input, output, session) {
                     content = "Data set have missing values", style = "warning")
       }else{
         closeAlert(session, "alertplsID")
+        val <- TRUE #valor por defecto para la validacion cruzada
+        if(input$crosval == "FALSE"){ val <- FALSE }
         #Se aplica el modelo pls
         if(is.null(input$pls_predictors)){
           withProgress({
@@ -958,14 +961,14 @@ server <- function(input, output, session) {
             #sacar la variable de respuesta del data set
             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$pls_response]
             plsreg1(predictors, DATA_SET$data[,input$pls_response], 
-                    crosval = input$crosval, comps = input$comp_pls)
+                    crosval = val, comps = input$comp_pls)
           })
         }else{
           withProgress({
             setProgress(message = "This may take a while...")
             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$pls_response)]
             plsreg1(predictors[,input$pls_predictors], DATA_SET$data[,input$pls_response], 
-                    crosval = input$crosval, comps = input$comp_pls)
+                    crosval = val, comps = input$comp_pls)
           })
         }
       }
@@ -975,21 +978,15 @@ server <- function(input, output, session) {
     })
   })
   
-  #   #Select para ver los resultados obtenidos tras aplicar pls
-  #   output$select_pls <- renderUI({
-  #     selectInput("pls_varible", label = h4("PLS regresion"), 
-  #                 choices = names(fit_pls()), selected = names(fit_pls())[1])
-  #   })
-  
   #Resultado obtenido tras aplicar el  modelo
   output$result_pls <- renderPrint({
     if(is.null(model_pls()))
       return()
-#     list(std.coefs = model_pls()$std.coefs, 
-#          R2 = model_pls()$R2,
-#          cor.xyt = model_pls()$cor.xyt,
-#          R2Xy = model_pls()$R2Xy)
-    input$pls_predictors
+    list(std.coefs = model_pls()$reg.coefs, 
+         R2 = model_pls()$R2,
+         cor.xyt = model_pls()$cor.xyt,
+         R2Xy = model_pls()$R2Xy)
+    #input$pls_predictors
   })
   
   #Estadisticos RME, R2, IA
@@ -1014,16 +1011,51 @@ server <- function(input, output, session) {
     statistical_resultpls()
   })
   
+  #****** validacion pls
+  #obtengo los predictores del modelo
+  predictores_pls <-  reactive({
+    data.frame(predictors(DATA_SET$data, input$pls_predictors, input$pls_response))
+  })
+  
+  #coeficientes del modelo
+  thetaPredict_pls <- function(fit,x){ cbind(1,x)%*%fit$reg.coefs }
+  
+  #tipo de validacion para el modelo
+  validation_pls <- reactive({
+    tryCatch({
+      if (is.null(input$validationType_pls))
+        return()
+      if(input$validationType_pls == '2' && is.null(input$fileTest_pls))
+        return()
+      if(is.null(model_pls()))
+        return()
+      closeAlert(session,"alertValidationID")
+      switch(input$validationType_pls,
+             '1' = crossValidation(model_pls(), thetaPredict_pls, DATA_SET$data[,input$pls_response], predictores_pls()), # ten-fold cross validation funcion en regresion.r
+             '2' = model_pls()$Q2,
+             '3' = { Prediction <- model_pls()$y.pred
+                     response_variable <- DATA_SET$data[,input$pls_response]
+                     data.frame(cbind(Prediction, response_variable))
+                   }
+             
+      )
+    }, error = function(e) {
+      createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  #resultado de la validacion
+  output$resultValidation_pls <- renderPrint({
+    #model_pls()$Q2
+    validation_pls()
+  })
+  
+  #***** test de colinealidad pls
   #grafico correspondiente al modelo pls
   output$plotPLS <- renderPlot({
     if(is.null(model_pls()))
       return()
     plot(model_pls())
-  })
-  
-  #resultado de la validacion
-  output$resultValidationpls <- renderPrint({
-    model_pls()$Q2
   })
   
   #-----------------------> ridge
