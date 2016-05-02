@@ -868,6 +868,15 @@ server <- function(input, output, session) {
    })
   })
   
+  #******* validacion del modelo lm
+  #obtengo los predictores del modelo
+  predictores_lm <-  reactive({
+    data.frame(predictors(DATA_SET$data, input$lm_predictors, input$lm_response))
+  })
+  
+  #coeficientes del modelo
+  thetaPredict_lm <- function(fit,x){ cbind(1,x)%*%fit$coefficients }
+  
   #tipo de validacion para el modelo
   validation_lm <- reactive({
     tryCatch({
@@ -878,19 +887,17 @@ server <- function(input, output, session) {
       if(is.null(model_lm()))
         return()
       closeAlert(session,"alertValidationID")
-      theta.predict <- function(fit,x){ cbind(1,x)%*%fit$coefficients }
       switch(input$validationType_lm,
-             '1' = { if(is.null(input$lm_predictors)){
-                        x <- DATA_SET$data[, !names(DATA_SET$data) %in% input$lm_response]
-                      }else{
-                        predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$lm_response]
-                        x <- predictors[,input$lm_predictors]
-                      }
-                    crossValidation(model_lm(), theta.predict(), DATA_SET$data[,input$lm_response], x)}, # ten-fold cross validation funcion en regresion.r
+             '1' = crossValidation(model_lm(), thetaPredict_lm, DATA_SET$data[,input$lm_response], predictores_lm()), # ten-fold cross validation funcion en regresion.r
              '2' = { inFile <- input$fileTest_lm
-                      predict(model_lm(), read.csv(inFile$datapath))
+                      Prediction <-predict(model_lm(), read.csv(inFile$datapath))
+                      response_variable <- DATA_SET$data[,input$lm_response]
+                      data.frame(cbind(prediction, response_variable))
                     },
-             '3' = predict(model_lm(), data.frame(DATA_SET$data[-train_lm(), ]))
+             '3' = { Prediction <- predict(model_lm(), data.frame(DATA_SET$data[-train_lm(), ]))
+                     response_variable <- DATA_SET$data[,input$lm_response]
+                    data.frame(cbind(prediction, response_variable))
+                   }
              
       )
     }, error = function(e) {

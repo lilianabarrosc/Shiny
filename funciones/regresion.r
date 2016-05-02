@@ -172,6 +172,18 @@ crossValidation <- function(model, theta.predict, y, x){
 #   }
   response <- bootstrap::crossval(x, y, theta.fit, theta.predict, ngroup = 10)
   prediction <- data.frame(cbind(response$cv.fit, y))
-  names(prediction) <- c("Prediction", "Response variable")
+  names(prediction) <- c("Prediction", "response_variable")
   return(prediction)
+}
+
+#funcion que devuelve los predictores a utilizar en el modelo, si no se especifican,
+#por defecto se incluyen todos, menos la variable a predecir. x = variables predictoras e
+# y = variable a predecir
+predictors <- function(dadaSet, x, y){
+    if(is.null(x)){
+      return (dadaSet[, !names(dadaSet) %in% y])
+    }else{
+      predictors <- datav[, !names(dadaSet) %in% y]
+      return(predictors[,x])
+    }
 }
