@@ -69,7 +69,9 @@ pls <- function(){
                     h4("Statistical pls"),
                     verbatimTextOutput("statistical_pls") #resultado obtenido
             ),
-           tabPanel("Prediction", verbatimTextOutput("resultValidation_pls")),
+           tabPanel("Prediction", "It shows the predicted value for each testing 
+                    instance provided by the user.",
+                    verbatimTextOutput("resultValidation_pls")),
            tabPanel("Colinearity Test", plotOutput("plotPLS"))
     )
   )
@@ -86,13 +88,15 @@ ridge <- function() {
                 </ul>')
            ),
     validation("validationType_ridge", "fileTest_ridge", "porcentTest_ridge"),
-    optionsModel("Ridge", "alertRidge", uiOutput("select_ridge"), 
-                 tags$div( class = 'col-sm-2', bsButton("apply_ridge", label = "Apply",
-                                                        style = "success"))),
+    optionsModel("Ridge", "alertRidge", uiOutput("select_ridge"), NULL
+#                  tags$div( class = 'col-sm-2', bsButton("apply_ridge", label = "Apply",
+#                                                         style = "success"))
+                 ),
     tabBox(width = 12,
-           tabPanel("Model", verbatimTextOutput("result_cvridge"),  verbatimTextOutput("result_ridge")),
+           tabPanel("Model", verbatimTextOutput("result_ridge")),
            tabPanel("Prediction", "It shows the predicted value for each testing 
-                    instance provided by the user."
+                    instance provided by the user.",
+                    verbatimTextOutput("resultValidation_ridge")
                     ),
            tabPanel("Parameter optimization", plotOutput("plot_ridge"))
           )

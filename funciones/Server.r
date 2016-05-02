@@ -982,7 +982,7 @@ server <- function(input, output, session) {
   output$result_pls <- renderPrint({
     if(is.null(model_pls()))
       return()
-    list(std.coefs = model_pls()$reg.coefs, 
+    list(reg.coefs = model_pls()$reg.coefs, 
          R2 = model_pls()$R2,
          cor.xyt = model_pls()$cor.xyt,
          R2Xy = model_pls()$R2Xy)
@@ -1059,99 +1059,111 @@ server <- function(input, output, session) {
   })
   
   #-----------------------> ridge
-#   #seleccion de la variable dependiente
-#   output$select_ridge <- renderUI({
-#     select_model("ridge_y", "ridge_x", DATA_SET$data)
-#   })
-#   
-#   #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
-#   model_cvridge <- reactive({
-#     tryCatch({
-#       if(anyNA(DATA_SET$data)){
-#         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-#                     content = "Data set have missing values", style = "warning")
-#       }else{
-#         grid <- 10^seq(10, -2, length = 100)
-#         closeAlert(session, "alertCVRidgeID")
-#         #Se aplica el modelo ridge
-#         if(is.null(input$ridge_x)){
-#           withProgress({
-#             setProgress(message = "This may take a while...")
-#             #sacar la variable de respuesta del data set
-#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
-#             cv.glmnet(as.matrix(predictors), DATA_SET$data[,input$ridge_y], 
-#                       alpha = 0, lambda = grid)
-#           })
-#         }else{
-#           withProgress({
-#             setProgress(message = "This may take a while...")
-#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
-#             cv.glmnet(as.matrix(predictors[,input$ridge_x]), DATA_SET$data[,input$ridge_y], 
-#                       alpha = 0, lambda = grid)
-#           })
-#         }
-#       }
-#     }, error = function(e) {
-#       createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
-#                   content = paste("",e), style = "warning")
-#     })
-#   })
-#   
-#   #aplicando rigde para el lambda min obtenido en model_cvridge()
-#   model_ridge <- reactive({
-# #    tryCatch({
-#       if(anyNA(DATA_SET$data)){
-#         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-#                     content = "Data set have missing values", style = "warning")
-#       }else{
-#         closeAlert(session, "alertRidgeID")
-#         #sacar la variable de respuesta del data set
-#         predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$ridge_y]
-#         bestLambda <- model_cvridge()$lambda.min # The optimal lambda
-#         #Se aplica el modelo ridge
-#         if(is.null(input$ridge_x)){
-#           withProgress({
-#             setProgress(message = "This may take a while...")
-#             #se crea la formula para predecir
-#             #por defecto con todas las variables
-#             (fmla <- as.formula(paste(paste(input$ridge_y, " ~ "), ".")))
-#             lm.ridge(fmla, data = predictors, lambda = bestLambda)
-#           })
-#         }else{ # se agregan las variables a la formula
-#           withProgress({
-#             setProgress(message = "This may take a while...")
-#             predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$ridge_y)]
-#             (fmla <- as.formula(paste(paste(input$ridge_y, " ~ "), paste(input$ridge_x, collapse= "+"))))
-#             lm.ridge(fmla, data = predictors, lambda = bestLambda)
-#           })
-#         }
-#       }
-# #     }, error = function(e) {
-# #       createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-# #                   content = paste("",e), style = "warning")
-# #     })
-#   })
-#   
+  #seleccion de la variable dependiente
+  output$select_ridge <- renderUI({
+    select_model("ridge_response", "ridge_predictors", DATA_SET$data)
+  })
+  
+  #obtengo los predictores del modelo
+  predictores_ridge <-  reactive({
+    data.frame(predictors(DATA_SET$data, input$ridge_predictors, input$ridge_response))
+  })
+  
+  #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
+  model_cvridge <- reactive({
+    tryCatch({
+      if(anyNA(DATA_SET$data)){
+        createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+                    content = "Data set have missing values", style = "warning")
+      }else{
+        grid <- 10^seq(10, -2, length = 100)
+        closeAlert(session, "alertCVRidgeID")
+        #Se aplica el modelo ridge
+        withProgress({
+          setProgress(message = "This may take a while...")
+          #sacar la variable de respuesta del data set
+          cv.glmnet(as.matrix(predictores_ridge()), DATA_SET$data[,input$ridge_response], 
+                    alpha = 0, lambda = grid)
+        })
+      }
+    }, error = function(e) {
+      createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  
+  #aplicando rigde para el lambda min obtenido en model_cvridge()
+  model_ridge <- reactive({
+    tryCatch({
+      if(anyNA(DATA_SET$data)){
+        createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+                    content = "Data set have missing values", style = "warning")
+      }else{
+        closeAlert(session, "alertRidgeID")
+        #Se aplica el modelo ridge con una formula como el lm
+        if(is.null(input$ridge_predictors)){
+          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
+        }
+        #input$lm_y
+        else{
+          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "+"))))
+        }
+        lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min)
+      }
+    }, error = function(e) {
+      createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  
 #   #Resultado obtenido tras aplicar el  modelo cv
 #   output$result_cvridge <- renderPrint({
 #     if(is.null(model_cvridge()))
 #       return()
 #     summary(model_cvridge())
 #   })
-#   
-#   #Resultado obtenido tras aplicar el  modelo
-#   output$result_ridge <- renderPrint({
-#     if(is.null(model_ridge()))
-#       return()
-#     summary(model_ridge())
-#   })
-#   
-#   #grafico de lamda
-#   output$plot_ridge <- renderPlot({
-#     if(is.null(model_cvridge()))
-#       return()
-#     plot(model_cvridge())
-#   })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$result_ridge <- renderPrint({
+    if(is.null(model_ridge()))
+      return()
+    summary(model_ridge())
+  })
+  
+  #grafico de lamda
+  output$plot_ridge <- renderPlot({
+    if(is.null(model_cvridge()))
+      return()
+    plot(model_cvridge())
+  })
+  
+  #******* validacion
+  #coeficientes del modelo
+  thetaPredict_ridge <- function(fit,x){ cbind(1,x)%*%coef(fit) }
+  
+  #tipo de validacion para el modelo
+  validation_ridge <- reactive({
+    tryCatch({
+      if (is.null(input$validationType_ridge))
+        return()
+      if(input$validationType_ridge == '2' && is.null(input$fileTest_ridge))
+        return()
+      if(is.null(model_ridge()))
+        return()
+      closeAlert(session,"alertValidationID")
+      switch(input$validationType_ridge,
+             '1' = crossValidation(model_ridge(), thetaPredict_ridge, DATA_SET$data[,input$ridge_response], predictores_ridge()) # ten-fold cross validation funcion en regresion.r
+             
+      )
+    }, error = function(e) {
+      createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  #resultado de la validacion
+  output$resultValidation_ridge <- renderPrint({
+    validation_ridge()
+  })
   
   #-----------------------> rglm
   #seleccion de la variable dependiente
