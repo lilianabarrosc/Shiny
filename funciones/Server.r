@@ -935,7 +935,7 @@ server <- function(input, output, session) {
   
   #particion en porcentaje de train y test
   train_pls <- reactive({
-    if(is.null(input$porcentTest_lm)){ return() }
+    if(is.null(input$porcentTest_pls)){ return() }
     dataPartition(DATA_SET$data, input$porcentTest_pls)
   })
   
@@ -1059,6 +1059,13 @@ server <- function(input, output, session) {
   })
   
   #-----------------------> ridge
+  
+  #particion en porcentaje de train y test
+  train_ridge <- reactive({
+    if(is.null(input$porcentTest_ridge)){ return() }
+    dataPartition(DATA_SET$data, input$porcentTest_ridge)
+  })
+  
   #seleccion de la variable dependiente
   output$select_ridge <- renderUI({
     select_model("ridge_response", "ridge_predictors", DATA_SET$data)
@@ -1104,11 +1111,19 @@ server <- function(input, output, session) {
         if(is.null(input$ridge_predictors)){
           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
         }
-        #input$lm_y
         else{
           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "+"))))
         }
-        lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min)
+        
+        if (is.null(input$validationType_ridge)){return()}
+        else{
+          switch (input$validationType_ridge,
+                  '1' = lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min),
+                  '2' = lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min),
+                  '3' = lm.ridge(fmla, data = data.frame( DATA_SET$data[train_lm(), ]), 
+                                 lambda = model_cvridge()$lambda.min)
+          )
+        }
       }
     }, error = function(e) {
       createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
@@ -1152,8 +1167,11 @@ server <- function(input, output, session) {
         return()
       closeAlert(session,"alertValidationID")
       switch(input$validationType_ridge,
-             '1' = crossValidation(model_ridge(), thetaPredict_ridge, DATA_SET$data[,input$ridge_response], predictores_ridge()) # ten-fold cross validation funcion en regresion.r
-             
+             '1' = crossValidation(model_ridge(), thetaPredict_ridge, DATA_SET$data[,input$ridge_response], predictores_ridge()), # ten-fold cross validation funcion en regresion.r
+             '3' = { Prediction <- scale(predictores_ridge()[-train_ridge(), ],center = F, scale = model_ridge()$scales)%*% model_ridge()$coef
+                     response_variable <- DATA_SET$data[,input$ridge_response]
+                     data.frame(cbind(Prediction, response_variable))
+                    }
       )
     }, error = function(e) {
       createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,

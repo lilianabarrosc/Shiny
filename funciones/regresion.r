@@ -95,7 +95,7 @@ ridge <- function() {
     tabBox(width = 12,
            tabPanel("Model", verbatimTextOutput("result_ridge")),
            tabPanel("Prediction", "It shows the predicted value for each testing 
-                    instance provided by the user.",
+                    instance provided by the user.", bsAlert("alertValidation"),
                     verbatimTextOutput("resultValidation_ridge")
                     ),
            tabPanel("Parameter optimization", plotOutput("plot_ridge"))
