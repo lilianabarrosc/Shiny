@@ -34,6 +34,8 @@ library('glmnet') #Libreria para utilizar validacion cruzada en ridge
 library('MASS') #Libreria para utilizar ridge
 #install.packages("bootstrap")
 library('bootstrap') #Libreria para utilizar ridge
+#install.packages("randomGLM")
+library('randomGLM') #libreria para utilizar RGML
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')

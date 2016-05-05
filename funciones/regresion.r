@@ -59,9 +59,10 @@ pls <- function(){
                  column(6, uiOutput("select_pls")),
                  column(6, uiOutput("componentes_pls"),
                         selectInput("crosval", label = h4("Cross validation"), 
-                                    choices = c("TRUE","FALSE"), selected = "TRUE"),
-                        tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
-                                                               style = "success")))
+                                    choices = c("TRUE","FALSE"), selected = "TRUE")
+#                         tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
+#                                                                style = "success"))
+                      )
                  ),
     tabBox(width = 12,
            tabPanel("Model",h4("PLS result"),
@@ -114,10 +115,17 @@ rglm <- function() {
                 </ul>')
            ),
     validation("validationType_rglm", "fileTest_rglm", "porcentTest_rglm"),
-    box(
-      width = 12, title = "Random General Linear Model", solidHeader = TRUE, status = "success"
-    )
+    optionsModel("RRandom General Linear Model", "alertRGLM", uiOutput("select_rglm"), NULL),
+    
+    tabBox(width = 12,
+           tabPanel("Model", verbatimTextOutput("result_rglm")),
+           tabPanel("Prediction", "It shows the predicted value for each testing 
+                    instance provided by the user.", bsAlert("alertValidation"),
+                    verbatimTextOutput("resultValidation_rglm")
            )
+           #tabPanel("Parameter optimization")
+    )
+  )
 }
 
 #vista para la validación de los modelos recibe el id de los componentes, es decir,

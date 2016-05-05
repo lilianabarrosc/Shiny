@@ -33,19 +33,19 @@ sidebar <- function(isLogged, username) {
              menuItem("Transformation", tabName = "transformation", icon=shiny::icon("sliders"),
                       menuSubItem("Normalization", tabName = "normalization", icon = shiny::icon("angle-double-right")),
                       menuSubItem("PCA", tabName = "pca", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("SVD", tabName = "svd", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Attribute selection", tabName = "attributeS", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("SVD", tabName = "svd", icon = shiny::icon("angle-double-right"))
+                      #menuSubItem("Attribute selection", tabName = "attributeS", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Regression", tabName = "regression", icon= shiny::icon("cogs"),
                       menuSubItem("Linear Regression", tabName = "lm", icon = shiny::icon("angle-double-right")),
                       menuSubItem("PLS", tabName = "pls", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Ridge", tabName = "ridge", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("RGLM", tabName = "rglm", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Ridge", tabName = "ridge", icon = shiny::icon("angle-double-right"))
+                      #menuSubItem("RGLM", tabName = "rglm", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Linear model evaluation", tabName = "lmEvaluation", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))
-             ),
-             menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
+             )
+             #menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
           )
     }
 }

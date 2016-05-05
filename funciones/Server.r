@@ -159,9 +159,11 @@ server <- function(input, output, session) {
       return()
     switch(input$select_file,
            #Cargar archivo desde el equipo o mediante una URL
-           '4' = fileInput('file1', 'Choose CSV File',
-                           accept=c('text/csv', 'text/comma-separated-values,text/plain', 
-                                    '.csv')),
+           '4' = box(width = 12,
+                      fileInput('file1', 'Choose CSV File', 
+                                accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                     optionReader("sep_upload", "dec_upload", "quote_upload", "header_upload","na_upload")
+                  ),
            '5' = urls()#funcion contenida en data.r
     )
   })
@@ -179,8 +181,11 @@ server <- function(input, output, session) {
            '2'= airquality,
            '3'= sleep,
            '4'= tryCatch({
-                   closeAlert(session, "alertUploadID") 
-                   read.csv(inFile$datapath)
+                   closeAlert(session, "alertUploadID")
+                   head <- FALSE #por defecto header no se lee.
+                   if(input$header_upload == "TRUE"){head <- TRUE}
+                   read.csv(inFile$datapath, header = head, sep = input$sep_upload, 
+                            quote = input$quote_upload, dec = input$dec_upload, na.strings= input$na_upload)
                  }, error = function(e) {
                    createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
                                content = paste("",e), style = "warning")
@@ -193,8 +198,11 @@ server <- function(input, output, session) {
     tryCatch({
       closeAlert(session, "alertURLID")
       withProgress({
-        setProgress(message = "This may take a while...")
-        DATA_SET$data <- read.csv(input$url, sep = input$sep, dec = input$dec)
+        setProgress(message = "This may take a while...") #"sep_url", "dec_url", "quote_url", "header_url"
+        head <- FALSE #por defecto header no se lee.
+        if(input$header_url == "TRUE"){head <- TRUE}
+        DATA_SET$data <- read.csv(input$url, header = head, sep = input$sep_url, 
+                                  quote = input$quote_url, dec = input$dec_url, na.strings= input$na_url)
       })
     }, error = function(e) {
       createAlert(session, "alertRUL", "alertURLID", title = titleAlert,
@@ -659,6 +667,15 @@ server <- function(input, output, session) {
     str(dataWithoutOutliers)
   })
   
+  #Accion a realizar tras presionar el boton "WithoutOutliers" de LOF
+  observeEvent(input$delete_lof, { #if(input$upload){
+    tryCatch({
+        DATA_SET$data <- data.frame(res_lof()[2])
+    }, error = function(e) {
+      print(e)
+    })
+  })
+  
   
   #-------------------------------------------------------
   #-----------------------> Transformation <-----------------------
@@ -798,7 +815,7 @@ server <- function(input, output, session) {
   })
   
   output$summary_reduceDimensionality <- renderPrint({
-    summary(DATA_SET$data)
+    str(DATA_SET$data)
   })
   
   #------------SVD
@@ -1185,10 +1202,83 @@ server <- function(input, output, session) {
   
   #-----------------------> rglm
   #seleccion de la variable dependiente
-  output$select_lm <- renderUI({
-    select_model("rglm_y", "rglm_x", DATA_SET$data)
+  output$select_rglm <- renderUI({
+    select_model("rglm_response", "rglm_predictors", DATA_SET$data)
   })
   
+  #particion en porcentaje de train y test
+  train_rglm <- reactive({
+    if(is.null(input$porcentTest_rglm)){ return() }
+    dataPartition(DATA_SET$data, input$porcentTest_rglm)
+  })
+  
+  #obtengo los predictores del modelo
+  predictores_rglm <-  reactive({
+    data.frame(predictors(DATA_SET$data, input$rglm_predictors, input$rglm_response))
+  })
+  
+  #aplicando el modelo rgml
+  model_rgml <- reactive({
+    tryCatch({
+      if(anyNA(DATA_SET$data)){
+        createAlert(session, "alertRGML", "alertRGMLID", title = titleAlert,
+                    content = "Data set have missing values", style = "warning")
+      }else{
+        closeAlert(session, "alertRGMLID")
+        #se aplica el modelo dependiendo del tipo de validacion seleccionada
+        if (is.null(input$validationType_rglm)){return()}
+        else{
+          switch (input$validationType_rglm,
+                  '1' = randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
+                                  nBags=10, keepModels = TRUE, nThreads = 1),
+                  '2' = randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
+                                  nBags=10, keepModels = TRUE, nThreads = 1),
+                  '3' = randomGLM(DATA_SET$data[train_lm(), ], DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
+                                  nBags=10, keepModels = TRUE, nThreads = 1)
+          )
+        }
+      }
+    }, error = function(e) {
+      createAlert(session, "alertRGML", "alertRGMLID", title = titleAlert,
+                  content = paste("",e), style = "warning")
+    })
+  })
+  
+  #Resultado obtenido tras aplicar el  modelo
+  output$result_rglm <- renderPrint({
+    if(is.null(model_rgml()))
+      return()
+    summary(model_rgml())
+  })
+  
+  #******* validacion
+  #coeficientes del modelo
+  thetaPredict_rglm <- function(fit,x){ cbind(1,x)%*%coef(fit) }
+  
+  #tipo de validacion para el modelo
+  validation_rglm <- reactive({
+    tryCatch({
+      if (is.null(input$validationType_rglm))
+        return()
+      if(input$validationType_rglm == '2' && is.null(input$fileTest_rglm))
+        return()
+      if(is.null(model_rglm()))
+        return()
+      switch(input$validationType_ridge,
+             '1' = crossValidation(model_rglm(), thetaPredict_rglm, DATA_SET$data[,input$rglm_response], predictores_rglm()), # ten-fold cross validation funcion en regresion.r
+             '3' = { Prediction <- predict(model_rgml(), newdata = DATA_SET$data[-train_lm(), ])
+                     response_variable <- DATA_SET$data[,input$rglm_response]
+                     data.frame(cbind(Prediction, response_variable))
+             }
+      )
+    }, error = function(e) {
+      print(e)
+    })
+  })
+  #resultado de la validacion
+  output$resultValidation_rglm <- renderPrint({
+    validation_rglm()
+  })
   
   #-------------------------------------------------------
   #-----------------------> Linear Model Evaluation <-----------------------

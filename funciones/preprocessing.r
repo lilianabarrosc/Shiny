@@ -100,7 +100,8 @@ localOutlier <- function(title){
           verbatimTextOutput("howManyOutliers"),
           hr(),
           #numericInput("threshold", label = h4("Threshold"), value = 1.25, step = 0.01)
-          uiOutput("sliderLOF")
+          uiOutput("sliderLOF"),
+          tags$div(class = 'col-sm-2', bsButton("delete_lof", label="Delete Outliers", style = "success"))
         ),
         column(width = 6,
           h4("The positions of the outliers"),
