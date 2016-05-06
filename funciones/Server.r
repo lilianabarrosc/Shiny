@@ -160,10 +160,10 @@ server <- function(input, output, session) {
     switch(input$select_file,
            #Cargar archivo desde el equipo o mediante una URL
            '4' = box(width = 12,
-                      fileInput('file1', 'Choose CSV File', 
-                                accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                     fileInput('file1', 'Choose CSV File', 
+                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                      optionReader("sep_upload", "dec_upload", "quote_upload", "header_upload","na_upload")
-                  ),
+           ),
            '5' = urls()#funcion contenida en data.r
     )
   })
@@ -181,15 +181,15 @@ server <- function(input, output, session) {
            '2'= airquality,
            '3'= sleep,
            '4'= tryCatch({
-                   closeAlert(session, "alertUploadID")
-                   head <- FALSE #por defecto header no se lee.
-                   if(input$header_upload == "TRUE"){head <- TRUE}
-                   read.csv(inFile$datapath, header = head, sep = input$sep_upload, 
-                            quote = input$quote_upload, dec = input$dec_upload, na.strings= input$na_upload)
-                 }, error = function(e) {
-                   createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
-                               content = paste("",e), style = "warning")
-                 })
+             closeAlert(session, "alertUploadID")
+             head <- FALSE #por defecto header no se lee.
+             if(input$header_upload == "TRUE"){head <- TRUE}
+             read.csv(inFile$datapath, header = head, sep = input$sep_upload, 
+                      quote = input$quote_upload, dec = input$dec_upload, na.strings= input$na_upload)
+           }, error = function(e) {
+             createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
+                         content = paste("",e), style = "warning")
+           })
     )
   })
   
@@ -394,7 +394,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos y observaciones para la Opcion 1
   data_boxPlot <- reactive({
     DATA_SET$data[input$observation[1]:input$observation[2], 
-               input$attributes[1]:input$attributes[2]]
+                  input$attributes[1]:input$attributes[2]]
   })
   
   #Opcion 1 generacion del grafico boxPlot
@@ -434,7 +434,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
   data_histogramPlot <- reactive({
     DATA_SET$data[input$observation_histogram[1]:input$observation_histogram[2], 
-               input$attributes_histogram[1]:input$attributes_histogram[2]]
+                  input$attributes_histogram[1]:input$attributes_histogram[2]]
   })
   
   #Opcion 2 (libreria VIM)
@@ -465,7 +465,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos a comparar para la Opcion 3
   data_missingScatter <- reactive({
     DATA_SET$data[input$z_missingScatter[1]:input$z_missingScatter[2],
-               input$x_missingScatter[1]:input$x_missingScatter[2]]
+                  input$x_missingScatter[1]:input$x_missingScatter[2]]
   })
   
   #Option 3 (matricial)
@@ -670,7 +670,7 @@ server <- function(input, output, session) {
   #Accion a realizar tras presionar el boton "WithoutOutliers" de LOF
   observeEvent(input$delete_lof, { #if(input$upload){
     tryCatch({
-        DATA_SET$data <- data.frame(res_lof()[2])
+      DATA_SET$data <- data.frame(res_lof()[2])
     }, error = function(e) {
       print(e)
     })
@@ -757,7 +757,7 @@ server <- function(input, output, session) {
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca <- reactive({
     DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
-               input$attributes_pca[1]:input$attributes_pca[2]]
+                  input$attributes_pca[1]:input$attributes_pca[2]]
   })
   
   pca <- reactive({
@@ -787,22 +787,22 @@ server <- function(input, output, session) {
     
   })
   
-    reduceDimensionality <- reactive({
-      if(input$reduceDim){
-        data_pca()
-        #print("hola if")
-      }
-      else{
-        #print("hola else")
-        data.frame(DATA_SET$data)
-      }
-    })
-#   
+  reduceDimensionality <- reactive({
+    if(input$reduceDim){
+      data_pca()
+      #print("hola if")
+    }
+    else{
+      #print("hola else")
+      data.frame(DATA_SET$data)
+    }
+  })
+  #   
   #data luego de aplicar un metodo de reduccion como pls
   observeEvent(input$reduceDim, {
     if(is.null(data_pca())){return()}
     DATA_SET$data <- data_pca()
-    })
+  })
   
   #-------------->dowload image plot
   observe({
@@ -836,6 +836,41 @@ server <- function(input, output, session) {
     s()$d
   })
   
+  #------------> Attribute Selection
+  #seleccion de la variable de respuesta y numero de atributos a seleccionar
+  output$option_attributeS <- renderUI({
+    namesVariables <- names(DATA_SET$data)
+    column(12,
+           selectInput("attributeS_response", label = h4("Response variable"), 
+                       choices = namesVariables, selected = namesVariables[ncol(DATA_SET$data)]),
+           numericInput("attribute_num", "Number of attributes to be selected", value = 2,
+                        min = 1, max = ncol(DATA_SET$data))
+          )
+  })
+  
+  #calculos de los pesos de las variables
+  weights <- reactive({
+    if(is.null(input$attributeS_response)) {return()}
+    (fmla <- as.formula(paste(paste(input$attributeS_response, " ~ "), ".")))
+    information.gain(fmla, DATA_SET$data)
+  })
+  
+  #muestra informacion de los pesos
+  output$print_weights <- renderPrint({
+    if( is.null(weights())) {return()}
+    weights()
+  })
+  
+  #indica ordenado las mejores variables del dataSet
+  output$print_subset <- renderPrint({
+    if( is.null(weights())) {return()}
+    cutoff.k(weights(), input$attribute_num)
+  })
+  
+  observeEvent(inapply_attributeS{
+    
+  })
+  
   #-------------------------------------------------------
   #-----------------------> Regresion <-----------------------
   
@@ -844,7 +879,7 @@ server <- function(input, output, session) {
   #particion en porcentaje de train y test
   train_lm <- reactive({
     if(is.null(input$porcentTest_lm)){ return() }
-     dataPartition(DATA_SET$data, input$porcentTest_lm)
+    dataPartition(DATA_SET$data, input$porcentTest_lm)
   })
   
   #-----------------------> lm
@@ -870,19 +905,19 @@ server <- function(input, output, session) {
               '1' = lm(fmla, data=DATA_SET$data),
               '2' = lm(fmla, data=DATA_SET$data),
               '3' = lm(fmla, data = data.frame( 
-                        DATA_SET$data[train_lm(), ]))
-     )
+                DATA_SET$data[train_lm(), ]))
+      )
     }
     #lm(fmla, data=DATA_SET$data) 
   })
   
   #Resultado obtenido tras aplicar el  modelo
   output$summary_lm <- renderPrint({
-   if(is.null(model_lm())) return()
-     withProgress({
-       setProgress(message = "This may take a while...")
+    if(is.null(model_lm())) return()
+    withProgress({
+      setProgress(message = "This may take a while...")
       summary(model_lm())
-   })
+    })
   })
   
   #******* validacion del modelo lm
@@ -907,14 +942,14 @@ server <- function(input, output, session) {
       switch(input$validationType_lm,
              '1' = crossValidation(model_lm(), thetaPredict_lm, DATA_SET$data[,input$lm_response], predictores_lm()), # ten-fold cross validation funcion en regresion.r
              '2' = { inFile <- input$fileTest_lm
-                      Prediction <-predict(model_lm(), read.csv(inFile$datapath))
-                      response_variable <- DATA_SET$data[,input$lm_response]
-                      data.frame(cbind(Prediction, response_variable))
-                    },
+             Prediction <-predict(model_lm(), read.csv(inFile$datapath))
+             response_variable <- DATA_SET$data[,input$lm_response]
+             data.frame(cbind(Prediction, response_variable))
+             },
              '3' = { Prediction <- predict(model_lm(), data.frame(DATA_SET$data[-train_lm(), ]))
-                     response_variable <- DATA_SET$data[,input$lm_response]
-                    data.frame(cbind(Prediction, response_variable))
-                   }
+             response_variable <- DATA_SET$data[,input$lm_response]
+             data.frame(cbind(Prediction, response_variable))
+             }
              
       )
     }, error = function(e) {
@@ -922,7 +957,7 @@ server <- function(input, output, session) {
                   content = paste("",e), style = "warning")
     })
   })
-      
+  
   output$resultValidation_lm <- renderPrint({
     validation_lm()
   })
@@ -1051,9 +1086,9 @@ server <- function(input, output, session) {
              '1' = crossValidation(model_pls(), thetaPredict_pls, DATA_SET$data[,input$pls_response], predictores_pls()), # ten-fold cross validation funcion en regresion.r
              '2' = model_pls()$Q2,
              '3' = { Prediction <- model_pls()$y.pred
-                     response_variable <- DATA_SET$data[,input$pls_response]
-                     data.frame(cbind(Prediction, response_variable))
-                   }
+             response_variable <- DATA_SET$data[,input$pls_response]
+             data.frame(cbind(Prediction, response_variable))
+             }
              
       )
     }, error = function(e) {
@@ -1148,12 +1183,12 @@ server <- function(input, output, session) {
     })
   })
   
-#   #Resultado obtenido tras aplicar el  modelo cv
-#   output$result_cvridge <- renderPrint({
-#     if(is.null(model_cvridge()))
-#       return()
-#     summary(model_cvridge())
-#   })
+  #   #Resultado obtenido tras aplicar el  modelo cv
+  #   output$result_cvridge <- renderPrint({
+  #     if(is.null(model_cvridge()))
+  #       return()
+  #     summary(model_cvridge())
+  #   })
   
   #Resultado obtenido tras aplicar el  modelo
   output$result_ridge <- renderPrint({
@@ -1186,9 +1221,9 @@ server <- function(input, output, session) {
       switch(input$validationType_ridge,
              '1' = crossValidation(model_ridge(), thetaPredict_ridge, DATA_SET$data[,input$ridge_response], predictores_ridge()), # ten-fold cross validation funcion en regresion.r
              '3' = { Prediction <- scale(predictores_ridge()[-train_ridge(), ],center = F, scale = model_ridge()$scales)%*% model_ridge()$coef
-                     response_variable <- DATA_SET$data[,input$ridge_response]
-                     data.frame(cbind(Prediction, response_variable))
-                    }
+             response_variable <- DATA_SET$data[,input$ridge_response]
+             data.frame(cbind(Prediction, response_variable))
+             }
       )
     }, error = function(e) {
       createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
@@ -1218,13 +1253,13 @@ server <- function(input, output, session) {
   })
   
   #aplicando el modelo rgml
-  model_rgml <- reactive({
+  model_rglm <- reactive({
     tryCatch({
       if(anyNA(DATA_SET$data)){
-        createAlert(session, "alertRGML", "alertRGMLID", title = titleAlert,
+        createAlert(session, "alertRGLM", "alertRGLMID", title = titleAlert,
                     content = "Data set have missing values", style = "warning")
       }else{
-        closeAlert(session, "alertRGMLID")
+        closeAlert(session, "alertRGLMID")
         #se aplica el modelo dependiendo del tipo de validacion seleccionada
         if (is.null(input$validationType_rglm)){return()}
         else{
@@ -1232,23 +1267,23 @@ server <- function(input, output, session) {
                   '1' = randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
                                   nBags=10, keepModels = TRUE, nThreads = 1),
                   '2' = randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
-                                  nBags=10, keepModels = TRUE, nThreads = 1),
-                  '3' = randomGLM(DATA_SET$data[train_lm(), ], DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
-                                  nBags=10, keepModels = TRUE, nThreads = 1)
+                                  nBags=1, keepModels = TRUE, nThreads = 1),
+                  '3' = randomGLM(DATA_SET$data[train_rglm(), ], DATA_SET$data[,input$rglm_response], nCandidateCovariates=ncol(predictores_rglm()), 
+                                  nBags=1, keepModels = TRUE, nThreads = 1)
           )
         }
       }
     }, error = function(e) {
-      createAlert(session, "alertRGML", "alertRGMLID", title = titleAlert,
+      createAlert(session, "alertRGLM", "alertRGLMID", title = titleAlert,
                   content = paste("",e), style = "warning")
     })
   })
   
   #Resultado obtenido tras aplicar el  modelo
   output$result_rglm <- renderPrint({
-    if(is.null(model_rgml()))
+    if(is.null(model_rglm()))
       return()
-    summary(model_rgml())
+    summary(model_rglm())
   })
   
   #******* validacion
@@ -1264,13 +1299,21 @@ server <- function(input, output, session) {
         return()
       if(is.null(model_rglm()))
         return()
-      switch(input$validationType_ridge,
-             '1' = crossValidation(model_rglm(), thetaPredict_rglm, DATA_SET$data[,input$rglm_response], predictores_rglm()), # ten-fold cross validation funcion en regresion.r
-             '3' = { Prediction <- predict(model_rgml(), newdata = DATA_SET$data[-train_lm(), ])
-                     response_variable <- DATA_SET$data[,input$rglm_response]
-                     data.frame(cbind(Prediction, response_variable))
-             }
-      )
+      
+      Prediction <- model_rglm()$predictedOOB
+      response_variable <- DATA_SET$data[,input$rglm_response]
+      data.frame(cbind(Prediction, response_variable))
+#       switch(input$validationType_rglm,
+#              '1' = crossValidation(model_rglm(), thetaPredict_rglm, DATA_SET$data[,input$rglm_response], predictores_rglm()), # ten-fold cross validation funcion en regresion.r
+#              '2' = {Prediction <- model_rglm()$predictedOOB.response
+#                     response_variable <- DATA_SET$data[,input$rglm_response]
+#                     data.frame(cbind(Prediction, response_variable))
+#              }
+#              '3' = { predict(model_rglm(), newdata = DATA_SET$data[-train_rglm(), ])
+#                     response_variable <- DATA_SET$data[,input$rglm_response]
+#                     data.frame(cbind(Prediction, response_variable))
+#                     }
+#       )
     }, error = function(e) {
       print(e)
     })

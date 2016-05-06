@@ -36,6 +36,8 @@ library('MASS') #Libreria para utilizar ridge
 library('bootstrap') #Libreria para utilizar ridge
 #install.packages("randomGLM")
 library('randomGLM') #libreria para utilizar RGML
+#install.packages("FSelector")
+library('FSelector') #libreria para attribute selector
 
 source('funciones/Server.r')
 source('funciones/opcionesDashboard.r')
@@ -101,6 +103,9 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         ),
                         tabItem(tabName = "svd",
                                 svd2("")
+                        ),
+                        tabItem(tabName = "attributeS",
+                                attributeSelection()
                         ),
                         tabItem(tabName = "lm",
                                 linearRegression()

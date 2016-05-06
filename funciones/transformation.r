@@ -82,6 +82,33 @@ svd2 <- function(title){
    
 }
 
+#vista correspondiente al seleccion de atributos
+attributeSelection <- function(){
+  fluidRow(
+    column(width = 12,
+           #BreadCrumds de pca    
+           HTML('
+                <ul class="breadcrumb">
+                  <li>Transformation</li>
+                  <li>Attribute Selection</li>
+                </ul>'),
+           bsAlert("alertAttributeS")
+           ),
+    box( width = 12, title = "Attribute Selection", solidHeader = TRUE, status = "success",
+        uiOutput("option_attributeS"),
+        tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success")),
+        column(6,
+               h4("Scores"),
+               verbatimTextOutput("print_weights")
+              ),
+        column(6,
+               h4("Attributes selected"),
+               verbatimTextOutput("print_subset")
+              )
+      )
+  )
+}
+
 #Funcion que devuelve una lista con los tipos de normalizacion
 type_normalization <- function(){
   return(list("without normalization" = "n0", 

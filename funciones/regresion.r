@@ -115,7 +115,7 @@ rglm <- function() {
                 </ul>')
            ),
     validation("validationType_rglm", "fileTest_rglm", "porcentTest_rglm"),
-    optionsModel("RRandom General Linear Model", "alertRGLM", uiOutput("select_rglm"), NULL),
+    optionsModel("Random General Linear Model", "alertRGLM", uiOutput("select_rglm"), NULL),
     
     tabBox(width = 12,
            tabPanel("Model", verbatimTextOutput("result_rglm")),
