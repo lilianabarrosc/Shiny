@@ -196,7 +196,7 @@ predictors <- function(dadaSet, x, y){
     if(is.null(x)){
       return (dadaSet[, !names(dadaSet) %in% y])
     }else{
-      predictors <- datav[, !names(dadaSet) %in% y]
+      predictors <- dadaSet[, !names(dadaSet) %in% y]
       return(predictors[,x])
     }
 }
