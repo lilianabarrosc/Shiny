@@ -39,7 +39,8 @@ linearRegression <- function() {
                       p(style = "text-align:justify;","Tolerance below 0.2 indicates a potencial problem
                         (Menard, 1995).")               
                       ))
-                  )
+                  ),
+           tabPanel("Predicted values", plotOutput("plotValitation_lm"))
     )
   )
 }
@@ -57,9 +58,9 @@ pls <- function(){
     validation("validationType_pls", "fileTest_pls", "porcentTest_pls"),
     optionsModel("Partial Least Squares Regression", "alertpls", 
                  column(6, uiOutput("select_pls")),
-                 column(6, uiOutput("componentes_pls"),
-                        selectInput("crosval", label = h4("Cross validation"), 
-                                    choices = c("TRUE","FALSE"), selected = "TRUE")
+                 column(6, uiOutput("componentes_pls")
+#                         selectInput("crosval", label = h4("Cross validation"), 
+#                                     choices = c("TRUE","FALSE"), selected = "TRUE")
 #                         tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
 #                                                                style = "success"))
                       )
@@ -73,7 +74,10 @@ pls <- function(){
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.",
                     verbatimTextOutput("resultValidation_pls")),
-           tabPanel("Colinearity Test", plotOutput("plotPLS"))
+           tabPanel("Correlation", plotOutput("plotCorr")),
+           tabPanel("MSEP", plotOutput("plotMSEP")),
+           tabPanel("Coefficients", plotOutput("plotCoef")),
+           tabPanel("Predicted values", plotOutput("plotPred"))
     )
   )
 }
@@ -99,7 +103,8 @@ ridge <- function() {
                     instance provided by the user.", bsAlert("alertValidation"),
                     verbatimTextOutput("resultValidation_ridge")
                     ),
-           tabPanel("Parameter optimization", plotOutput("plot_ridge"))
+           tabPanel("Parameter optimization", plotOutput("plot_ridge")),
+           tabPanel("Predicted values", plotOutput("plotValitation_ridge"))
           )
   )
 }
@@ -122,8 +127,8 @@ rglm <- function() {
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.", bsAlert("alertValidation"),
                     verbatimTextOutput("resultValidation_rglm")
-           )
-           #tabPanel("Parameter optimization")
+           ),
+           tabPanel("Predicted values", plotOutput("plotValitation_rglm"))
     )
   )
 }
@@ -180,9 +185,6 @@ dataPartition <- function(data, porcent){
 #Retorna un data frame con la prediccion realizada y la variable de respuesta a modo de comparacion.
 crossValidation <- function(model, theta.predict, y, x){
   theta.fit <- function(x,y){model}
-#   theta.predict <- function(fit,x){
-#     cbind(1,x)%*%fit$coefficients         
-#   }
   response <- bootstrap::crossval(x, y, theta.fit, theta.predict, ngroup = 10)
   prediction <- data.frame(cbind(response$cv.fit, y))
   names(prediction) <- c("Prediction", "response_variable")

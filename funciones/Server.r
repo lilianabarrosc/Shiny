@@ -798,7 +798,7 @@ server <- function(input, output, session) {
     }
   })
   #   
-  #data luego de aplicar un metodo de reduccion como pls
+  #data luego de aplicar un metodo de reduccion como pca
   observeEvent(input$reduceDim, {
     if(is.null(data_pca())){return()}
     DATA_SET$data <- data_pca()
@@ -896,7 +896,7 @@ server <- function(input, output, session) {
     }
     #input$lm_y
     else{
-      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), paste(input$lm_predictors, collapse= "+"))))
+      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), paste(input$lm_predictors, collapse= "-"))))
     }
     
     if (is.null(input$validationType_lm)){return()}
@@ -958,8 +958,14 @@ server <- function(input, output, session) {
     })
   })
   
+  #resultado tras aplicar el metodo de validacion seleccionado
   output$resultValidation_lm <- renderPrint({
     validation_lm()
+  })
+  
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_lm <- renderPlot({
+    simplePlot(validation_lm(),  DATA_SET$data[,input$lm_response], 2, 1, input$lm_response, 2, 0.9)
   })
   
   #***** Colinearity Test lm
@@ -996,6 +1002,11 @@ server <- function(input, output, session) {
     numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(DATA_SET$data) )
   })
   
+  #obtengo los predictores del modelo
+  predictores_pls <-  reactive({
+    data.frame(predictors(DATA_SET$data, input$pls_predictors, input$pls_response))
+  })
+  
   #Aplicando el modelo pls
   model_pls <- reactive({
     tryCatch({
@@ -1004,24 +1015,28 @@ server <- function(input, output, session) {
                     content = "Data set have missing values", style = "warning")
       }else{
         closeAlert(session, "alertplsID")
-        val <- TRUE #valor por defecto para la validacion cruzada
-        if(input$crosval == "FALSE"){ val <- FALSE }
-        #Se aplica el modelo pls
-        if(is.null(input$pls_predictors)){
-          withProgress({
-            setProgress(message = "This may take a while...")
-            #sacar la variable de respuesta del data set
-            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% input$pls_response]
-            plsreg1(predictors, DATA_SET$data[,input$pls_response], 
-                    crosval = val, comps = input$comp_pls)
-          })
-        }else{
-          withProgress({
-            setProgress(message = "This may take a while...")
-            predictors <- DATA_SET$data[, !names(DATA_SET$data) %in% paste("", input$pls_response)]
-            plsreg1(predictors[,input$pls_predictors], DATA_SET$data[,input$pls_response], 
-                    crosval = val, comps = input$comp_pls)
-          })
+#         val <- TRUE #valor por defecto para la validacion cruzada
+#         if(input$crosval == "FALSE"){ val <- FALSE }
+        if(input$validationType_pls == '2' && is.null(input$fileTest_pls)){
+          return()
+        }else{ #Se aplica el modelo pls
+          if(is.null(input$pls_predictors)){
+            (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), ".")))
+          }
+          else{
+            (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), paste(input$pls_predictors, collapse= "-"))))
+          }
+          
+          #aplicando el modelo pls
+          if (is.null(input$validationType_pls)){return()}
+          switch(input$validationType_pls,
+                 '1' = plsr(fmla, ncomp = input$comp_pls, data = DATA_SET$data, validation = "CV", segments = 10),
+                 '2' = plsr(fmla, ncomp = input$comp_pls, data = DATA_SET$data),
+                 '3' = plsr(fmla, ncomp = input$comp_pls, data = DATA_SET$data[train_pls(),])
+          )
+          
+#           plsreg1(predictores_pls(), DATA_SET$data[,input$pls_response], 
+#                   crosval = val, comps = input$comp_pls)
         }
       }
     }, error = function(e) {
@@ -1034,43 +1049,39 @@ server <- function(input, output, session) {
   output$result_pls <- renderPrint({
     if(is.null(model_pls()))
       return()
-    list(reg.coefs = model_pls()$reg.coefs, 
-         R2 = model_pls()$R2,
-         cor.xyt = model_pls()$cor.xyt,
-         R2Xy = model_pls()$R2Xy)
-    #input$pls_predictors
+#     list(reg.coefs = model_pls()$reg.coefs, 
+#          R2 = model_pls()$R2,
+#          cor.xyt = model_pls()$cor.xyt,
+#          R2Xy = model_pls()$R2Xy)
+    summary(model_pls())
   })
   
-  #Estadisticos RME, R2, IA
-  statistical_resultpls <- function(){
-    if(is.null(model_pls()))
-      return()
-    
-    overfittedRMSE <- rmse(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted RMSE
-    overfittedR2 <- cor(model_pls()$y.pred, DATA_SET$data[,input$pls_response])^2 #overfitted R2
-    overfittedIA <- d(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted IA
-    
-    Statistical <- as.data.frame(array(0, dim=c(1,4)))
-    names(Statistical) <- c("Name", "RMSE", "R2", "IA")
-    Statistical[1,2] <- overfittedRMSE
-    Statistical[1,3] <- overfittedR2
-    Statistical[1,4] <- overfittedIA
-    return(Statistical) 
-  }
+#   #Estadisticos RME, R2, IA
+#   statistical_resultpls <- function(){
+#     if(is.null(model_pls()))
+#       return()
+#     
+#     overfittedRMSE <- rmse(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted RMSE
+#     overfittedR2 <- cor(model_pls()$y.pred, DATA_SET$data[,input$pls_response])^2 #overfitted R2
+#     overfittedIA <- d(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted IA
+#     
+#     Statistical <- as.data.frame(array(0, dim=c(1,4)))
+#     names(Statistical) <- c("Name", "RMSE", "R2", "IA")
+#     Statistical[1,2] <- overfittedRMSE
+#     Statistical[1,3] <- overfittedR2
+#     Statistical[1,4] <- overfittedIA
+#     return(Statistical) 
+#   }
   
-  #Muestra los estadisticos de pls
-  output$statistical_pls <- renderPrint({
-    statistical_resultpls()
-  })
+#   #Muestra los estadisticos de pls
+#   output$statistical_pls <- renderPrint({
+#     statistical_resultpls()
+#   })
   
   #****** validacion pls
-  #obtengo los predictores del modelo
-  predictores_pls <-  reactive({
-    data.frame(predictors(DATA_SET$data, input$pls_predictors, input$pls_response))
-  })
   
   #coeficientes del modelo
-  thetaPredict_pls <- function(fit,x){ cbind(1,x)%*%fit$reg.coefs }
+  thetaPredict_pls <- function(fit,x){ cbind(1,x)%*%fit$coefficients }
   
   #tipo de validacion para el modelo
   validation_pls <- reactive({
@@ -1082,10 +1093,17 @@ server <- function(input, output, session) {
       if(is.null(model_pls()))
         return()
       closeAlert(session,"alertValidationID")
+      
+#       if(input$validationType_pls == '1'){ # ten-fold cross validation funcion en regresion.r
+#         crossValidation(model_pls(), thetaPredict_pls, DATA_SET$data[,input$pls_response], predictores_pls())
+#       }else{
+#        predict(model_pls, newdata = DATA_SET$data[-train_pls(),])
+#      }
       switch(input$validationType_pls,
-             '1' = crossValidation(model_pls(), thetaPredict_pls, DATA_SET$data[,input$pls_response], predictores_pls()), # ten-fold cross validation funcion en regresion.r
-             '2' = model_pls()$Q2,
-             '3' = { Prediction <- model_pls()$y.pred
+             '1' = model_pls()$validation,
+             '2' = { inFile <- input$fileTest_pls
+                    predict(model_pls(), newdata = read.csv(inFile$datapath))},
+             '3' = { Prediction <-  predict(model_pls(), newdata = DATA_SET$data[-train_pls(),])
              response_variable <- DATA_SET$data[,input$pls_response]
              data.frame(cbind(Prediction, response_variable))
              }
@@ -1102,14 +1120,34 @@ server <- function(input, output, session) {
     validation_pls()
   })
   
-  #***** test de colinealidad pls
-  #grafico correspondiente al modelo pls
-  output$plotPLS <- renderPlot({
+  #grafico correspondiente a correlaciones del modelo pls
+  output$plotCorr <- renderPlot({
     if(is.null(model_pls()))
       return()
-    plot(model_pls())
+    #plot(model_pls())
+    corrplot(model_pls(), comps = 1:input$comp_pls)
   })
   
+  #grafico correspondiente a MSEP del modelo pls
+  output$plotMSEP <- renderPlot({
+    if(is.null(model_pls()))
+      return()
+    plot(MSEP(model_pls()), legendpos = "topright")
+  })
+  
+  #grafico correspondiente a los coeficientes del modelo pls
+  output$plotCoef <- renderPlot({
+    if(is.null(model_pls()))
+      return()
+    coefplot(model_pls(), ncom = 1:input$comp_pls, legendpos = "bottomright")
+  })
+  
+  #grafico correspondiente a la predicción del modelo pls
+  output$plotPred <- renderPlot({
+    if(is.null(model_pls()))
+      return()
+    predplot(model_pls(), ncomp = 1:input$comp_pls)
+  })
   #-----------------------> ridge
   
   #particion en porcentaje de train y test
@@ -1140,9 +1178,15 @@ server <- function(input, output, session) {
         #Se aplica el modelo ridge
         withProgress({
           setProgress(message = "This may take a while...")
-          #sacar la variable de respuesta del data set
-          cv.glmnet(as.matrix(predictores_ridge()), DATA_SET$data[,input$ridge_response], 
-                    alpha = 0, lambda = grid)
+          #aplicar validacion cruzada de ridge para obtener el mejor lambda
+          if (is.null(input$validationType_ridge)){return()}
+          # if(input$validationType_ridge == "3"){
+            cv.glmnet(as.matrix(predictores_ridge()[train_ridge(),]), DATA_SET$data[,input$ridge_response], 
+                      alpha = 0, lambda = grid)
+#           } else{
+#             cv.glmnet(as.matrix(predictores_ridge()), DATA_SET$data[,input$ridge_response], 
+#                       alpha = 0, lambda = grid)
+#           }
         })
       }
     }, error = function(e) {
@@ -1164,18 +1208,13 @@ server <- function(input, output, session) {
           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
         }
         else{
-          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "+"))))
+          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "-"))))
         }
         
         if (is.null(input$validationType_ridge)){return()}
-        else{
-          switch (input$validationType_ridge,
-                  '1' = lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min),
-                  '2' = lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min),
-                  '3' = lm.ridge(fmla, data = data.frame( DATA_SET$data[train_lm(), ]), 
-                                 lambda = model_cvridge()$lambda.min)
-          )
-        }
+        if(input$validationType_ridge == '3'){
+          #lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min)
+        }else{ }#lm.ridge(fmla, data = DATA_SET$data, lambda = model_cvridge()$lambda.min)}
       }
     }, error = function(e) {
       createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
@@ -1194,7 +1233,8 @@ server <- function(input, output, session) {
   output$result_ridge <- renderPrint({
     if(is.null(model_ridge()))
       return()
-    summary(model_ridge())
+    #summary(model_ridge())
+    summary(model_cvridge())
   })
   
   #grafico de lamda
@@ -1238,6 +1278,11 @@ server <- function(input, output, session) {
   #resultado de la validacion
   output$resultValidation_ridge <- renderPrint({
     validation_ridge()
+  })
+  
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_ridge <- renderPlot({
+    simplePlot(validation_ridge(),  DATA_SET$data[,input$ridge_response], 2, 1, input$ridge_response, 2, 0.9)
   })
   
   #-----------------------> rglm
@@ -1323,6 +1368,11 @@ server <- function(input, output, session) {
   #resultado de la validacion
   output$resultValidation_rglm <- renderPrint({
     na.omit(validation_rglm())
+  })
+  
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_rglm <- renderPlot({
+    simplePlot(validation_rglm(),  DATA_SET$data[,input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
   })
   
   #-------------------------------------------------------
