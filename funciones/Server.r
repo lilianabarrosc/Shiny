@@ -891,14 +891,16 @@ server <- function(input, output, session) {
   #Aplicando el modelo lm
   model_lm <- reactive({
     if(is.null(input$lm_response)){return()}
-    if(is.null(input$lm_predictors)){
-      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), ".")))
-    }
-    #input$lm_y
-    else{
-      (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), paste(input$lm_predictors, collapse= "-"))))
-    }
-    
+#     if(is.null(input$lm_predictors)){
+#       (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), ".")))
+#     }
+#     #input$lm_y
+#     else{
+#       (fmla <- as.formula(paste(paste(input$lm_response, " ~ ."), "-", paste(input$lm_predictors, collapse= "-"))))
+#     }
+    fmla <- formula_model(input$lm_predictors,input$lm_response)
+    print('fmla:')
+    print(fmla)
     if (is.null(input$validationType_lm)){return()}
     else{
       switch (input$validationType_lm,
@@ -1020,12 +1022,16 @@ server <- function(input, output, session) {
         if(input$validationType_pls == '2' && is.null(input$fileTest_pls)){
           return()
         }else{ #Se aplica el modelo pls
-          if(is.null(input$pls_predictors)){
-            (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), ".")))
-          }
-          else{
-            (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), paste(input$pls_predictors, collapse= "-"))))
-          }
+#           if(is.null(input$pls_predictors)){
+#             (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), ".")))
+#           }
+#           else{
+#             (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), paste(input$pls_predictors, collapse= "-"))))
+#           }
+          
+          fmla <- formula_model(input$pls_predictors,input$pls_response)
+          print('fmla:')
+          print(fmla)
           
           #aplicando el modelo pls
           if (is.null(input$validationType_pls)){return()}
@@ -1163,36 +1169,39 @@ server <- function(input, output, session) {
   
   #obtengo los predictores del modelo
   predictores_ridge <-  reactive({
-    data.frame(predictors(DATA_SET$data, input$ridge_predictors, input$ridge_response))
+    as.data.frame(predictors(DATA_SET$data, input$ridge_predictors, input$ridge_response))
   })
   
   #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
   model_cvridge <- reactive({
-    tryCatch({
-      if(anyNA(DATA_SET$data)){
-        createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
-                    content = "Data set have missing values", style = "warning")
-      }else{
-        grid <- 10^seq(10, -2, length = 100)
-        closeAlert(session, "alertCVRidgeID")
+#     tryCatch({
+#       if(anyNA(DATA_SET$data)){
+#         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
+#                     content = "Data set have missing values", style = "warning")
+#       }else{
+#         closeAlert(session, "alertCVRidgeID")
         #Se aplica el modelo ridge
         withProgress({
           setProgress(message = "This may take a while...")
           #aplicar validacion cruzada de ridge para obtener el mejor lambda
           if (is.null(input$validationType_ridge)){return()}
-          # if(input$validationType_ridge == "3"){
-            cv.glmnet(as.matrix(predictores_ridge()[train_ridge(),]), DATA_SET$data[,input$ridge_response], 
+          
+          grid <- 10^seq(10, -2, length = 100) #secuencia de lambda's
+          if(input$validationType_ridge == "3"){
+            train_predictors <- as.matrix(predictores_ridge()[train_ridge(),])
+              # model.matrix(fmla,DATA_SET$data[train_ridge(),])[,-1]
+            cv.glmnet(train_predictors, DATA_SET$data[train_ridge(),input$ridge_response], 
                       alpha = 0, lambda = grid)
-#           } else{
-#             cv.glmnet(as.matrix(predictores_ridge()), DATA_SET$data[,input$ridge_response], 
-#                       alpha = 0, lambda = grid)
-#           }
+          }else{
+            cv.glmnet(as.matrix(predictores_ridge()), DATA_SET$data[,input$ridge_response], 
+                      alpha = 0, lambda = grid)
+          }
         })
-      }
-    }, error = function(e) {
-      createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
-                  content = paste("",e), style = "warning")
-    })
+#       }
+#     }, error = function(e) {
+#       createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
+#                   content = paste("",e), style = "warning")
+#     })
   })
   
   #aplicando rigde para el lambda min obtenido en model_cvridge()
@@ -1204,12 +1213,16 @@ server <- function(input, output, session) {
       }else{
         closeAlert(session, "alertRidgeID")
         #Se aplica el modelo ridge con una formula como el lm
-        if(is.null(input$ridge_predictors)){
-          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
-        }
-        else{
-          (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "-"))))
-        }
+#         if(is.null(input$ridge_predictors)){
+#           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
+#         }
+#         else{
+#           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "-"))))
+#         }
+        
+        fmla <- formula_model(input$ridge_predictors,input$ridge_response)
+        print('fmla:')
+        print(fmla)
         
         if (is.null(input$validationType_ridge)){return()}
         if(input$validationType_ridge == '3'){
@@ -1231,8 +1244,8 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$result_ridge <- renderPrint({
-    if(is.null(model_ridge()))
-      return()
+#     if(is.null(model_ridge()))
+#       return()
     #summary(model_ridge())
     summary(model_cvridge())
   })
