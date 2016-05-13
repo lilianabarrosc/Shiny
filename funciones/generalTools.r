@@ -99,16 +99,21 @@ twoSlider <- function(x, y, file, xname, yname){
 }
 
 #funcion contenedora de tres slider
-treeSlider <- function(x, y, z, file, xname, yname, zname){
+treeSlider <- function(x, y, z, file, xname, yname, zname, MS){
   box(
     width = 6, status = "success",
     h4("Range"),
-    sliderInput(x, label = xname, min = 1, 
-                max = dim(file)[2], value = c(1,4)),
+    if(MS){
+      sliderInput(x, label = xname, min = 1, 
+                  max = ncol(file), value = c(1,4))
+    }else{
+      sliderInput(x, label = xname, min = 1, 
+                  max = ncol(file)-1, value = c(1,4)) 
+    },
     sliderInput(y, label = yname, min = 1, 
-                max = dim(file)[2], value = 3),
+                max = ncol(file), value = 3),
     sliderInput(z, label = zname, min = 1, 
-                max = dim(file)[1], value = c(1, dim(file)[1]))
+                max = nrow(file), value = c(1, nrow(file)))
   )
 }
 

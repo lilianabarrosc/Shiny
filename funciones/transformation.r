@@ -95,8 +95,10 @@ attributeSelection <- function(){
            bsAlert("alertAttributeS")
            ),
     box( width = 12, title = "Attribute Selection", solidHeader = TRUE, status = "success",
-        uiOutput("option_attributeS"),
-        tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success")),
+        column(12,
+               uiOutput("option_attributeS"),
+               tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success"))
+               ),
         column(6,
                h4("Scores"),
                verbatimTextOutput("print_weights")

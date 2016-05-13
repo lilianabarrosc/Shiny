@@ -66,16 +66,14 @@ tabsVisualization <- function(title, tab1, tab2) {
 
 #funcion que contiene las URL tentativas de otros "csv"
 urls <- function(){
-     box(width = 12, 
-          textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
-          optionReader("sep_url", "dec_url", "quote_url", "header_url", "na_url"),
-          "Others URL:",br(),
-          tags$ul(tags$li("http://www.stat.wisc.edu/~gvludwig/fall_2012/midterm2_problem1.csv")),
-          tags$ul(tags$li("https://raw.githubusercontent.com/trinker/dummy/master/data/gcircles.csv")),
-          bsButton("upload", label = "Upload", style = "success")
+     box(width = 12,
+         optionReader("sep_url", "dec_url", "quote_url", "header_url", "na_url"),
+         textInput("url", label = "URL (only csv) ", value = "https://dl.dropboxusercontent.com/u/12599702/autosclean.csv"),
+         "Others URL:",br(),
+         tags$ul(tags$li("http://www.stat.wisc.edu/~gvludwig/fall_2012/midterm2_problem1.csv")),
+         tags$ul(tags$li("https://raw.githubusercontent.com/trinker/dummy/master/data/gcircles.csv")),
+         bsButton("upload", label = "Upload", style = "success")
         )
-#          column(3, selectInput("sep", "Separator:", c(",",";"))),
-#          column(3, selectInput("dec", "Quoting characters:", c('""',"''")))
 }
 
 optionReader <- function(idSep, idDec, idQuote, idHeader, idNA){
@@ -84,6 +82,6 @@ optionReader <- function(idSep, idDec, idQuote, idHeader, idNA){
     column(3, selectInput(idDec, "Decimal:", c(".",","))),
     column(3, selectInput(idHeader, "Header:", c("FALSE","TRUE"))),
     column(3, selectInput(idQuote, "Quote:", c("' '",'"',"'"))),
-    column(12, textInput(idNA, "Missing values:", value = "NA"))
+    column(6, textInput(idNA, "Missing values:", value = "NA"))
   )
 }
