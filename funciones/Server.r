@@ -729,17 +729,22 @@ server <- function(input, output, session) {
   })
   
   #muestro os primeros 10 atributos del data set normalizado
-  output$normalized_data <- renderPrint({#renderDataTable(
+  output$normalized_data <- renderPrint({
+    if(is.null(normalization_type())){ return()}
     normalization_type()[1:10,]
-    #options = list(paging = FALSE, searching = FALSE)
   })
   
   #muestro un sumary
-  output$summary_normalization <- renderPrint({#renderDataTable(
+  output$summary_normalization <- renderPrint({
+    if(is.null(normalization_type())){ return()}
     summary(normalization_type())
-    #options = list(paging = FALSE, searching = FALSE)
   })
   
+  #evento tras precionar el boton apply
+  observeEvent(input$apply_normalization,{
+    if(is.null(normalization_type())){ return()}
+    DATA_SET$data <- normalization_type()
+  })
   
   #************************************************
   #-------------> Reduccion de la dimencionalidad
@@ -783,17 +788,17 @@ server <- function(input, output, session) {
     })
     
   })
-  
-  reduceDimensionality <- reactive({
-    if(input$reduceDim){
-      data_pca()
-      #print("hola if")
-    }
-    else{
-      #print("hola else")
-      data.frame(DATA_SET$data)
-    }
-  })
+#   
+#   reduceDimensionality <- reactive({
+#     if(input$reduceDim){
+#       data_pca()
+#       #print("hola if")
+#     }
+#     else{
+#       #print("hola else")
+#       data.frame(DATA_SET$data)
+#     }
+#   })
   #   
   #data luego de aplicar un metodo de reduccion como pca
   observeEvent(input$reduceDim, {
@@ -813,7 +818,9 @@ server <- function(input, output, session) {
   })
   
   output$summary_reduceDimensionality <- renderPrint({
-    str(DATA_SET$data)
+    #str(DATA_SET$data)
+    d <- dim(DATA_SET$data)
+    paste("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
   })
   
   #------------SVD
@@ -842,7 +849,7 @@ server <- function(input, output, session) {
            selectInput("attributeS_response", label = h4("Response variable"), 
                        choices = namesVariables, selected = namesVariables[ncol(DATA_SET$data)]),
            numericInput("attribute_num", "Number of attributes to be selected", value = 2,
-                        min = 1, max = ncol(DATA_SET$data))
+                        min = 1, max = ncol(DATA_SET$data)-1)
           )
   })
   
@@ -865,8 +872,16 @@ server <- function(input, output, session) {
     cutoff.k(weights(), input$attribute_num)
   })
   
+  #indica un resumen del dataSet
+  output$print_dataAtributte <- renderPrint({
+    d <- dim(DATA_SET$data)
+    paste("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
+  })
+  
+  #evento tras presionar el boton para aplicar cambios
   observeEvent(input$apply_attributeS,{
-    
+    atributte <- cutoff.k(weights(), input$attribute_num)
+    DATA_SET$data <- DATA_SET$data[, names(DATA_SET$data) %in% atributte]
   })
   
   #-------------------------------------------------------

@@ -80,7 +80,7 @@ optionReader <- function(idSep, idDec, idQuote, idHeader, idNA){
   column(12,
     column(3, selectInput(idSep, "Separator:", c(";",",","\t"))),
     column(3, selectInput(idDec, "Decimal:", c(".",","))),
-    column(3, selectInput(idHeader, "Header:", c("FALSE","TRUE"))),
+    column(3, selectInput(idHeader, "Header:", c("TRUE","FALSE"))),
     column(3, selectInput(idQuote, "Quote:", c("' '",'"',"'"))),
     column(6, textInput(idNA, "Missing values:", value = "NA"))
   )

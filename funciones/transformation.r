@@ -24,6 +24,9 @@ normalizations <- function(title){
            tabPanel("Normalized data", "*First ten observations", verbatimTextOutput("normalized_data")),
            tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
            tabPanel("Sumary",verbatimTextOutput("summary_normalization"))
+    ),
+    box(width = 12, status = "success",
+        tags$div( class = 'col-sm-2', bsButton("apply_normalization", label = "Apply", style = "success"))
     )
   )
 }
@@ -96,8 +99,7 @@ attributeSelection <- function(){
            ),
     box( width = 12, title = "Attribute Selection", solidHeader = TRUE, status = "success",
         column(12,
-               uiOutput("option_attributeS"),
-               tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success"))
+               uiOutput("option_attributeS")
                ),
         column(6,
                h4("Scores"),
@@ -105,7 +107,10 @@ attributeSelection <- function(){
               ),
         column(6,
                h4("Attributes selected"),
-               verbatimTextOutput("print_subset")
+               verbatimTextOutput("print_subset"),
+               tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success")),
+               hr(),hr(),
+               verbatimTextOutput("print_dataAtributte")
               )
       )
   )

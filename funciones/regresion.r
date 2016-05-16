@@ -194,11 +194,11 @@ crossValidation <- function(model, theta.predict, y, x){
 #funcion que devuelve los predictores a utilizar en el modelo, si no se especifican,
 #por defecto se incluyen todos, menos la variable a predecir. x = variables predictoras e
 # y = variable a predecir
-predictors <- function(dadaSet, x, y){
+predictors <- function(dataSet, x, y){
     if(is.null(x)){
-      return (dadaSet[, !names(dadaSet) %in% y])
+      return (dataSet[, !names(dataSet) %in% y])
     }else{
-      predictors <- dadaSet[, !names(dadaSet) %in% y]
+      predictors <- dataSet[, !names(dataSet) %in% y]
       return(predictors[,x])
     }
 }
