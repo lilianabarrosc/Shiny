@@ -153,44 +153,57 @@ server <- function(input, output, session) {
   #Variable contiene el data set atualizado
   DATA_SET <- reactiveValues(name = NULL, data = NULL)
   
-  #----------> data set nuevos que se ingresan mediante directorio o URI
-  output$data_extern <- renderUI({
-    if (is.null(input$select_file))
-      return()
-    switch(input$select_file,
-           #Cargar archivo desde el equipo o mediante una URL
-           '4' = box(width = 12,
-                     optionReader("sep_upload", "dec_upload", "quote_upload", "header_upload","na_upload"),
-                     fileInput('file1', 'Choose CSV File', 
-                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv'))
-           ),
-           '5' = urls()#funcion contenida en data.r
-    )
+  #data set disponibles
+  observe({
+    #data set contenidos en la app
+    data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
+    other_data <- list("Upload file" = 1, "URL file" = 2)
+    #consulta para obtener los nombres de los data set
+#     sql <- "select name from data_set"
+#     tryCatch({
+#       rs <- dbSendQuery(con, sql)
+#       dataSet_name <- fetch(rs,n=-1)
+#       
+#     },error = function(e) {
+#       createAlert(session, "alertData", "alertDataID", title = titleAlert,
+#                   content = paste("",e), 
+#                   style = "warning", append = FALSE)
+#     })
+    
+    #muestra los data set disponibles
+    output$view_data <- renderUI({
+      if (is.null(input$dataSet)){ return()}
+      switch(input$dataSet,
+             '1'= selectInput("select_file", label = NULL, selected = 2,
+                              choices = data_sets),
+             '2'= radioButtons("select_newfile", label = NULL, choices = other_data)
+      )
+    })
   })
   
   #Seleccion de data set a utilizar
   file <- reactive({
     inFile <- input$file1
-    if (input$select_file == '4' && is.null(inFile)){
-      return()
+    if(is.null(input$select_file)){return()}
+    if(input$dataSet == '1'){
+      switch(input$select_file,
+             '1'= iris,
+             '2'= airquality,
+             '3'= sleep
+      )
+    }else if(!is.null(input$select_newfile) && input$select_newfile == '1' && !is.null(inFile)){
+      tryCatch({
+        closeAlert(session, "alertUploadID")
+        head <- FALSE #por defecto header no se lee.
+        if(input$header_upload == "TRUE"){head <- TRUE}
+        DATA_SET$name <- input$file1$name
+        read.csv(inFile$datapath, header = head, sep = input$sep_upload, 
+                 quote = input$quote_upload, dec = input$dec_upload, na.strings= input$na_upload)
+      }, error = function(e) {
+        createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
+                    content = paste("",e), style = "warning")
+      })
     }
-    if(input$select_file == '5' && is.null(input$url)){return()}
-    
-    switch(input$select_file,
-           '1'= iris,
-           '2'= airquality,
-           '3'= sleep,
-           '4'= tryCatch({
-             closeAlert(session, "alertUploadID")
-             head <- FALSE #por defecto header no se lee.
-             if(input$header_upload == "TRUE"){head <- TRUE}
-             read.csv(inFile$datapath, header = head, sep = input$sep_upload, 
-                      quote = input$quote_upload, dec = input$dec_upload, na.strings= input$na_upload)
-           }, error = function(e) {
-             createAlert(session, "alertUpload", "alertUploadID", title = titleAlert,
-                         content = paste("",e), style = "warning")
-           })
-    )
   })
   
   #Accion a realizar tras presionar el boton upload de la opcion URL (lee el archivo)
@@ -203,6 +216,9 @@ server <- function(input, output, session) {
         if(input$header_url == "TRUE"){head <- TRUE}
         DATA_SET$data <- read.csv(input$url, header = head, sep = input$sep_url, 
                                   quote = input$quote_url, dec = input$dec_url, na.strings= input$na_url)
+        #nombre del data set
+        splitURL <- strsplit(input$url, "/")
+        DATA_SET$name <- splitURL[[1]][length(splitURL[[1]])]
       })
     }, error = function(e) {
       createAlert(session, "alertRUL", "alertURLID", title = titleAlert,
@@ -211,37 +227,25 @@ server <- function(input, output, session) {
   })
   
   observe({ #Se asigna el data set seleccionado a la varible global
-    if (input$select_file==4 && is.null(input$file1) && is.null(input$upload))
-      return()
-    else if(input$select_file==5 && is.null(input$upload))
-      return()
+    if(is.null(input$select_file)){return()}
     #obtener el nombre del data set
-    switch(input$select_file,
-           '1'= DATA_SET$name <-"iris",
-           '2'= DATA_SET$name <-"airquality",
-           '3'= DATA_SET$name <-"sleep",
-           '4'= DATA_SET$name <- input$file1$name,
-           '5'= observe({
-             splitURL <- strsplit(input$url, "/")
-             DATA_SET$name <- splitURL[[1]][length(splitURL[[1]])]
-           })
-    )
-    if(input$select_file!=5){
-      DATA_SET$data <- file()
+    if(input$dataSet == '1'){
+      switch(input$select_file,
+             '1'= DATA_SET$name <-"iris",
+             '2'= DATA_SET$name <-"airquality",
+             '3'= DATA_SET$name <-"sleep"
+      )
     }
+    DATA_SET$data <- file()
   })
   
   #muestro un resumen del data set seleccionado
   output$str_data <- renderPrint({
-    if (input$select_file==4 && is.null(input$file1))
-      return()
     str(DATA_SET$data)
   })
   
   #muestro un sumary del data set seleccionado
   output$summary_data <- renderPrint({
-    if (input$select_file==4 && is.null(input$file1))
-      return()
     summary(DATA_SET$data)
   })
   

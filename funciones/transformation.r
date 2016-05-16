@@ -26,7 +26,7 @@ normalizations <- function(title){
            tabPanel("Sumary",verbatimTextOutput("summary_normalization"))
     ),
     box(width = 12, status = "success",
-        tags$div( class = 'col-sm-2', bsButton("apply_normalization", label = "Apply", style = "success"))
+        bsButton("apply_normalization", label = "Apply", style = "success")
     )
   )
 }
@@ -108,8 +108,8 @@ attributeSelection <- function(){
         column(6,
                h4("Attributes selected"),
                verbatimTextOutput("print_subset"),
-               tags$div( class = 'col-sm-2', bsButton("apply_attributeS", label = "Apply", style = "success")),
-               hr(),hr(),
+               bsButton("apply_attributeS", label = "Apply", style = "success"),
+               hr(),
                verbatimTextOutput("print_dataAtributte")
               )
       )

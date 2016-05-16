@@ -92,9 +92,9 @@ twoSlider <- function(x, y, file, xname, yname){
     width = 6, status = "success",
     h4("Range"),
     sliderInput(x, label = xname, min = 1, 
-                max = dim(file)[2], value = c(1, 4)),
+                max = ncol(file), value = c(1, 4)),
     sliderInput(y, label = yname, min = 1, 
-                max = dim(file)[1], value = c(1, (dim(file)[1])/2))
+                max = nrow(file), value = c(1, (nrow(file))))
   )
 }
 
