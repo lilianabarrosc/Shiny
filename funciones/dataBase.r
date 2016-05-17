@@ -15,7 +15,7 @@ desconexionbd <- function(con, drv){
 }
 
 #directorio donde se alojan los data set
-outputDir <- "/file"
+outputDir <- "file"
 
 #funcion encargada de guardar el data set en la carpeta file, y asignarle un
 #nombre unico

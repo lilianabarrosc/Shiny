@@ -13,6 +13,8 @@ server <- function(input, output, session) {
   stry <- "Response variable"
   strz <- "Observations"
   titleAlert <- "Oops"
+  titleAlertInfo <- "Congratulations"
+  outputDir <- "file"
   
   #--------------> logo
   output$logo <- renderImage({
@@ -152,30 +154,39 @@ server <- function(input, output, session) {
   #-----------------------> data <-----------------------
   #Variable contiene el data set atualizado
   DATA_SET <- reactiveValues(name = NULL, data = NULL)
+  #variable que contiene la lista de data set contenidos en la app
+  list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3))
   
   #data set disponibles
   observe({
     #data set contenidos en la app
-    data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
+   #data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
     other_data <- list("Upload file" = 1, "URL file" = 2)
     #consulta para obtener los nombres de los data set
-#     sql <- "select name from data_set"
-#     tryCatch({
-#       rs <- dbSendQuery(con, sql)
-#       dataSet_name <- fetch(rs,n=-1)
-#       
-#     },error = function(e) {
-#       createAlert(session, "alertData", "alertDataID", title = titleAlert,
-#                   content = paste("",e), 
-#                   style = "warning", append = FALSE)
-#     })
+    sql <- "select name from data_set"
+    drv <- dbDriver("PostgreSQL")
+    con <- conexionbd(drv)
+    tryCatch({
+      rs <- dbSendQuery(con, sql)
+      dataSet_name <- fetch(rs,n=-1)
+      tam <- length(list.data$data_sets)
+      if(nrow(dataSet_name) > 0){
+        #agrego los elementos obtenidos a la lista data_sets
+        list.data$data_sets[dataSet_name[,1]] <- c((tam+1):(tam+nrow(dataSet_name)))
+      }
+      desconexionbd(con, drv) #desconexion con la bd
+    },error = function(e) {
+      desconexionbd(con, drv) #desconexion con la bd
+      createAlert(session, "alertData", "alertDataID", title = titleAlert,
+                  content = paste("",e), style = "warning", append = FALSE)
+    })
     
     #muestra los data set disponibles
     output$view_data <- renderUI({
       if (is.null(input$dataSet)){ return()}
       switch(input$dataSet,
              '1'= selectInput("select_file", label = NULL, selected = 2,
-                              choices = data_sets),
+                              choices = list.data$data_sets),
              '2'= radioButtons("select_newfile", label = NULL, choices = other_data)
       )
     })
@@ -186,11 +197,30 @@ server <- function(input, output, session) {
     inFile <- input$file1
     if(is.null(input$select_file)){return()}
     if(input$dataSet == '1'){
-      switch(input$select_file,
-             '1'= iris,
-             '2'= airquality,
-             '3'= sleep
-      )
+      if(input$select_file < 4){
+        switch(input$select_file,
+               '1'= iris,
+               '2'= airquality,
+               '3'= sleep
+        )
+      }else{ #se leen los archivos desde la carpeta file
+#         dataSet_name <- names(data)
+#         sql <- paste("select id from data_set where",)
+#         tryCatch({
+#           rs <- dbSendQuery(con, sql)
+#           dataSet_id <- fetch(rs,n=-1)
+#           if(length(dataSet_id) > 0){
+#             #agrego los elementos obtenidos a la lista data_sets
+#             #data_sets[dataSet_id] = c(length(data_sets)+1:length(dataSet_name))
+#           }
+#           desconexionbd(con, drv) #desconexion con la bd
+#         },error = function(e) {
+#           createAlert(session, "alertData", "alertDataID", title = titleAlert,
+#                       content = paste("",e), 
+#                       style = "warning", append = FALSE)
+#         })
+      }
+      
     }else if(!is.null(input$select_newfile) && input$select_newfile == '1' && !is.null(inFile)){
       tryCatch({
         closeAlert(session, "alertUploadID")
@@ -207,7 +237,7 @@ server <- function(input, output, session) {
   })
   
   #Accion a realizar tras presionar el boton upload de la opcion URL (lee el archivo)
-  observeEvent(input$upload, { #if(input$upload){
+  observeEvent(input$upload, {
     tryCatch({
       closeAlert(session, "alertURLID")
       withProgress({
@@ -237,6 +267,60 @@ server <- function(input, output, session) {
       )
     }
     DATA_SET$data <- file()
+  })
+  
+  #guardar el data set obtenido de upload
+  observeEvent(input$saveFileUpload, {
+    inFile <- input$file1
+    if(!is.null(inFile)){
+      drv <- dbDriver("PostgreSQL")
+      con <- conexionbd(drv)
+      #se guarda el data en la carpeta file
+      idData <- saveData(DATA_SET$data)
+      #se guarda su info en la bd
+      sql <- paste("insert into data_set(id,name) values ('",
+                   paste(idData, DATA_SET$name, sep = "','"),"')", sep = '')
+      tryCatch({
+        rs <- dbSendQuery(con, sql)
+        desconexionbd(con, drv) #desconexion con la bd
+      },error = function(e) {
+        createAlert(session, "alertData", "alertDataID", title = titleAlert,
+                    content = paste("",e), 
+                    style = "warning", append = FALSE)
+        desconexionbd(con, drv) #desconexion con la bd
+      })
+      createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlertInfo,
+                  content = "The data set was saved successfully.", style = "success")
+    }else{
+      createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlert,
+                  content = "The file couldn't be saved.", style = "success")
+    }
+  })
+  #guardar el data set obtenido de la URL
+  observeEvent(input$saveFileURL, {
+    if(input$upload){
+      drv <- dbDriver("PostgreSQL")
+      con <- conexionbd(drv)
+      #se guarda el data en la carpeta file
+      idData <- saveData(DATA_SET$data)
+      #se guardan su info en la bd
+      sql <- paste("insert into data_set(id,name) values ('",
+                   paste(idData, DATA_SET$name, sep = "','"),"')", sep = '')
+      tryCatch({
+        rs <- dbSendQuery(con, sql)
+        desconexionbd(con, drv) #desconexion con la bd
+      },error = function(e) {
+        createAlert(session, "alertData", "alertDataID", title = titleAlert,
+                    content = paste("",e), 
+                    style = "warning", append = FALSE)
+        desconexionbd(con, drv) #desconexion con la bd
+      })
+      createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlertInfo,
+                  content = "The data set was saved successfully.", style = "success")
+    }else{
+      createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlert,
+                  content = "The file couldn't be saved.", style = "success")
+    }
   })
   
   #muestro un resumen del data set seleccionado
@@ -344,7 +428,7 @@ server <- function(input, output, session) {
   })
   
   data_Parallely <- reactive({
-    file()[,input$y_parallel]
+    DATA_SET$data[,input$y_parallel]
   })
   
   #funcion que genera el grafico

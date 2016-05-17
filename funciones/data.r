@@ -1,6 +1,7 @@
 source('funciones/generalTools.r')
 
-data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3, "Upload file" = 4, "URL file" = 5)
+#data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3, "Upload file" = 4, "URL file" = 5)
+data <- list("My data set" = 1, "New data set" = 2)
 #vista que muestra el listado de data set utilizados
 viewData <- function() {
   fluidRow(
@@ -12,13 +13,27 @@ viewData <- function() {
                 <li>Source</li>
                 </ul>')
     ),
-    box(width = 12, status = "success",
+    box(width = 12, title = "Select data Set", status = "success",
       bsAlert("alertUpload"),
       bsAlert("alertRUL"),
-      radioButtons("select_file", label = h3("Select data Set"), selected = 2,
-                           choices = data_sets),
-        # Salida de componente dinamico (subir archivo)
-        uiOutput("data_extern")
+      radioButtons("dataSet", label = NULL, choices = data),
+      uiOutput("view_data"),
+      conditionalPanel(
+        condition = "input.dataSet == '2' && input.select_newfile == '1'",
+        box(width = 12,
+            optionReader("sep_upload", "dec_upload", "quote_upload", "header_upload","na_upload"),
+            fileInput('file1', 'Choose CSV File', 
+                      accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+            bsButton("saveFileUpload", label = "Save data set", style = "success")
+        )
+      ),
+      conditionalPanel(
+        condition = "input.dataSet == '2' && input.select_newfile == '2'",
+        urls()
+      ),
+      column(12,
+        bsAlert("alertSaveData")
+      )
     ),
     tabBox(width = 12,
         tabPanel("STR", verbatimTextOutput("str_data")),
@@ -72,14 +87,16 @@ urls <- function(){
          "Others URL:",br(),
          tags$ul(tags$li("http://www.stat.wisc.edu/~gvludwig/fall_2012/midterm2_problem1.csv")),
          tags$ul(tags$li("https://raw.githubusercontent.com/trinker/dummy/master/data/gcircles.csv")),
-         bsButton("upload", label = "Upload", style = "success")
+         bsButton("upload", label = "Upload", style = "success"),
+         bsButton("saveFileURL", label = "Save data set", style = "success")
         )
 }
 
+#opciones de lectura para archivos (vista)
 optionReader <- function(idSep, idDec, idQuote, idHeader, idNA){
   column(12,
     column(3, selectInput(idSep, "Separator:", c(";",",","\t"))),
-    column(3, selectInput(idDec, "Decimal:", c(".",","))),
+    column(3, selectInput(idDec, "Decimal:", c(",","."))),
     column(3, selectInput(idHeader, "Header:", c("TRUE","FALSE"))),
     column(3, selectInput(idQuote, "Quote:", c("' '",'"',"'"))),
     column(6, textInput(idNA, "Missing values:", value = "NA"))
