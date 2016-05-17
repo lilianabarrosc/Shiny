@@ -155,7 +155,8 @@ server <- function(input, output, session) {
   #Variable contiene el data set atualizado
   DATA_SET <- reactiveValues(name = NULL, data = NULL)
   #variable que contiene la lista de data set contenidos en la app
-  list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3))
+  list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3),
+                              data_setsID = list(iris, airquality, sleep))
   
   #data set disponibles
   observe({
@@ -163,16 +164,25 @@ server <- function(input, output, session) {
    #data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
     other_data <- list("Upload file" = 1, "URL file" = 2)
     #consulta para obtener los nombres de los data set
-    sql <- "select name from data_set"
+    sql <- "select name,id from data_set"
     drv <- dbDriver("PostgreSQL")
     con <- conexionbd(drv)
     tryCatch({
       rs <- dbSendQuery(con, sql)
       dataSet_name <- fetch(rs,n=-1)
-      tam <- length(list.data$data_sets)
+      tam <- 3 #tres data set inicialmente
       if(nrow(dataSet_name) > 0){
-        #agrego los elementos obtenidos a la lista data_sets
+        #agrego los nombres obtenidos a la lista data_sets
         list.data$data_sets[dataSet_name[,1]] <- c((tam+1):(tam+nrow(dataSet_name)))
+        #agrego los id de los data set obtenidos a la lista
+        n <- 4
+        k <- (n-1) + nrow(dataSet_name)
+        j <- 1
+        for(i in n:k){
+          #list.data$data_setsID[[i]] <- as.character(dataSet_name[j,2])
+          list.data$data_setsID[[i]] <- as.character(dataSet_name[j,2])
+          j <- j+1
+        }
       }
       desconexionbd(con, drv) #desconexion con la bd
     },error = function(e) {
@@ -180,7 +190,7 @@ server <- function(input, output, session) {
       createAlert(session, "alertData", "alertDataID", title = titleAlert,
                   content = paste("",e), style = "warning", append = FALSE)
     })
-    
+  
     #muestra los data set disponibles
     output$view_data <- renderUI({
       if (is.null(input$dataSet)){ return()}
@@ -197,28 +207,12 @@ server <- function(input, output, session) {
     inFile <- input$file1
     if(is.null(input$select_file)){return()}
     if(input$dataSet == '1'){
-      if(input$select_file < 4){
-        switch(input$select_file,
-               '1'= iris,
-               '2'= airquality,
-               '3'= sleep
-        )
+      if(input$select_file < 4){ #data set locales de R
+        list.data$data_setsID[as.numeric(input$select_file)]
       }else{ #se leen los archivos desde la carpeta file
-#         dataSet_name <- names(data)
-#         sql <- paste("select id from data_set where",)
-#         tryCatch({
-#           rs <- dbSendQuery(con, sql)
-#           dataSet_id <- fetch(rs,n=-1)
-#           if(length(dataSet_id) > 0){
-#             #agrego los elementos obtenidos a la lista data_sets
-#             #data_sets[dataSet_id] = c(length(data_sets)+1:length(dataSet_name))
-#           }
-#           desconexionbd(con, drv) #desconexion con la bd
-#         },error = function(e) {
-#           createAlert(session, "alertData", "alertDataID", title = titleAlert,
-#                       content = paste("",e), 
-#                       style = "warning", append = FALSE)
-#         })
+  #      print(as.numeric(input$select_file))
+        filename <- list.data$data_setsID[[as.numeric(input$select_file)]]
+        read.csv( file.path(outputDir, filename), header=TRUE, sep=",")
       }
       
     }else if(!is.null(input$select_newfile) && input$select_newfile == '1' && !is.null(inFile)){
@@ -287,8 +281,8 @@ server <- function(input, output, session) {
         createAlert(session, "alertData", "alertDataID", title = titleAlert,
                     content = paste("",e), 
                     style = "warning", append = FALSE)
-        desconexionbd(con, drv) #desconexion con la bd
       })
+      desconexionbd(con, drv) #desconexion con la bd
       createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlertInfo,
                   content = "The data set was saved successfully.", style = "success")
     }else{
@@ -311,10 +305,9 @@ server <- function(input, output, session) {
         desconexionbd(con, drv) #desconexion con la bd
       },error = function(e) {
         createAlert(session, "alertData", "alertDataID", title = titleAlert,
-                    content = paste("",e), 
-                    style = "warning", append = FALSE)
-        desconexionbd(con, drv) #desconexion con la bd
+                    content = paste("",e), style = "warning", append = FALSE)
       })
+      desconexionbd(con, drv) #desconexion con la bd
       createAlert(session, "alertSaveData", "alertSaveDataID", title = titleAlertInfo,
                   content = "The data set was saved successfully.", style = "success")
     }else{

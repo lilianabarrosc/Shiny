@@ -14,6 +14,7 @@ viewData <- function() {
                 </ul>')
     ),
     box(width = 12, title = "Select data Set", status = "success",
+      bsAlert("alertData"),
       bsAlert("alertUpload"),
       bsAlert("alertRUL"),
       radioButtons("dataSet", label = NULL, choices = data),
