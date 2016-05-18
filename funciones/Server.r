@@ -179,7 +179,6 @@ server <- function(input, output, session) {
         k <- (n-1) + nrow(dataSet_name)
         j <- 1
         for(i in n:k){
-          #list.data$data_setsID[[i]] <- as.character(dataSet_name[j,2])
           list.data$data_setsID[[i]] <- as.character(dataSet_name[j,2])
           j <- j+1
         }
@@ -208,7 +207,7 @@ server <- function(input, output, session) {
     if(is.null(input$select_file)){return()}
     if(input$dataSet == '1'){
       if(input$select_file < 4){ #data set locales de R
-        list.data$data_setsID[as.numeric(input$select_file)]
+        list.data$data_setsID[[as.numeric(input$select_file)]]
       }else{ #se leen los archivos desde la carpeta file
   #      print(as.numeric(input$select_file))
         filename <- list.data$data_setsID[[as.numeric(input$select_file)]]
@@ -326,20 +325,36 @@ server <- function(input, output, session) {
     summary(DATA_SET$data)
   })
   
+  #-------> Editar el data set
+  observe({ #opciones para editar el data set
+    if(is.null(DATA_SET$data)){return()}
+    switch (input$dataSetEdit,
+      '1' = {output$selectVarDelete <- renderUI({
+                                            fluidRow(column(12,
+                                               selectInput("varDelete", label = "Select columns", 
+                                                           choices = names(DATA_SET$data), multiple = TRUE),
+                                               bsButton("deleteCol", "Delete Columns", style = "success")
+                                               ))
+            })},
+      '2' = { nums <- sapply(DATA_SET$data, is.numeric)
+              print(nums)
+              DATA_SET$data <- DATA_SET$data[, nums]
+              createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlertInfo,
+                          content = "Nominal values have been removed correctly.", style = "success")}
+    )
+  })
   
-  #----------> dimensionalidad del archivo
-  #Con dim puedo saber la cantidad de atributos y observaciones que posee el archivo,
-  #en dim(data)[1] se pueden encontrar la cantidad de observaciones y en dim(data)[2] la 
-  
-  #*************************************************
-  #----------> Sacar columnas con valores nominales
-  observe({
-    if(is.null(file()))
-      return()
-    aux <- data.frame(file())
-    nums <- sapply(aux, is.numeric)
-    DATA_SET$data <- aux[ , nums]
-  }) 
+  #eliminar columnas del data set
+  observeEvent(input$deleteCol,{
+    if(input$varDelete != "" && !is.null(input$varDelete)){
+      DATA_SET$data <- DATA_SET$data[,!names(DATA_SET$data) %in% input$varDelete]
+      createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlertInfo,
+                  content = "Columns have been removed correctly.", style = "success")
+    }else{
+      createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlert,
+                  content = "Columns haven't been removed.", style = "warning")
+    }
+  })
   
   #***************************************
   #-----------------------> visualization
@@ -377,8 +392,7 @@ server <- function(input, output, session) {
       scatterPlot()
     }, error = function(e) {
       createAlert(session, "alertScatter", "alertScatterID", title = titleAlert,
-                  content = paste("",e), 
-                  style = "warning")
+                  content = paste("",e), style = "warning")
     })
     
   })
@@ -862,7 +876,6 @@ server <- function(input, output, session) {
     twoSlider("attributes_pca","observation_pca",DATA_SET$data,"Attributes",strz)
   })
   
-  
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca <- reactive({
     if(!is.numeric(DATA_SET$data)){return()}
@@ -895,7 +908,6 @@ server <- function(input, output, session) {
                   content = paste("",e), 
                   style = "warning")
     })
-    
   })
 
   #data luego de aplicar un metodo de reduccion como pca

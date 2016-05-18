@@ -10,6 +10,7 @@ source('funciones/data.r')
 source('funciones/regresion.r')
 source('funciones/linearModelEvaluation.r')
 source('funciones/home.r')
+source('funciones/report.r')
 
 #titulo de la pagina
 dbHeader <- dashboardHeader()
@@ -41,23 +42,24 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                                   )
                               )
                           ),
-                        #Tab del data
+                        #Inicio tabs Data (funcionalidades en el archivo data.r)
                         tabItem(tabName = "source",
                                 viewData()
                         ),
-                        #Inicio tabs Analisis exploratorio (funcionalidades en el archivo analisisExploratorio.r)
                         tabItem(tabName = "visualization",
                                 tabsVisualization("Visualization", "Scatter plot", "Parallel plot")
                         ),
+                        #Inicio tabs Preprosesamiento (funcionalidades en el archivo preprocessing.r)
                         tabItem(tabName = "mvalues",
                                 tabsMissingValues("Missing values", "Box plot", "Histogram","Scatter plot")
-                        ),
-                        tabItem(tabName = "nremoval",
-                                noiseRemoval("")
                         ),
                         tabItem(tabName = "outlier",
                                 localOutlier("Local outlier factor")
                         ),
+                        tabItem(tabName = "nremoval",
+                                noiseRemoval("")
+                        ),
+                        #Inicio tabs Transformacion (funcionalidades en el archivo transformation.r)
                         tabItem(tabName = "normalization",
                                 normalizations("Normalization")
                         ),
@@ -70,6 +72,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         tabItem(tabName = "attributeS",
                                 attributeSelection()
                         ),
+                        #Inicio tabs Regresion (funcionalidades en el archivo regresion.r)
                         tabItem(tabName = "lm",
                                 linearRegression()
                         ),
@@ -82,12 +85,14 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                         tabItem(tabName = "rglm",
                                 rglm()
                         ),
+                        #Inicio tabs Evalucion de modelos (funcionalidades en el archivo linearModelEvaluation.r)
                         tabItem(tabName = "diagnosticP",
                                 tabsDiagnosticP("Diagnostic Plots", "Residual vs Fitted", "Scale-location",
                                                 "Normal Q-Q", "Residual vs leverage")
                         ),
-                        tabItem(tabName = "colinearityT",
-                                colinearityTest()
+                        #Inicio tabs Reporte (funcionalidades en el archivo report.r)
+                        tabItem(tabName = "report",
+                                report()
                         )
                   )
 )

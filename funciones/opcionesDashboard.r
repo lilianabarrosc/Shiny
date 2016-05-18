@@ -44,8 +44,8 @@ sidebar <- function(isLogged, username) {
              ),
              menuItem("Linear model evaluation", tabName = "lmEvaluation", icon= shiny::icon("eye"),
                       menuSubItem("Diagnostic Plots", tabName = "diagnosticP", icon = shiny::icon("angle-double-right"))
-             )
-             #menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
+             ),
+             menuItem("Report", tabName = "report",icon=shiny::icon("newspaper-o") )
           )
     }
 }
