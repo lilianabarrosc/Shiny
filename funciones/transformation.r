@@ -9,7 +9,8 @@ normalizations <- function(title){
                 <ul class="breadcrumb">
                 <li>Transformation</li>
                 <li>Normalization</li>
-                </ul>')
+                </ul>'),
+           bsAlert("alertNormalization")
            ),
     box( width = 12, title = "Normalization", solidHeader = TRUE, status = "success",
          tags$div( class = 'col-sm-4',
@@ -78,7 +79,8 @@ svd2 <- function(title){
                 <li>Transformation</li>
                 <li>SVD</li>
                 </ul>'),
-           tab_grafics("svd", verbatimTextOutput("s"))
+           bsAlert("alertSVD"),
+           tab_grafics("svd", verbatimTextOutput("s")) #funcion de visualizacion (generalTools.r)
            )
     
   )

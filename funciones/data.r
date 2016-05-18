@@ -38,7 +38,10 @@ viewData <- function() {
     ),
     tabBox(width = 12,
         tabPanel("STR", verbatimTextOutput("str_data")),
-        tabPanel("Summary", verbatimTextOutput("summary_data"))
+        tabPanel("Summary", verbatimTextOutput("summary_data")),
+        #panel contenedor de herramientas como eliminar los valores nominales, eliminar
+        #alguna columna.
+        tabPanel("Edit data set")
     )          
   )
 }
@@ -99,7 +102,7 @@ optionReader <- function(idSep, idDec, idQuote, idHeader, idNA){
     column(3, selectInput(idSep, "Separator:", c(";",",","\t"))),
     column(3, selectInput(idDec, "Decimal:", c(",","."))),
     column(3, selectInput(idHeader, "Header:", c("TRUE","FALSE"))),
-    column(3, selectInput(idQuote, "Quote:", c("' '",'"',"'"))),
+    column(3, selectInput(idQuote, "Quote:", c('""','"',"'"))),
     column(6, textInput(idNA, "Missing values:", value = "NA"))
   )
 }

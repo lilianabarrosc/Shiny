@@ -84,7 +84,8 @@ localOutlier <- function(title){
                 <ul class="breadcrumb">
                 <li>Preprocessing</li>
                 <li>Local outlier factor</li>
-                </ul>')
+                </ul>'),
+            bsAlert("alertlof")
     ),
     box(width = 12, title = title, solidHeader = TRUE, status = "success",
         column(width = 6,

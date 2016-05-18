@@ -326,6 +326,7 @@ server <- function(input, output, session) {
     summary(DATA_SET$data)
   })
   
+  
   #----------> dimensionalidad del archivo
   #Con dim puedo saber la cantidad de atributos y observaciones que posee el archivo,
   #en dim(data)[1] se pueden encontrar la cantidad de observaciones y en dim(data)[2] la 
@@ -569,21 +570,14 @@ server <- function(input, output, session) {
   #************************************************
   #-------------> Eliminacion de ruido
   
-  #   #Slider visualizacion grafico ruido
-  #   output$slider_range_range_nremoval <- renderUI({
-  #     twoSlider("attributes4","observation4",missingV(),"Attributes",strz)
-  #   })
-  
-  #   #Se detectan las columnas con ruido
-  #   columnsNoise <- reactive({
-  #     if(is.na(noiseR() | is.null(noiseR()))){
-  #       diffValues <- calculateDiff(missingV())
-  #       getColumnsNoise(diffValues, input$limitNoise)
-  #     } else {
-  #       diffValues <- calculateDiff(noiseR())
-  #       getColumnsNoise(diffValues, input$limitNoise)
-  #     }
-  #   })
+  #corroborar que el data set solo contenga valores numericos
+  observe({
+    if(!is.numeric(DATA_SET$data)){
+      createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
+                  content = "Only numerical instances, the data set contains
+                  nominal instances", style = "warning")
+    }
+  })
   
   #Slider visualizacion grafico parallel x e y
   output$slider_nremoval <- renderUI({
@@ -613,14 +607,19 @@ server <- function(input, output, session) {
   
   #seleccion de atributos y observaciones del data set
   datNremovalx <- reactive({
-    x <- DATA_SET$data[,-input$response_nremoval]
-    x[input$observations_removal[1]:input$observations_removal[2],
-             input$attributes_nremoval[1]:input$attributes_nremoval[2]] 
+    if(is.numeric(DATA_SET$data)){
+      closeAlert(session, "alertlofID")
+      x <- DATA_SET$data[,-input$response_nremoval]
+      x[input$observations_removal[1]:input$observations_removal[2],
+               input$attributes_nremoval[1]:input$attributes_nremoval[2]]
+    }
   })
   
   #seleccion de la variable de respuesta
   datNremovaly <- reactive({
-    DATA_SET$data[,input$response_nremoval]
+    if(is.numeric(DATA_SET$data)){
+      DATA_SET$data[,input$response_nremoval]
+    }
   })
   
   #grafico de ruido
@@ -628,6 +627,7 @@ server <- function(input, output, session) {
     if(is.null(input$attributes_nremoval) || is.na(input$attributes_nremoval)){
       return()
     }
+    if(!is.numeric(DATA_SET$data)){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
     withProgress({
@@ -639,6 +639,7 @@ server <- function(input, output, session) {
   
   #Calcular el numero de columnas con ruido
   output$columnsNoise <- renderPrint({
+    if(!is.numeric(DATA_SET$data)){return()}
     tryCatch({
       closeAlert(session, "alertNoiseID")
       diffValues <- calculateDiff(DATA_SET$data)
@@ -653,6 +654,7 @@ server <- function(input, output, session) {
   
   #Eliminación del ruido del data set
   observeEvent(input$rnoise,{
+    if(is.numeric(DATA_SET$data)){return()}
     if(anyNA(DATA_SET$data)){
       createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
                   content = "Data set have missing values", style = "warning")
@@ -667,13 +669,25 @@ server <- function(input, output, session) {
   #************************************************
   #-------------> Local outlier factor
   
+  #corroborar que el data set solo contenga valores numericos
+  observe({
+    if(!is.numeric(DATA_SET$data)){
+      createAlert(session, "alertlof", "alertlofID", title = titleAlert,
+                  content = "Only numerical instances, the data set contains
+                  nominal instances", style = "warning")
+    }
+  })
+  
   ## scores for the original data
   outlier.scores <- reactive({
+    if(!is.numeric(DATA_SET$data)){return()}
     lof(DATA_SET$data, k= c(5:10))
+    closeAlert(session, "alertlofID")
   })
   
   #Slider visualizacion grafico de missing VIM option2
   output$sliderLOF <- renderUI({
+    if(is.null(outlier.scores)){return()}
     minimo <- round(min(outlier.scores()), digits=2)
     maximo <- round(max(outlier.scores()), digits=2)
     sliderInput("thresholdt", "Threshold", min = minimo,
@@ -682,7 +696,7 @@ server <- function(input, output, session) {
   
   #llamado a la funcion lof, la cual devuelve una lista
   res_lof <- reactive({
-    if(is.na(outlier.scores()) && is.null(outlier.scores())){return}
+    if(is.na(outlier.scores()) || is.null(outlier.scores())){return}
     else{
       if(!is.null(input$thresholdt)){
         LOFCraft(data = DATA_SET$data, threshold = input$thresholdt, data.frame(outlier.scores())) ##calling LOF
@@ -690,16 +704,17 @@ server <- function(input, output, session) {
         LOFCraft(data = DATA_SET$data, data.frame(outlier.scores())) ##calling LOF
       }
     }
-    
   })
   
   ## scores for the without outliers data
   withoutOutliers.scores <- reactive({
+    if(is.null(res_lof())){return()}
     data.frame(res_lof()[1]) ## scores of data without outliers
   })
   
   #grafico inicial density plot
   output$densityPlot <- renderPlot({
+    if(is.null(outlier.scores())){return()}
     tryCatch({
       withProgress({
         closeAlert(session, "alertlof1ID")
@@ -708,13 +723,13 @@ server <- function(input, output, session) {
       })
     }, error = function(e) {
       createAlert(session, "alertlof1", "alertlof1ID", title = titleAlert,
-                  content = paste("",e), 
-                  style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
   
   #Grafico resultante tras realizar corte del primer density
   output$densityPlotResult <- renderPlot({
+    if(is.null(outlier.scores()) || is.null(withoutOutliers.scores()) ){return()}
     tryCatch({
       withProgress({
         closeAlert(session, "alertlof2ID")
@@ -723,36 +738,38 @@ server <- function(input, output, session) {
       })
     }, error = function(e) {
       createAlert(session, "alertlof2", "alertlof2ID", title = titleAlert,
-                  content = paste("",e), 
-                  style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
   
   #Cantaidad de outlier existentes
   output$howManyOutliers <- renderPrint({
+    if(is.na(res_lof()) || is.null(res_lof())){return()}
     as.numeric(res_lof()[3])
   })
   
   #Posicion de los outlier en el archivo
   output$posOutliers <- renderPrint({
+    if(is.na(res_lof()) || is.null(res_lof())){return()}
     data.frame(res_lof()[4])  ## the positions of the outliers in the original data and theirs respective scores
   })
   
   #without outliers data
   output$strWithoutOutliers <- renderPrint({
+    if(is.na(res_lof()) || is.null(res_lof())){return()}
     dataWithoutOutliers<-data.frame(res_lof()[2])  ##the data without outliers
     str(dataWithoutOutliers)
   })
   
   #Accion a realizar tras presionar el boton "WithoutOutliers" de LOF
-  observeEvent(input$delete_lof, { #if(input$upload){
+  observeEvent(input$delete_lof, {
+    if(is.null(res_lof())){return()}
     tryCatch({
       DATA_SET$data <- data.frame(res_lof()[2])
     }, error = function(e) {
       print(e)
     })
   })
-  
   
   #-------------------------------------------------------
   #-----------------------> Transformation <-----------------------
@@ -783,10 +800,20 @@ server <- function(input, output, session) {
     )
   })
   
+  #se valida que solo sean datos numericos
+  observe({
+    if(!is.numeric(DATA_SET$data)){
+      createAlert(session, "alertNormalization", "alertNormalizationID", title = titleAlert,
+                  content = "Only numerical instances, the data set contains
+                  nominal instances", style = "warning")
+    }
+  })
+  
   #obtengo el tipo de normalizacion seleccionada y aplico la normalizacion correspondiente
   normalization_type <- reactive({
-    if (is.null(input$normalizationType))
+    if (is.null(input$normalizationType) || !is.numeric(DATA_SET$data))
       return()
+    closeAlert(session, "alertNormalizationID")
     switch(input$normalizationType,
            '1'=  withProgress({
              setProgress(message = "This may take a while...")
@@ -838,6 +865,7 @@ server <- function(input, output, session) {
   
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca <- reactive({
+    if(!is.numeric(DATA_SET$data)){return()}
     DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
                   input$attributes_pca[1]:input$attributes_pca[2]]
   })
@@ -869,18 +897,7 @@ server <- function(input, output, session) {
     })
     
   })
-#   
-#   reduceDimensionality <- reactive({
-#     if(input$reduceDim){
-#       data_pca()
-#       #print("hola if")
-#     }
-#     else{
-#       #print("hola else")
-#       data.frame(DATA_SET$data)
-#     }
-#   })
-  #   
+
   #data luego de aplicar un metodo de reduccion como pca
   observeEvent(input$reduceDim, {
     if(is.null(data_pca())){return()}
@@ -905,13 +922,25 @@ server <- function(input, output, session) {
   })
   
   #------------SVD
+  #solo valores numericos
+  observe({
+    if(!is.numeric(DATA_SET$data)){
+      createAlert(session, "alertSVD", "alertSVDID", title = titleAlert,
+                  content = "Only numerical instances, the data set contains
+                  nominal instances", style = "warning")
+    }
+  })
+  
   s <- reactive({
+    if(!is.numeric(DATA_SET$data)){return()}
+    closeAlert(session,"alertSVDID")
     dat <- as.matrix(DATA_SET$data)
     svd(dat)
   })
   
   #grafico para SVD
   output$svd <- renderPlot({
+    if(is.null(s())){return()}
     withProgress({
       setProgress(message = "This may take a while...")
       plot(cumsum(s()$d^2/sum(s()$d^2))) 
@@ -919,6 +948,7 @@ server <- function(input, output, session) {
   })
   
   output$s <- renderPrint({
+    if(is.null(s())){return()}
     s()$d
   })
   
