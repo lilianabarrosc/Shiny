@@ -11,7 +11,8 @@ report <- function(){
                 </ul>')
            ),
         box(width = 12, title = "Report", solidHeader = TRUE, status = "success",
-            box(width = 12, title = "Data", status = "success"),
+            box(width = 12, title = "Data", status = "success",
+                uiOutput("data_report")),
             box(width = 12, title = "Preprocessing", status = "success"),
             box(width = 12, title = "Transformation", status = "success"),
             box(width = 12, title = "Regression", status = "success"),

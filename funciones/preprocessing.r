@@ -16,7 +16,7 @@ tabsMissingValues <- function(title, tab1, tab2, tab3) {
                               bsButton("deleteMS", label = "Delete MS",style = "success")
                       )
                ),
-               column(8, verbatimTextOutput("sumMV"))
+               column(8, uiOutput("sumMV"))
      ),
      tabBox(
        width = 12,
@@ -62,7 +62,7 @@ noiseRemoval <- function(title){
                       ),
                column(6,
                       #h4("The total number of..."),
-                      verbatimTextOutput("columnsNoise"),
+                      uiOutput("columnsNoise"),
                       tags$div( class = 'col-sm-2',
                                 bsButton("rnoise", label = "Remove noise", style = 'success')
                       )

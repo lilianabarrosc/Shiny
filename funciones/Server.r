@@ -363,11 +363,13 @@ server <- function(input, output, session) {
   
   #Actualizo el maximo del slider con el valor del tamaÃ±o del archivo seleccionado
   output$slider_Scatterplot <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     treeSlider("x_scatter", "y_scatter", "z_scatter", DATA_SET$data, strx, stry, strz, FALSE)
   })
   
   #seleccion de atributos y observaciones del data set
   dat_Scatterplot <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     x <- DATA_SET$data[,-input$y_scatter]
     x[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
   })
@@ -404,6 +406,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico parallel x e y
   output$slider_parallelPlot <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     box(
       width = 6, status = "success",
       h4("Range"),
@@ -416,6 +419,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico parallel observations y alfa
   output$slider_parallelPlot2 <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     box(
       width = 6, status = "success",
       h4("Range"),
@@ -431,11 +435,13 @@ server <- function(input, output, session) {
   
   #seleccion de atributos y observaciones del data set
   data_Parallelx <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     x <- DATA_SET$data[,-input$y_parallel]
     x[input$z_parallel[1]:input$z_parallel[2],input$x_parallel[1]:input$x_parallel[2]]
   })
   
   data_Parallely <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     DATA_SET$data[,input$y_parallel]
   })
   
@@ -476,21 +482,22 @@ server <- function(input, output, session) {
   #*********************************************
   #---------------> Graficos correspondientes a missing values
   observeEvent(input$deleteMS,{
-    # if(input$deleteMS)
       DATA_SET$data <- na.omit(DATA_SET$data)
   })
   
-  output$sumMV <- renderPrint({
-    paste("The data set contains",sum(is.na(DATA_SET$data)), "missing values.")
+  output$sumMV <- renderUI({
+    helpText("The data set contains",sum(is.na(DATA_SET$data)), "missing values.")
   })
   
   #Slider visualizacion grafico de missing values
   output$slider_missingValues <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     twoSlider("attributes","observation",DATA_SET$data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 1
   data_boxPlot <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     DATA_SET$data[input$observation[1]:input$observation[2], 
                   input$attributes[1]:input$attributes[2]]
   })
@@ -514,8 +521,7 @@ server <- function(input, output, session) {
       boxPlotfunction()
     }, error = function(e) {
       createAlert(session, "alertMissing1", "alertMissing1ID", title = titleAlert,
-                  content = paste("",e), 
-                  style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
   
@@ -526,11 +532,13 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_histogramPlot <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     twoSlider("attributes_histogram","observation_histogram",DATA_SET$data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para la Opcion 2
   data_histogramPlot <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     DATA_SET$data[input$observation_histogram[1]:input$observation_histogram[2], 
                   input$attributes_histogram[1]:input$attributes_histogram[2]]
   })
@@ -557,11 +565,13 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico de missing VIM option2
   output$slider_missingScatter <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     treeSlider("x_missingScatter", "y_missingScatter", "z_missingScatter", DATA_SET$data, strx, stry, strz, TRUE)
   })
   
   #Obtengo la seleccion de atributos a comparar para la Opcion 3
   data_missingScatter <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     DATA_SET$data[input$z_missingScatter[1]:input$z_missingScatter[2],
                   input$x_missingScatter[1]:input$x_missingScatter[2]]
   })
@@ -586,15 +596,17 @@ server <- function(input, output, session) {
   
   #corroborar que el data set solo contenga valores numericos
   observe({
-    if(!is.numeric(DATA_SET$data)){
+    numNominal <- cantCol_nominal(DATA_SET$data) #funcion contenida en generalTools.r
+    if(numNominal > 0){
       createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
-                  content = "Only numerical instances, the data set contains
-                  nominal instances", style = "warning")
+                  content = paste("Only numerical instances, the data set contains",
+                                  numNominal,"nominal instances"), style = "warning")
     }
   })
   
   #Slider visualizacion grafico parallel x e y
   output$slider_nremoval <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     box(
       width = 6, status = "success",
       h4("Range"),
@@ -607,6 +619,7 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico parallel observations y alfa
   output$slider_nremoval2 <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     box(
       width = 6, status = "success",
       h4("Range"),
@@ -621,7 +634,8 @@ server <- function(input, output, session) {
   
   #seleccion de atributos y observaciones del data set
   datNremovalx <- reactive({
-    if(is.numeric(DATA_SET$data)){
+    if(is.null(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) == 0){
       closeAlert(session, "alertlofID")
       x <- DATA_SET$data[,-input$response_nremoval]
       x[input$observations_removal[1]:input$observations_removal[2],
@@ -631,7 +645,8 @@ server <- function(input, output, session) {
   
   #seleccion de la variable de respuesta
   datNremovaly <- reactive({
-    if(is.numeric(DATA_SET$data)){
+    if(is.null(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) == 0){
       DATA_SET$data[,input$response_nremoval]
     }
   })
@@ -641,7 +656,7 @@ server <- function(input, output, session) {
     if(is.null(input$attributes_nremoval) || is.na(input$attributes_nremoval)){
       return()
     }
-    if(!is.numeric(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) > 0){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
     withProgress({
@@ -652,13 +667,13 @@ server <- function(input, output, session) {
   })
   
   #Calcular el numero de columnas con ruido
-  output$columnsNoise <- renderPrint({
-    if(!is.numeric(DATA_SET$data)){return()}
+  output$columnsNoise <- renderUI({
+    if(cantCol_nominal(DATA_SET$data) > 0 || is.null(DATA_SET$data)){return()}
     tryCatch({
       closeAlert(session, "alertNoiseID")
       diffValues <- calculateDiff(DATA_SET$data)
       columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
-      paste("Have ", paste(nrow(columnsNoise), " noise columns."))
+      helpText("Have ", paste(nrow(columnsNoise), " noise columns."))
     }, error = function(e) {
       createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
                   content = paste("",e), #"Missing values in data", 
@@ -668,7 +683,7 @@ server <- function(input, output, session) {
   
   #Eliminación del ruido del data set
   observeEvent(input$rnoise,{
-    if(is.numeric(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) > 0 || is.null(DATA_SET$data)){return()}
     if(anyNA(DATA_SET$data)){
       createAlert(session, "alertNoise", "alertNoiseID", title = titleAlert,
                   content = "Data set have missing values", style = "warning")
@@ -685,18 +700,19 @@ server <- function(input, output, session) {
   
   #corroborar que el data set solo contenga valores numericos
   observe({
-    if(!is.numeric(DATA_SET$data)){
+    numVar_nominal <- cantCol_nominal(DATA_SET$data)
+    if(numVar_nominal > 0){
       createAlert(session, "alertlof", "alertlofID", title = titleAlert,
-                  content = "Only numerical instances, the data set contains
-                  nominal instances", style = "warning")
+                  content = paste("Only numerical instances, the data set contains",
+                                  numVar_nominal,"nominal instances"), style = "warning")
     }
   })
   
   ## scores for the original data
   outlier.scores <- reactive({
-    if(!is.numeric(DATA_SET$data)){return()}
-    lof(DATA_SET$data, k= c(5:10))
+    if(cantCol_nominal(DATA_SET$data) > 0 || is.null(DATA_SET$data)){return()}
     closeAlert(session, "alertlofID")
+    lof(DATA_SET$data, k= c(5:10))
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -756,7 +772,7 @@ server <- function(input, output, session) {
     })
   })
   
-  #Cantaidad de outlier existentes
+  #Cantidad de outlier existentes
   output$howManyOutliers <- renderPrint({
     if(is.na(res_lof()) || is.null(res_lof())){return()}
     as.numeric(res_lof()[3])
@@ -792,7 +808,7 @@ server <- function(input, output, session) {
   #-------------> Normalization
   #salida dinamica de rango para normalizacion
   output$range_normalization <- renderUI({
-    if (is.null(input$normalizationType))
+    if (is.null(input$normalizationType) || is.null(DATA_SET$data))
       return()
     switch(input$normalizationType,
            '2' =  tags$div( class = 'col-sm-8',
@@ -816,16 +832,17 @@ server <- function(input, output, session) {
   
   #se valida que solo sean datos numericos
   observe({
-    if(!is.numeric(DATA_SET$data)){
+    numVar_nominal <- cantCol_nominal(DATA_SET$data)
+    if(numVar_nominal > 0){
       createAlert(session, "alertNormalization", "alertNormalizationID", title = titleAlert,
-                  content = "Only numerical instances, the data set contains
-                  nominal instances", style = "warning")
+                  content = paste("Only numerical instances, the data set contains",
+                                  numVar_nominal, "nominal instances"), style = "warning")
     }
   })
   
   #obtengo el tipo de normalizacion seleccionada y aplico la normalizacion correspondiente
   normalization_type <- reactive({
-    if (is.null(input$normalizationType) || !is.numeric(DATA_SET$data))
+    if (is.null(input$normalizationType) || cantCol_nominal(DATA_SET$data) > 0)
       return()
     closeAlert(session, "alertNormalizationID")
     switch(input$normalizationType,
@@ -866,6 +883,8 @@ server <- function(input, output, session) {
   observeEvent(input$apply_normalization,{
     if(is.null(normalization_type())){ return()}
     DATA_SET$data <- normalization_type()
+    createAlert(session, "alertNormalizationApply", "alertNormalizationApplyID", title = titleAlertInfo,
+                content = "The normalization has been applied correctly.", style = "success")
   })
   
   #************************************************
@@ -873,12 +892,14 @@ server <- function(input, output, session) {
   
   #Slider visualizacion grafico PCA
   output$slider_pca <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     twoSlider("attributes_pca","observation_pca",DATA_SET$data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca <- reactive({
-    if(!is.numeric(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) > 0 || is.null(input$observation_pca) ||
+       is.null(input$attributes_pca)){ return()}
     DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
                   input$attributes_pca[1]:input$attributes_pca[2]]
   })
@@ -905,8 +926,7 @@ server <- function(input, output, session) {
       pcaGrafic()
     }, error = function(e) {
       createAlert(session, "alertPCA", "alertPCAID", title = titleAlert,
-                  content = paste("",e), 
-                  style = "warning")
+                  content = paste("",e), style = "warning")
     })
   })
 
@@ -927,24 +947,24 @@ server <- function(input, output, session) {
     summary(pca())
   })
   
-  output$summary_reduceDimensionality <- renderPrint({
-    #str(DATA_SET$data)
+  output$summary_reduceDimensionality <- renderUI({
     d <- dim(DATA_SET$data)
-    paste("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
+    helpText("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
   })
   
   #------------SVD
   #solo valores numericos
   observe({
-    if(!is.numeric(DATA_SET$data)){
+    numVar_nominal <- cantCol_nominal(DATA_SET$data)
+    if(numVar_nominal > 0){
       createAlert(session, "alertSVD", "alertSVDID", title = titleAlert,
-                  content = "Only numerical instances, the data set contains
-                  nominal instances", style = "warning")
+                  content = paste ("Only numerical instances, the data set contains",
+                                   numVar_nominal,"nominal instances"), style = "warning")
     }
   })
   
   s <- reactive({
-    if(!is.numeric(DATA_SET$data)){return()}
+    if(cantCol_nominal(DATA_SET$data) > 0 || is.null(DATA_SET$data)){return()}
     closeAlert(session,"alertSVDID")
     dat <- as.matrix(DATA_SET$data)
     svd(dat)
@@ -967,6 +987,7 @@ server <- function(input, output, session) {
   #------------> Attribute Selection
   #seleccion de la variable de respuesta y numero de atributos a seleccionar
   output$option_attributeS <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     namesVariables <- names(DATA_SET$data)
     column(12,
            selectInput("attributeS_response", label = h4("Response variable"), 
@@ -996,9 +1017,9 @@ server <- function(input, output, session) {
   })
   
   #indica un resumen del dataSet
-  output$print_dataAtributte <- renderPrint({
+  output$print_dataAtributte <- renderUI({
     d <- dim(DATA_SET$data)
-    paste("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
+    helpText("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables.")
   })
   
   #evento tras presionar el boton para aplicar cambios
@@ -1014,26 +1035,20 @@ server <- function(input, output, session) {
   
   #particion en porcentaje de train y test
   train_lm <- reactive({
-    if(is.null(input$porcentTest_lm)){ return() }
+    if(is.null(input$porcentTest_lm) || is.null(DATA_SET$data)){ return() }
     dataPartition(DATA_SET$data, input$porcentTest_lm)
   })
   
   #-----------------------> lm
   #seleccion de la variable dependiente o de respuesta
   output$select_linearModel <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     select_model("lm_response", "lm_predictors", data.frame(DATA_SET$data))  
   })
   
   #Aplicando el modelo lm
   model_lm <- reactive({
     if(is.null(input$lm_response)){return()}
-#     if(is.null(input$lm_predictors)){
-#       (fmla <- as.formula(paste(paste(input$lm_response, " ~ "), ".")))
-#     }
-#     #input$lm_y
-#     else{
-#       (fmla <- as.formula(paste(paste(input$lm_response, " ~ ."), "-", paste(input$lm_predictors, collapse= "-"))))
-#     }
     fmla <- formula_model(input$lm_predictors,input$lm_response)
     print('fmla:')
     print(fmla)
@@ -1057,6 +1072,7 @@ server <- function(input, output, session) {
   #******* validacion del modelo lm
   #obtengo los predictores del modelo
   predictores_lm <-  reactive({
+    if(is.null(DATA_SET$data)){return()}
     data.frame(predictors(DATA_SET$data, input$lm_predictors, input$lm_response))
   })
   
@@ -1066,11 +1082,9 @@ server <- function(input, output, session) {
   #tipo de validacion para el modelo
   validation_lm <- reactive({
     tryCatch({
-      if (is.null(input$validationType_lm))
+      if (is.null(input$validationType_lm) || is.null(model_lm()) || is.null(DATA_SET$data))
         return()
       if(input$validationType_lm == '2' && is.null(input$fileTest_lm))
-        return()
-      if(is.null(model_lm()))
         return()
       closeAlert(session,"alertValidationID")
       switch(input$validationType_lm,
@@ -1094,11 +1108,14 @@ server <- function(input, output, session) {
   
   #resultado tras aplicar el metodo de validacion seleccionado
   output$resultValidation_lm <- renderPrint({
-    validation_lm()
+    if(!is.null(validation_lm())){
+      validation_lm()
+    }
   })
   
   #resultado grafico de la prediccion realizada
   output$plotValitation_lm <- renderPlot({
+    if(is.null(validation_lm())){return()}
     if(input$validationType_lm == '3'){
       simplePlot(validation_lm(),  DATA_SET$data[-train_lm(),input$lm_response], 2, 1, input$lm_response, 2, 0.9)
     }else{
@@ -1110,38 +1127,44 @@ server <- function(input, output, session) {
   
   #resultado de aplicar el test de colinealidad
   output$colinearity_result <- renderPrint({
-    vif(model_lm())
+    if(!is.null(model_lm()))
+      vif(model_lm())
   })
   
   #tolerancia del test de colinealidad
   output$colinearity_tolerance <- renderPrint({
-    1/vif(model_lm())
+    if(!is.null(model_lm()))
+      1/vif(model_lm())
   })
   
   #promedio del test de colinealidad
   output$colinearity_mean <- renderPrint({
+    if(!is.null(model_lm()))
     mean(vif(model_lm()))
   })
   
   #-----------------------> pls
   #seleccion de la variable de respuesta
   output$select_pls <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     select_model("pls_response", "pls_predictors", DATA_SET$data)  
   })
   
   #particion en porcentaje de train y test
   train_pls <- reactive({
-    if(is.null(input$porcentTest_pls)){ return() }
+    if(is.null(input$porcentTest_pls) || is.null(DATA_SET$data)){ return() }
     dataPartition(DATA_SET$data, input$porcentTest_pls)
   })
   
   #numero de componentes para el modelo
   output$componentes_pls <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     numericInput("comp_pls", h4("PLS comp"), value = 2, min = 2, max = ncol(DATA_SET$data) )
   })
   
   #obtengo los predictores del modelo
   predictores_pls <-  reactive({
+    if(is.null(DATA_SET$data)){return()}
     data.frame(predictors(DATA_SET$data, input$pls_predictors, input$pls_response))
   })
   
@@ -1188,32 +1211,9 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$result_pls <- renderPrint({
-    if(is.null(model_pls()))
-      return()
+    if(is.null(model_pls())){ return()}
     summary(model_pls())
   })
-  
-#   #Estadisticos RME, R2, IA
-#   statistical_resultpls <- function(){
-#     if(is.null(model_pls()))
-#       return()
-#     
-#     overfittedRMSE <- rmse(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted RMSE
-#     overfittedR2 <- cor(model_pls()$y.pred, DATA_SET$data[,input$pls_response])^2 #overfitted R2
-#     overfittedIA <- d(model_pls()$y.pred, DATA_SET$data[,input$pls_response]) #overfitted IA
-#     
-#     Statistical <- as.data.frame(array(0, dim=c(1,4)))
-#     names(Statistical) <- c("Name", "RMSE", "R2", "IA")
-#     Statistical[1,2] <- overfittedRMSE
-#     Statistical[1,3] <- overfittedR2
-#     Statistical[1,4] <- overfittedIA
-#     return(Statistical) 
-#   }
-  
-#   #Muestra los estadisticos de pls
-#   output$statistical_pls <- renderPrint({
-#     statistical_resultpls()
-#   })
   
   #****** validacion pls
   
@@ -1223,19 +1223,12 @@ server <- function(input, output, session) {
   #tipo de validacion para el modelo
   validation_pls <- reactive({
     tryCatch({
-      if (is.null(input$validationType_pls))
+      if (is.null(input$validationType_pls) || is.null(model_pls()))
         return()
       if(input$validationType_pls == '2' && is.null(input$fileTest_pls))
         return()
-      if(is.null(model_pls()))
-        return()
       closeAlert(session,"alertValidationID")
       
-#       if(input$validationType_pls == '1'){ # ten-fold cross validation funcion en regresion.r
-#         crossValidation(model_pls(), thetaPredict_pls, DATA_SET$data[,input$pls_response], predictores_pls())
-#       }else{
-#        predict(model_pls, newdata = DATA_SET$data[-train_pls(),])
-#      }
       switch(input$validationType_pls,
              '1' = model_pls()$validation,
              '2' = { inFile <- input$fileTest_pls
@@ -1252,58 +1245,56 @@ server <- function(input, output, session) {
   })
   #resultado de la validacion
   output$resultValidation_pls <- renderPrint({
-    #model_pls()$Q2
-    validation_pls()
+    if(!is.null(validation_pls()))
+      validation_pls()
   })
   
   #grafico correspondiente a correlaciones del modelo pls
   output$plotCorr <- renderPlot({
-    if(is.null(model_pls()))
-      return()
-    #plot(model_pls())
+    if(is.null(model_pls())){ return()}
     corrplot(model_pls(), comps = 1:input$comp_pls)
   })
   
   #grafico correspondiente a MSEP del modelo pls
   output$plotMSEP <- renderPlot({
-    if(is.null(model_pls()))
-      return()
+    if(is.null(model_pls())){ return()}
     plot(MSEP(model_pls()), legendpos = "topright")
   })
   
   #grafico correspondiente a los coeficientes del modelo pls
   output$plotCoef <- renderPlot({
-    if(is.null(model_pls()))
-      return()
+    if(is.null(model_pls())){ return()}
     coefplot(model_pls(), ncom = 1:input$comp_pls, legendpos = "bottomright")
   })
   
   #grafico correspondiente a la predicción del modelo pls
   output$plotPred <- renderPlot({
-    if(is.null(model_pls()))
-      return()
+    if(is.null(model_pls())){ return()}
     predplot(model_pls(), ncomp = 1:input$comp_pls)
   })
   #-----------------------> ridge
   
   #particion en porcentaje de train y test
   train_ridge <- reactive({
-    if(is.null(input$porcentTest_ridge)){ return() }
+    if(is.null(input$porcentTest_ridge) || is.null(DATA_SET$data)){ return() }
     dataPartition(DATA_SET$data, input$porcentTest_ridge)
   })
   
   #seleccion de la variable dependiente
   output$select_ridge <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     select_model("ridge_response", "ridge_predictors", DATA_SET$data)
   })
   
   #obtengo los predictores del modelo
   predictores_ridge <-  reactive({
+    if(is.null(DATA_SET$data)){return()}
     as.data.frame(predictors(DATA_SET$data, input$ridge_predictors, input$ridge_response))
   })
   
   #Aplicando el modelo de validacion cruzada ridge para determinar el lambda minimo
   model_cvridge <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     tryCatch({
       if(anyNA(DATA_SET$data)){
         createAlert(session, "alertCVRidge", "alertCVRidgeID", title = titleAlert,
@@ -1336,6 +1327,7 @@ server <- function(input, output, session) {
   
   #aplicando rigde para el lambda min obtenido en model_cvridge()
   model_ridge <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     tryCatch({
       if(anyNA(DATA_SET$data)){
         createAlert(session, "alertRidge", "alertRidgeID", title = titleAlert,
@@ -1343,13 +1335,6 @@ server <- function(input, output, session) {
       }else{
         closeAlert(session, "alertRidgeID")
         #Se aplica el modelo ridge con una formula como el lm
-#         if(is.null(input$ridge_predictors)){
-#           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), ".")))
-#         }
-#         else{
-#           (fmla <- as.formula(paste(paste(input$ridge_response, " ~ "), paste(input$ridge_predictors, collapse= "-"))))
-#         }
-        
         fmla <- formula_model(input$ridge_predictors,input$ridge_response)
         print('fmla:')
         print(fmla)
@@ -1366,25 +1351,15 @@ server <- function(input, output, session) {
     })
   })
   
-  #   #Resultado obtenido tras aplicar el  modelo cv
-  #   output$result_cvridge <- renderPrint({
-  #     if(is.null(model_cvridge()))
-  #       return()
-  #     summary(model_cvridge())
-  #   })
-  
   #Resultado obtenido tras aplicar el  modelo
   output$result_ridge <- renderPrint({
-    if(is.null(model_ridge()))
-      return()
+    if(is.null(model_ridge())){ return()}
     summary(model_ridge())
-    #summary(model_cvridge())
   })
   
   #grafico de lamda
   output$plot_ridge <- renderPlot({
-    if(is.null(model_cvridge()))
-      return()
+    if(is.null(model_cvridge())){ return()}
     RidgePlot(model_cvridge())
   })
   
@@ -1395,11 +1370,9 @@ server <- function(input, output, session) {
   #tipo de validacion para el modelo
   validation_ridge <- reactive({
     tryCatch({
-      if (is.null(input$validationType_ridge))
+      if (is.null(input$validationType_ridge) || is.null(model_ridge()))
         return()
       if(input$validationType_ridge == '2' && is.null(input$fileTest_ridge))
-        return()
-      if(is.null(model_ridge()))
         return()
       closeAlert(session,"alertValidationID")
       switch(input$validationType_ridge,
@@ -1421,11 +1394,13 @@ server <- function(input, output, session) {
   })
   #resultado de la validacion
   output$resultValidation_ridge <- renderPrint({
-    validation_ridge()
+    if(!is.null(validation_ridge()))
+      validation_ridge()
   })
   
   #resultado grafico de la prediccion realizada
   output$plotValitation_ridge <- renderPlot({
+    if(is.null(validation_ridge())){ return()}
     if(input$validationType_ridge =='3'){
       simplePlot(validation_ridge(),  DATA_SET$data[-train_ridge(),input$ridge_response], 2, 1, input$ridge_response, 2, 0.9)
     }else{
@@ -1436,23 +1411,25 @@ server <- function(input, output, session) {
   #-----------------------> rglm
   #seleccion de la variable dependiente
   output$select_rglm <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     select_model("rglm_response", "rglm_predictors", DATA_SET$data)
   })
   
   #obtengo los predictores del modelo
   predictores_rglm <-  reactive({
+    if(is.null(DATA_SET$data)){return()}
     data.frame(predictors(DATA_SET$data, input$rglm_predictors, input$rglm_response))
   })
   
   #particion en porcentaje de train y test
   train_rglm <- reactive({
-    if(is.null(input$porcentTest_rglm)){ return() }
-    # dataPartition(DATA_SET$data, input$porcentTest_rglm)
+    if(is.null(input$porcentTest_rglm) || is.null(DATA_SET$data)){ return()}
     dataPartition(predictores_rglm(), input$porcentTest_rglm)
   })
   
   #aplicando el modelo rgml
   model_rglm <- reactive({
+    if(is.null(DATA_SET$data)){return()}
     tryCatch({
       if(anyNA(DATA_SET$data)){
         createAlert(session, "alertRGLM", "alertRGLMID", title = titleAlert,
@@ -1485,8 +1462,7 @@ server <- function(input, output, session) {
   
   #Resultado obtenido tras aplicar el  modelo
   output$result_rglm <- renderPrint({
-    if(is.null(model_rglm()))
-      return()
+    if(is.null(model_rglm())){ return()}
     summary(model_rglm())
   })
   
@@ -1497,11 +1473,9 @@ server <- function(input, output, session) {
   #tipo de validacion para el modelo
   validation_rglm <- reactive({
     tryCatch({
-      if (is.null(input$validationType_rglm))
+      if (is.null(input$validationType_rglm) || is.null(model_rglm))
         return()
       if(input$validationType_rglm == '2' && is.null(input$fileTest_rglm))
-        return()
-      if(is.null(model_rglm()))
         return()
       
       Prediction <- model_rglm()$predictedOOB
@@ -1518,11 +1492,13 @@ server <- function(input, output, session) {
   })
   #resultado de la validacion
   output$resultValidation_rglm <- renderPrint({
-    na.omit(validation_rglm())
+    if(!is.null(validation_rglm()))
+      na.omit(validation_rglm())
   })
   
   #resultado grafico de la prediccion realizada
   output$plotValitation_rglm <- renderPlot({
+    if(is.null(validation_rglm())){ return()}
     if(input$validationType_rglm == '3'){
       simplePlot(validation_rglm(),  DATA_SET$data[train_rglm(),input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
     }else{
@@ -1664,5 +1640,19 @@ server <- function(input, output, session) {
   observe({
     output$downloadPlotRL <- downloadGeneral(input$radioRL, plotRL(), DATA_SET$name)
   })
+  
+  #-------------------------------------------------------
+  #-----------------------> report <-----------------------
+  
+  #Acciones realizadas en el item Data
+  output$data_report <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
+    helpText("The data set selected:", DATA_SET$name) 
+  })
+  
+  #Acciones realizadas en el item Preprocessing
+  #Acciones realizadas en el item Transformation
+  #Acciones realizadas en el item Regression
+  #Acciones realizadas en el item Linear model evaluation
   
 }

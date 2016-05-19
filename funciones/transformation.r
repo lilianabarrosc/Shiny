@@ -23,8 +23,8 @@ normalizations <- function(title){
     ),
     tabBox(width = 12,
            tabPanel("Normalized data", "*First ten observations", verbatimTextOutput("normalized_data")),
-           tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data")),
-           tabPanel("Sumary",verbatimTextOutput("summary_normalization"))
+           tabPanel("Sumary",verbatimTextOutput("summary_normalization")),
+           tabPanel("Original data", "*First ten observations", verbatimTextOutput("original_data"))
     ),
     box(width = 12, status = "success",
         bsButton("apply_normalization", label = "Apply", style = "success")
@@ -44,7 +44,7 @@ pca <- function(title){
                 </ul>'),
            bsAlert("alertPCA")
     ),
-    column(width = 12,
+    box(width = 12, title = "PCA", solidHeader = TRUE, status = "success",
            plotOutput("pca"),
            hr()
     ),
@@ -62,7 +62,7 @@ pca <- function(title){
                                       box(width = 6, status = "success",
                                           bsButton("reduceDim", label = "Reduce Dimensionality", style = "success"),
                                           hr(),
-                                          verbatimTextOutput("summary_reduceDimensionality")
+                                          uiOutput("summary_reduceDimensionality")
                                       ))
            )
     )
@@ -112,7 +112,7 @@ attributeSelection <- function(){
                verbatimTextOutput("print_subset"),
                bsButton("apply_attributeS", label = "Apply", style = "success"),
                hr(),
-               verbatimTextOutput("print_dataAtributte")
+               uiOutput("print_dataAtributte")
               )
       )
   )

@@ -140,3 +140,10 @@ formula_model <- function(x,y){
   }
   return(fmla)
 }
+
+#funcion que retorna la cantidad de variables del data set que contienen
+#valores nominales
+cantCol_nominal <- function(data){
+  aux <- sapply(data, is.numeric) #valida si los valores de data son numericos con T/F
+  return(sum(aux == FALSE)) #cantidad de columnas nominales
+}
