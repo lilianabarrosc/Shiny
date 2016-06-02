@@ -27,7 +27,7 @@ LoadLibraries <- function(){
   #install.packages('DAAG')
   #library('DAAG') #libreria para cross validation // ya no se utiliza
   #install.packages("RPostgreSQL")
-  library('RPostgreSQL') #Libreria para postgress
+  library('RPostgreSQL') #Libreria para postgress 
   #install.packages("car")
   library('car')
   #install.packages("plsdepot")
