@@ -7,6 +7,10 @@ source('funciones/dataBase.r')
 # drv <- dbDriver("PostgreSQL")
 # con <- conexionbd(drv)
 
+# By default, the file size limit is 5MB. It can be changed by
+# setting this option. Here we'll raise limit to 9MB.
+options(shiny.maxRequestSize = 9*1024^2)
+
 server <- function(input, output, session) {
   #--------------> variables globales
   strx <- "Dependent variables"
@@ -14,7 +18,7 @@ server <- function(input, output, session) {
   strz <- "Observations"
   titleAlert <- "Oops"
   titleAlertInfo <- "Congratulations"
-  outputDir <- "file"
+  outputDir <- "file" #directorio donde se almacenan los data set
   
   #--------------> logo
   output$logo <- renderImage({
@@ -98,9 +102,9 @@ server <- function(input, output, session) {
         loginRegister()
       })
       #menu del sidebar
-      output$side <- renderMenu({
-        sidebar(FALSE)
-      })
+      # output$side <- renderMenu({
+      #   sidebar(FALSE)
+      # })
     }
     if(USER$Logged == TRUE){ # el usuario esta logeado, se muestran todas las opciones
       output$signIn <- renderUI({
@@ -109,9 +113,9 @@ server <- function(input, output, session) {
         )
       })
       #menu del sidebar
-      output$side <- renderMenu({
-        sidebar(TRUE, USER$role)
-      })
+      # output$side <- renderMenu({
+      #   sidebar(TRUE, USER$role)
+      # })
     }
   })
   
