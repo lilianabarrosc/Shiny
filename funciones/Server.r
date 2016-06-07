@@ -157,7 +157,8 @@ server <- function(input, output, session) {
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
   #Variable contiene el data set atualizado
-  DATA_SET <- reactiveValues(name = NULL, data = NULL)
+  DATA_SET <- reactiveValues(name = NULL, data = NULL, original.obs = NULL, 
+                             original.var = NULL)
   #variable que contiene la lista de data set contenidos en la app
   list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3),
                               data_setsID = list(iris, airquality, sleep))
@@ -246,6 +247,8 @@ server <- function(input, output, session) {
         #nombre del data set
         splitURL <- strsplit(input$url, "/")
         DATA_SET$name <- splitURL[[1]][length(splitURL[[1]])]
+        DATA_SET$original.obs <- nrow(DATA_SET$data)
+        DATA_SET$original.var <- ncol(DATA_SET$data)
       })
     }, error = function(e) {
       createAlert(session, "alertRUL", "alertURLID", title = titleAlert,
@@ -264,6 +267,8 @@ server <- function(input, output, session) {
       )
     }
     DATA_SET$data <- file()
+    DATA_SET$original.obs <- nrow(file())
+    DATA_SET$original.var <- ncol(file())
   })
   
   #guardar el data set obtenido de upload
@@ -1650,8 +1655,30 @@ server <- function(input, output, session) {
   
   #Acciones realizadas en el item Data
   output$data_report <- renderUI({
-    if(is.null(DATA_SET$data)){return()}
-    helpText("The data set selected:", DATA_SET$name) 
+    if(is.null(DATA_SET$data) || is.null(input$dataSetEdit)){return()}
+    # data <- paste("The data set selected:", DATA_SET$name,
+    #          "Original observations",DATA_SET$original.obs, 
+    #          "and original variables",DATA_SET$original.var)
+    # editdata <- if(input$dataSetEdit == 1 & !is.null(input$varDelete)){
+    #               # if(input$deleteCol){
+    #                 paste("Edit data set with 'Delete column'", 
+    #                 "Column deleted:",input$varDelete)
+    #               #}
+    #             }else if(input$dataSetEdit == 2){"Edit data set with 'Delete nominal values'"}
+    # paste(data, editdata)
+    column(12,
+      p(style = "text-align:justify;","The data set selected:", DATA_SET$name),
+      p(style = "text-align:justify;","Original observations",DATA_SET$original.obs, 
+       "and original variables",DATA_SET$original.var),
+      if(input$dataSetEdit == '1' & !is.null(input$varDelete)){
+         if(!is.null(input$deleteCol)){
+            if(input$deleteCol > 0){
+        p(style = "text-align:justify;","Edit data set with 'Delete column'",
+          "Column deleted:",input$varDelete)}
+        }
+      },
+      if(input$dataSetEdit == '2'){p(style = "text-align:justify;","Edit data set with 'Delete nominal values'")}
+    )
   })
   
   #Acciones realizadas en el item Preprocessing

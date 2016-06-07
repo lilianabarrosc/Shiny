@@ -14,15 +14,15 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
                           choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
                           selected = 1),
              downloadButton(download, "Download", class = "btn-success")
-           ),
-           #box para los apuntes
-           box(
-             title = "Notes", width = 4, solidHeader = TRUE, status = "success",
-             #background = "yellow",
-             tags$div( class='form-group shiny-input-container',
-                       tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
-             )
            )
+           # #box para los apuntes
+           # box(
+           #   title = "Notes", width = 4, solidHeader = TRUE, status = "success",
+           #   #background = "yellow",
+           #   tags$div( class='form-group shiny-input-container',
+           #             tags$textarea("notes...", class="form-control shiny-bound-input", style="resize: none")
+           #   )
+           # )
       )
   )
 }

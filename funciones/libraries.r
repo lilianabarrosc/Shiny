@@ -39,7 +39,7 @@ LoadLibraries <- function(){
   #install.packages("MASS")
   library('MASS') #Libreria para utilizar ridge
   #install.packages("bootstrap")
-  library('bootstrap') #Libreria para utilizar ridge
+  library('bootstrap') #Libreria para utilizar validación boostrap
   #install.packages("randomGLM")
   library('randomGLM') #libreria para utilizar RGML
   #install.packages("FSelector")

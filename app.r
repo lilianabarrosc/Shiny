@@ -33,12 +33,13 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                                              furtive predator of precious information hidden in the dark data forest."),
                                            p(style = "text-align:justify;", "Coincidentally the name Güiña begins with the three letters GUI which also 
                                              stands for the acronym for Graphical User Interface (GUI).")
-                                           ),
-                                         imageOutput("home")
+                                           )
+                                        # imageOutput("home")
                                            ),
                                   column(6,
                                          hr(), hr(),
-                                         uiOutput("signIn")
+                                         #uiOutput("signIn")
+                                         imageOutput("home")
                                   )
                               )
                           ),
