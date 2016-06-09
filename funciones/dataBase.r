@@ -2,8 +2,8 @@
 #función que retorna una conexion con la base de datos especificada.
 conexionbd <- function(drv){
   #Abrir una conexion
-  return (dbConnect(drv, host='localhost', port='5432', dbname='Guinia_bd',
-                    user='postgres', password='liliana10'))
+  return (dbConnect(drv, host='localhost', port='5432', dbname='guinia',
+                    user='liliana', password='1234'))
 }
 
 #funcion encargada de cerrar la conexion con la bd
