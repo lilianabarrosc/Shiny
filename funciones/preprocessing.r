@@ -68,8 +68,8 @@ noiseRemoval <- function(title){
                       )
                       )
            ),
-           tab_grafics("nremoval", tools_general_grafics("radio5", "note5", "save5", "cancel5",
-                                                 "download5", uiOutput("slider_nremoval"), uiOutput("slider_nremoval2")))
+           tab_grafics("nremoval", tools_general_grafics("radio_nremoval", "note5", "save5", "cancel5",
+                                                 "download_plotNoise", uiOutput("slider_nremoval"), uiOutput("slider_nremoval2")))
            )
     )
   
@@ -102,7 +102,8 @@ localOutlier <- function(title){
           hr(),
           #numericInput("threshold", label = h4("Threshold"), value = 1.25, step = 0.01)
           uiOutput("sliderLOF"),
-          tags$div(class = 'col-sm-2', bsButton("delete_lof", label="Delete Outliers", style = "success"))
+          bsButton("delete_lof", label="Delete Outliers", style = "success"),
+          downloadPlot("radio_lof", "download_plotLOF")
         ),
         column(width = 6,
           h4("The positions of the outliers"),

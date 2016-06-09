@@ -394,18 +394,18 @@ server <- function(input, output, session) {
   #   #print("x2",str(x))
   # })
   
-  scatterPlot <- reactive({ #funcion que genera el scatterPlot
+  scatterPlot <- function(){ #funcion que genera el scatterPlot
     if(is.null(input$x_scatter) || is.na(input$x_scatter)){return()}
     if(is.null(input$y_scatter) || is.null(input$z_scatter)){return()}
     #paleta de colores para el gráfico
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      ScatterplotMatrix(DATA_SET$data, c(input$x_scatter[1]:input$x_scatter[2]), DATA_SET$data[,input$y_scatter],
+      ScatterplotMatrix(DATA_SET$data[,-input$y_scatter], c(input$x_scatter[1]:input$x_scatter[2]), DATA_SET$data[,input$y_scatter],
                         names(DATA_SET$data)[[input$y_scatter]], as.numeric(input$pointSizeScatter), input$alphaPointScatter,
                         colours = myPalette)
     })
-  })
+  }
   
   #Grafico correspondiente a scatterPlot 
   output$scatter_plot <- renderPlot({
@@ -422,7 +422,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_Scatterplot <- downloadGeneral(input$radio_Scatterplot, output$scatter_plot, DATA_SET$name)
+    output$download_Scatterplot <- downloadGeneral(input$radio_Scatterplot, scatterPlot(), DATA_SET$name)
   })
   
   #Slider visualizacion grafico parallel x e y
@@ -545,7 +545,7 @@ server <- function(input, output, session) {
   
   #-------------->dowload image plot
   observe({
-    output$download_boxplot <- downloadGeneral(input$radio_boxplot, boxPlotfunction(), DATA_SET$name)
+    output$download_boxplot <- downloadGeneral(input$radio_boxplot, matrixplot(data_boxPlot()), DATA_SET$name)
   })
   
   #Slider visualizacion grafico de missing VIM option2
@@ -666,12 +666,7 @@ server <- function(input, output, session) {
     }
   })
   
-  #grafico de ruido
-  output$nremoval <- renderPlot({
-    if(is.null(input$attributes_nremoval) || is.na(input$attributes_nremoval)){
-      return()
-    }
-    if(cantCol_nominal(DATA_SET$data) > 0){return()}
+  plotNremoval <- function(){
     myPalette <- c(input$col1, input$col2, input$col3)
     # A ParallelPlot of all rows and all columns
     withProgress({
@@ -679,6 +674,21 @@ server <- function(input, output, session) {
       ParallelPlot(datNremovalx(), seq(1,nrow(datNremovalx()),1), seq(1,ncol(datNremovalx()),1), datNremovaly(), 
                    names(DATA_SET$data)[[input$response_nremoval]], as.numeric(input$lineSizeNremoval), input$alphaLineNremoval, TRUE, colours = myPalette)
     })
+  }
+  
+  #grafico de ruido
+  output$nremoval <- renderPlot({
+    if(is.null(input$attributes_nremoval) || is.na(input$attributes_nremoval)){
+      return()
+    }
+    if(cantCol_nominal(DATA_SET$data) > 0){return()}
+    #grafico del ruido
+    plotNremoval()
+  })
+  
+  #-------------->dowload image plot
+  observe({
+    output$download_plotNoise <- downloadGeneral(input$radio_nremoval, plotNremoval(), DATA_SET$name)
   })
   
   #Calcular el numero de columnas con ruido
@@ -741,7 +751,7 @@ server <- function(input, output, session) {
   
   #llamado a la funcion lof, la cual devuelve una lista
   res_lof <- reactive({
-    if(is.na(outlier.scores()) || is.null(outlier.scores())){return}
+    if(is.na(outlier.scores()) || is.null(outlier.scores())){return()}
     else{
       if(!is.null(input$thresholdt)){
         LOFCraft(data = DATA_SET$data, threshold = input$thresholdt, data.frame(outlier.scores())) ##calling LOF
@@ -757,9 +767,8 @@ server <- function(input, output, session) {
     data.frame(res_lof()[1]) ## scores of data without outliers
   })
   
-  #grafico inicial density plot
-  output$densityPlot <- renderPlot({
-    if(is.null(outlier.scores())){return()}
+  #funcion que genera el grafico de densidad original
+  lof_plot1 <- function(){
     tryCatch({
       withProgress({
         closeAlert(session, "alertlof1ID")
@@ -770,11 +779,16 @@ server <- function(input, output, session) {
       createAlert(session, "alertlof1", "alertlof1ID", title = titleAlert,
                   content = paste("",e), style = "warning")
     })
+  }
+  
+  #grafico inicial density plot
+  output$densityPlot <- renderPlot({
+    if(is.null(outlier.scores())){return()}
+    lof_plot1()
   })
   
-  #Grafico resultante tras realizar corte del primer density
-  output$densityPlotResult <- renderPlot({
-    if(is.null(outlier.scores()) || is.null(withoutOutliers.scores()) ){return()}
+  #funcion que genera el grafico de densidad tras el corte
+  lof_plot2 <- function(){
     tryCatch({
       withProgress({
         closeAlert(session, "alertlof2ID")
@@ -785,6 +799,17 @@ server <- function(input, output, session) {
       createAlert(session, "alertlof2", "alertlof2ID", title = titleAlert,
                   content = paste("",e), style = "warning")
     })
+  }
+  
+  #Grafico resultante tras realizar corte del primer density
+  output$densityPlotResult <- renderPlot({
+    if(is.null(outlier.scores()) || is.null(withoutOutliers.scores()) ){return()}
+    lof_plot2()
+  })
+  
+  #-------------->dowload image plot
+  observe({
+    output$download_plotLOF <- downloadTwoPlot(input$radio_lof, lof_plot1(), lof_plot2(), DATA_SET$name)
   })
   
   #Cantidad de outlier existentes

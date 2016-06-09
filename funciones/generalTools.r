@@ -7,14 +7,7 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
            #Tipo de slider correspondiente (con rango o sin rango)
            slider_type,
            slider_type2,
-           box(
-             title = "Download image", width = 4, solidHeader = TRUE, status = "success",
-             #background = "orange",
-             radioButtons(radio,NULL,
-                          choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
-                          selected = 1),
-             downloadButton(download, "Download", class = "btn-success")
-           )
+           downloadPlot(radio, download)
            # #box para los apuntes
            # box(
            #   title = "Notes", width = 4, solidHeader = TRUE, status = "success",
@@ -24,6 +17,18 @@ tools_general_grafics <- function(radio, note, save, cancel, download, slider_ty
            #   )
            # )
       )
+  )
+}
+
+#funcion que retorna a vista para descargar un grafico
+downloadPlot <- function(idradio, iddownload){
+  box(
+    title = "Download image", width = 6, solidHeader = TRUE, status = "success",
+    #background = "orange",
+    radioButtons(idradio,NULL,
+                 choices = list("PNG" = 1, "SVG" = 2, "PDF" = 3), 
+                 selected = 1),
+    downloadButton(iddownload, "Download", class = "btn-success")
   )
 }
 
@@ -86,6 +91,41 @@ downloadGeneral <- function(option, plot, name){
  )
 }
 
+downloadTwoPlot <- function(option, plot1, plot2, name){
+  switch (option,
+          "1" = downloadHandler(
+            filename = paste(name, '.png', sep=''), #nombre de la imagen a descargar
+            content = function(file) {
+              png(file)
+              par(mfrow=c(1,2))
+               print(plot2)
+               print(plot2)
+              dev.off()
+            }
+          ),
+          "2" = downloadHandler(
+            filename = paste(name, '.svg', sep=''), #nombre de la imagen a descargar
+            content = function(file) {
+              svg(file)
+              par(mfrow=c(1,2))
+              print(plot1)
+              print(plot2)
+              dev.off()
+            }
+          ),
+          "3" = downloadHandler(
+            filename = paste(name, '.pdf', sep=''), #nombre del pdf a descargar
+            content = function(file) {
+              pdf(file = file, width=10, height=8)
+              par(mfrow=c(1,2))
+              print(plot1)
+              print(plot2)
+              dev.off()
+            }
+          )
+  )
+}
+
 #funcion contenedora de dos Slider
 twoSlider <- function(x, y, file, xname, yname){
   box(
@@ -103,13 +143,13 @@ treeSlider <- function(x, y, z, file, xname, yname, zname, MS){
   box(
     width = 6, status = "success",
     h4("Range"),
-    # if(MS){
-    #   sliderInput(x, label = xname, min = 1, 
-    #               max = ncol(file), value = c(1,4))
-    # }else{
+    if(MS){
+      sliderInput(x, label = xname, min = 1,
+                  max = ncol(file), value = c(1,4))
+    }else{
       sliderInput(x, label = xname, min = 1, 
-                  max = ncol(file), value = c(1,4)), 
-    #},
+                  max = ncol(file)-1, value = c(1,4)) 
+    },
     sliderInput(y, label = yname, min = 1, 
                 max = ncol(file), value = 3),
     sliderInput(z, label = zname, min = 1, 
