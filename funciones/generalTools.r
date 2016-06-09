@@ -103,17 +103,26 @@ treeSlider <- function(x, y, z, file, xname, yname, zname, MS){
   box(
     width = 6, status = "success",
     h4("Range"),
-    if(MS){
+    # if(MS){
+    #   sliderInput(x, label = xname, min = 1, 
+    #               max = ncol(file), value = c(1,4))
+    # }else{
       sliderInput(x, label = xname, min = 1, 
-                  max = ncol(file), value = c(1,4))
-    }else{
-      sliderInput(x, label = xname, min = 1, 
-                  max = ncol(file)-1, value = c(1,4)) 
-    },
+                  max = ncol(file), value = c(1,4)), 
+    #},
     sliderInput(y, label = yname, min = 1, 
                 max = ncol(file), value = 3),
     sliderInput(z, label = zname, min = 1, 
                 max = nrow(file), value = c(1, nrow(file)))
+  )
+}
+
+sizeAndAlpha <- function(a,b, aname, bname){
+  column(12,
+    sliderInput(a, label = aname, min = 0.5, 
+                max = 5, value = 2),
+    sliderInput(b, label = bname, min = 0.01, 
+                max = 0.99, value = 0.20)
   )
 }
 

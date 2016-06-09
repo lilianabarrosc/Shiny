@@ -78,7 +78,7 @@ tabsVisualization <- function(title, tab1, tab2) {
                       bsAlert("alertScatter"),
                       tab_grafics("scatter_plot",  tools_general_grafics("radio_Scatterplot", "note0", "save0", "cancel0",
                                                                      "download_Scatterplot", uiOutput("slider_Scatterplot"), 
-                                                                     NULL))
+                                                                     uiOutput("slider_SatterplotSize")))
              ),
              tabPanel(tab2, 
                       #contenido del tab2 = parallel grafics

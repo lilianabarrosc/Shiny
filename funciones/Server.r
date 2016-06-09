@@ -44,115 +44,115 @@ server <- function(input, output, session) {
   
   #---------------> login
   
-  #inicio la variable user
-  USER <- reactiveValues(Logged = FALSE, role=NULL)
-  #se valida el nombre del usuario con la contraseña ingresada
-  #observe({
-  observeEvent(input$Login, {
-    #obtencion de user y password desde la bd
-    if (USER$Logged == FALSE) {
-      #       if (!is.null(input$Login)) {
-      #         if (input$Login > 0 ) {
-      if (input$userName != "" & input$passwd != ""){ 
-        #se obtienen los valores ingresados
-        Username <- "admin"#isolate(input$userName)
-        Password <- isolate(input$passwd)
-        
-        sql <- paste("select password from user_guinia where user_name ='",
-                     Username, "'")
-        tryCatch({
-          rs <- dbSendQuery(con, sql)
-          #obtengo el valor de la bd
-          my_password <- fetch(rs,n=-1) #la funcion fetch() devuelve un frame
-          #print(paste(">>>",dbGetStatement(rs)))
-          if (nrow(my_password) > 0){ #length(Id.username) > 0 & length(Id.password) > 0) {
-            #Se comparan los valores obtenidos con los registros
-            if (as.character(my_password) == Password){ #Id.username == Id.password) { #si ambas variables son true el usuario es valido
-              closeAlert(session, "alertLoginID")
-              USER$Logged <- TRUE
-              USER$role=get_role(Username)
-              desconexionbd(con, drv)
-            }
-            else{ #la contraseña no coinside
-              createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                          content = "Username and password do not match.", 
-                          style = "warning", append = FALSE)
-            }
-          }
-        },error = function(e) {
-          print(e)
-          createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                      content = "Username does not exist", 
-                      style = "warning", append = FALSE)
-        })
-      }else { #existen campos vacios
-        createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
-                    content = "There are empty fields.", 
-                    style = "warning", append = FALSE)
-      }
-      #         }
-      #       }
-    }
-  })
-  
-  #Se muestran las opciones correspondientes para un usuario logeado o no
-  observe({
-    if(USER$Logged == FALSE){ # si no esta logeado, solo se muestra el home
-      output$signIn <- renderUI({
-        loginRegister()
-      })
-      #menu del sidebar
-      # output$side <- renderMenu({
-      #   sidebar(FALSE)
-      # })
-    }
-    if(USER$Logged == TRUE){ # el usuario esta logeado, se muestran todas las opciones
-      output$signIn <- renderUI({
-        fluidPage(
-          titlePanel("Welcome!")
-        )
-      })
-      #menu del sidebar
-      # output$side <- renderMenu({
-      #   sidebar(TRUE, USER$role)
-      # })
-    }
-  })
-  
-  #---------------> Register
-  observe({
-    if (!is.null(input$register)) {
-      if (input$register > 0) { # se presiona el boton para registrarse
-        if(input$newUserName == "" || input$name == "" || input$lastName == ""
-           || input$email == "" || input$newPasswd == "" || input$confirmPasswd == ""){
-          createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
-                      content = "All fields marked with * are required.", 
-                      style = "warning", append = FALSE)
-        }else if(input$newPasswd != input$confirmPasswd){
-          createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
-                      content = "Password and confirm password do not match.", 
-                      style = "warning",  append = FALSE)
-        }else{ #Se puede registrar
-          closeAlert(session, "alertRegisterID")
-          #registro en la bd
-          inputs <- paste(isolate(input$newUserName),isolate(input$name),isolate(input$lastName),
-                          isolate(input$email),isolate(input$newPasswd), sep = "','")
-          sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values ('",
-                       inputs, "')")
-          tryCatch({
-            rs <- dbSendQuery(con, sql)
-            session$onSessionEnded(desconexionbd(con, drv))
-            USER$Logged <- TRUE
-          },error = function(e) {
-            createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
-                        content = "Username already exists.", 
-                        style = "warning", append = FALSE)
-          })
-          #rs <- dbSendQuery(con, sql) #dbSendQuery(con, "insert into user_guinia (user_name,password) values ('user','1234')") 
-        }
-      }
-    }
-  })
+  # #inicio la variable user
+  # USER <- reactiveValues(Logged = FALSE, role=NULL)
+  # #se valida el nombre del usuario con la contraseña ingresada
+  # #observe({
+  # observeEvent(input$Login, {
+  #   #obtencion de user y password desde la bd
+  #   if (USER$Logged == FALSE) {
+  #     #       if (!is.null(input$Login)) {
+  #     #         if (input$Login > 0 ) {
+  #     if (input$userName != "" & input$passwd != ""){ 
+  #       #se obtienen los valores ingresados
+  #       Username <- "admin"#isolate(input$userName)
+  #       Password <- isolate(input$passwd)
+  #       
+  #       sql <- paste("select password from user_guinia where user_name ='",
+  #                    Username, "'")
+  #       tryCatch({
+  #         rs <- dbSendQuery(con, sql)
+  #         #obtengo el valor de la bd
+  #         my_password <- fetch(rs,n=-1) #la funcion fetch() devuelve un frame
+  #         #print(paste(">>>",dbGetStatement(rs)))
+  #         if (nrow(my_password) > 0){ #length(Id.username) > 0 & length(Id.password) > 0) {
+  #           #Se comparan los valores obtenidos con los registros
+  #           if (as.character(my_password) == Password){ #Id.username == Id.password) { #si ambas variables son true el usuario es valido
+  #             closeAlert(session, "alertLoginID")
+  #             USER$Logged <- TRUE
+  #             USER$role=get_role(Username)
+  #             desconexionbd(con, drv)
+  #           }
+  #           else{ #la contraseña no coinside
+  #             createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+  #                         content = "Username and password do not match.", 
+  #                         style = "warning", append = FALSE)
+  #           }
+  #         }
+  #       },error = function(e) {
+  #         print(e)
+  #         createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+  #                     content = "Username does not exist", 
+  #                     style = "warning", append = FALSE)
+  #       })
+  #     }else { #existen campos vacios
+  #       createAlert(session, "alertLogin", "alertLoginID", title = titleAlert,
+  #                   content = "There are empty fields.", 
+  #                   style = "warning", append = FALSE)
+  #     }
+  #     #         }
+  #     #       }
+  #   }
+  # })
+  # 
+  # #Se muestran las opciones correspondientes para un usuario logeado o no
+  # observe({
+  #   if(USER$Logged == FALSE){ # si no esta logeado, solo se muestra el home
+  #     output$signIn <- renderUI({
+  #       loginRegister()
+  #     })
+  #     #menu del sidebar
+  #     # output$side <- renderMenu({
+  #     #   sidebar(FALSE)
+  #     # })
+  #   }
+  #   if(USER$Logged == TRUE){ # el usuario esta logeado, se muestran todas las opciones
+  #     output$signIn <- renderUI({
+  #       fluidPage(
+  #         titlePanel("Welcome!")
+  #       )
+  #     })
+  #     #menu del sidebar
+  #     # output$side <- renderMenu({
+  #     #   sidebar(TRUE, USER$role)
+  #     # })
+  #   }
+  # })
+  # 
+  # #---------------> Register
+  # observe({
+  #   if (!is.null(input$register)) {
+  #     if (input$register > 0) { # se presiona el boton para registrarse
+  #       if(input$newUserName == "" || input$name == "" || input$lastName == ""
+  #          || input$email == "" || input$newPasswd == "" || input$confirmPasswd == ""){
+  #         createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
+  #                     content = "All fields marked with * are required.", 
+  #                     style = "warning", append = FALSE)
+  #       }else if(input$newPasswd != input$confirmPasswd){
+  #         createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
+  #                     content = "Password and confirm password do not match.", 
+  #                     style = "warning",  append = FALSE)
+  #       }else{ #Se puede registrar
+  #         closeAlert(session, "alertRegisterID")
+  #         #registro en la bd
+  #         inputs <- paste(isolate(input$newUserName),isolate(input$name),isolate(input$lastName),
+  #                         isolate(input$email),isolate(input$newPasswd), sep = "','")
+  #         sql <- paste("insert into user_guinia (user_name,name,last_name,email,password) values ('",
+  #                      inputs, "')")
+  #         tryCatch({
+  #           rs <- dbSendQuery(con, sql)
+  #           session$onSessionEnded(desconexionbd(con, drv))
+  #           USER$Logged <- TRUE
+  #         },error = function(e) {
+  #           createAlert(session, "alertRegister", "alertRegisterID", title = titleAlert,
+  #                       content = "Username already exists.", 
+  #                       style = "warning", append = FALSE)
+  #         })
+  #         #rs <- dbSendQuery(con, sql) #dbSendQuery(con, "insert into user_guinia (user_name,password) values ('user','1234')") 
+  #       }
+  #     }
+  #   }
+  # })
   
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
@@ -376,23 +376,34 @@ server <- function(input, output, session) {
     treeSlider("x_scatter", "y_scatter", "z_scatter", DATA_SET$data, strx, stry, strz, FALSE)
   })
   
-  #seleccion de atributos y observaciones del data set
-  dat_Scatterplot <- reactive({
+  output$slider_SatterplotSize <- renderUI({
     if(is.null(DATA_SET$data)){return()}
-    x <- DATA_SET$data[,-input$y_scatter]
-    x[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
+    box(
+      width = 6, status = "success", h4("Range"),
+      sizeAndAlpha("pointSizeScatter","alphaPointScatter", 
+                   "Point Size", "Alpha Point")
+    )
   })
+  #seleccion de atributos y observaciones del data set
+  # dat_Scatterplot <- reactive({
+  #   if(is.null(DATA_SET$data)){return()}
+  #   if(is.null(input$y_scatter) || is.null(input$x_scatter) || is.null(input$z_scatter)){return()}
+  #   x <- DATA_SET$data[,-input$y_scatter]
+  #   
+  #   x[input$z_scatter[1]:input$z_scatter[2],input$x_scatter[1]:input$x_scatter[2]]
+  #   #print("x2",str(x))
+  # })
   
   scatterPlot <- reactive({ #funcion que genera el scatterPlot
-    if(is.null(input$x_scatter) || is.na(input$x_scatter)){
-      return()
-    }
+    if(is.null(input$x_scatter) || is.na(input$x_scatter)){return()}
+    if(is.null(input$y_scatter) || is.null(input$z_scatter)){return()}
     #paleta de colores para el gráfico
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
-      ScatterplotMatrix(dat_Scatterplot(), c(input$x_scatter[1]:input$x_scatter[2]), DATA_SET$data[,input$y_scatter], 
-                        names(DATA_SET$data)[[input$y_scatter]], colours = myPalette)
+      ScatterplotMatrix(DATA_SET$data, c(input$x_scatter[1]:input$x_scatter[2]), DATA_SET$data[,input$y_scatter],
+                        names(DATA_SET$data)[[input$y_scatter]], as.numeric(input$pointSizeScatter), input$alphaPointScatter,
+                        colours = myPalette)
     })
   })
   
@@ -402,8 +413,9 @@ server <- function(input, output, session) {
       closeAlert(session, "alertScatterID")
       scatterPlot()
     }, error = function(e) {
-      createAlert(session, "alertScatter", "alertScatterID", title = titleAlert,
-                  content = paste("",e), style = "warning")
+      print(e)
+    createAlert(session, "alertScatter", "alertScatterID", title = titleAlert,
+                content = paste("",e), style = "warning")
     })
     
   })
@@ -434,10 +446,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("z_parallel", label = strz, min = 1, 
                   max = nrow(DATA_SET$data), value = c(1, nrow(DATA_SET$data))),
-#       sliderInput("lineSize", label = "Line Size", min = 1, 
-#                   max = 5, value = 2),
-      sliderInput("alphaLine", label = "Alpha Line", min = 0.01, 
-                  max = 0.99, value = 0.11)
+      sizeAndAlpha("lineSize","alphaLine", "Line Size", "Alpha Line")
     )
   })
   
@@ -464,7 +473,7 @@ server <- function(input, output, session) {
     withProgress({
       setProgress(message = "This may take a while...")
       ParallelPlot(data_Parallelx(), seq(1,nrow(data_Parallelx()),1), seq(1,ncol(data_Parallelx()),1), data_Parallely(), 
-                   names(DATA_SET$data)[[input$y_parallel]], 1, input$alphaLine, TRUE, colours = myPalette)
+                   names(DATA_SET$data)[[input$y_parallel]], as.numeric(input$lineSize), input$alphaLine, TRUE, colours = myPalette)
     })
   })
   
@@ -634,10 +643,7 @@ server <- function(input, output, session) {
       h4("Range"),
       sliderInput("observations_removal", label = strz, min = 1, 
                   max = nrow(DATA_SET$data), value = c(1, nrow(DATA_SET$data))),
-      #       sliderInput("lineSizeNremoval", label = "Line Size", min = 1, 
-      #                   max = 5, value = 2),
-      sliderInput("alphaLineNremoval", label = "Alpha Line", min = 0.01, 
-                  max = 0.99, value = 0.11)
+      sizeAndAlpha("lineSizeNremoval","alphaLineNremoval", "Line Size", "Alpha Line")
     )
   })
   
@@ -671,7 +677,7 @@ server <- function(input, output, session) {
     withProgress({
       setProgress(message = "This may take a while...")
       ParallelPlot(datNremovalx(), seq(1,nrow(datNremovalx()),1), seq(1,ncol(datNremovalx()),1), datNremovaly(), 
-                   names(DATA_SET$data)[[input$response_nremoval]], 1, input$alphaLineNremoval, TRUE, colours = myPalette)
+                   names(DATA_SET$data)[[input$response_nremoval]], as.numeric(input$lineSizeNremoval), input$alphaLineNremoval, TRUE, colours = myPalette)
     })
   })
   
