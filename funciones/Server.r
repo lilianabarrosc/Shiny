@@ -955,7 +955,13 @@ server <- function(input, output, session) {
     }
     withProgress({
       setProgress(message = "This may take a while...")
-      elbowPlot(pca())
+      # p1 <- elbowPlot(pca()) #Proportion of Variance Explained
+      # p2 <- CumulativeVariances_plot(pca())
+      # grid.arrange( p1, p2, ncol=2)
+      pve=100*pca()$sdev^2/sum(pca()$sdev^2)
+      par(mfrow=c(1,2))
+      plot(pve,  type="o", ylab="PVE", xlab="Principal Component", col="blue")
+      plot(cumsum(pve), type="o", ylab="Cumulative PVE", xlab="Principal Component", col="brown3")
     })
   }
   

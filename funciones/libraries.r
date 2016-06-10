@@ -44,5 +44,9 @@ LoadLibraries <- function(){
   library('randomGLM') #libreria para utilizar RGML
   #install.packages("FSelector")
   library('FSelector') #libreria para attribute selector
+  #install.packages("grid")
+  library('grid')#libreria para ver varios graficos ggplot en una pagina
+  #install.packages("gridExtra")
+  library('gridExtra') #libreria para ver varios graficos ggplot en una pagina
   print("The libraries have been loaded.")
 }

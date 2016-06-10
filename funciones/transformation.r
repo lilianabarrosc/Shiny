@@ -140,3 +140,29 @@ type_normalization <- function(){
        "positional normalization ((x-median)/sqrt(sum((x-median)^2)))" = "n12a",
        "normalization with zero being the central point ((x-midrange)/(range/2))" = "n13"))
 }
+
+CumulativeVariances_plot <- function(data.pca){
+  #grafico en ggplot
+  rowsData <- length(data.pca$sdev)
+  seqRow <- seq(from = 1, to = rowsData, length.out = rowsData)
+  
+  dataPlot <- data.frame(seqRow, data.pca$sdev)
+  names(dataPlot) <- c("PCA", "Variances")
+  if (nrow(dataPlot)>10) {
+    dataPlot <- dataPlot[1:10,]
+  }
+  dataPlot <- CalculateVariance(dataPlot, 2)
+  dataPlot[,2] <- cumsum(dataPlot[,2]) 
+  
+  p2 <- ggplot(data = dataPlot, aes(x = PCA, y = Variances, group = 1)) +
+    geom_line(colour = "dodgerblue4", alpha = 0.5, size = 1) +
+    geom_point(colour = "dodgerblue4", size = 2, alpha = 0.5) +
+    expand_limits(y = 0) +
+    xlab("PCs") + ylab("Cumulative variances") +
+    scale_x_continuous(breaks = dataPlot$PCA) +
+    theme(panel.grid.minor = element_blank(), #remove gridlines
+          legend.position = "bottom" #legend at the bottom
+    )
+  
+  return(p2)
+}

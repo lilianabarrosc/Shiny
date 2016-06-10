@@ -9,8 +9,11 @@ tabsDiagnosticP <- function(title, tab1, tab2, tab3, tab4) {
                 <li>Linear model evaluation</li>
                 <li>Diagnostic Plots</li>
                 </ul>'),
-           helpText("The disgnostic plots are a visualization tool for analyzing <b>linear models</b>.
-                    They focus on how residuals could show how poorly a model represents the data."),
+           column(12,
+               p("The disgnostic plots are a visualization tool for analyzing",
+               tags$b("linear models"),
+               "They focus on how residuals could show how poorly a model represents the data.")
+           ),
            tabBox(
              title = title, width = 12, id = "tabset2",
              "Once you have the actual value and the one predicted by the learning model, it is possible to plot 

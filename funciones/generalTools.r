@@ -97,9 +97,7 @@ downloadTwoPlot <- function(option, plot1, plot2, name){
             filename = paste(name, '.png', sep=''), #nombre de la imagen a descargar
             content = function(file) {
               png(file)
-              par(mfrow=c(1,2))
-               print(plot2)
-               print(plot2)
+              grid.arrange( plot1, plot2, ncol=2)
               dev.off()
             }
           ),
@@ -108,8 +106,7 @@ downloadTwoPlot <- function(option, plot1, plot2, name){
             content = function(file) {
               svg(file)
               par(mfrow=c(1,2))
-              print(plot1)
-              print(plot2)
+              grid.arrange( plot1, plot2, ncol=2)
               dev.off()
             }
           ),
@@ -118,8 +115,7 @@ downloadTwoPlot <- function(option, plot1, plot2, name){
             content = function(file) {
               pdf(file = file, width=10, height=8)
               par(mfrow=c(1,2))
-              print(plot1)
-              print(plot2)
+              grid.arrange( plot1, plot2, ncol=2)
               dev.off()
             }
           )
