@@ -58,7 +58,7 @@ body <- dashboardBody(includeCSS("css/styles.css"),
                                 localOutlier("Local outlier factor")
                         ),
                         tabItem(tabName = "nremoval",
-                                noiseRemoval("")
+                                noiseRemoval("Noise removal")
                         ),
                         #Inicio tabs Transformacion (funcionalidades en el archivo transformation.r)
                         tabItem(tabName = "normalization",

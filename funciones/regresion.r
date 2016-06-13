@@ -199,6 +199,6 @@ predictors <- function(dataSet, x, y){
       return (dataSet[, !names(dataSet) %in% y])
     }else{
       predictors <- dataSet[, !names(dataSet) %in% y]
-      return(predictors[,x])
+      return(predictors[,!names(predictors) %in% x])
     }
 }

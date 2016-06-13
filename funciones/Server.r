@@ -504,7 +504,8 @@ server <- function(input, output, session) {
   })
   
   output$sumMV <- renderUI({
-    helpText("The data set contains",sum(is.na(DATA_SET$data)), "missing values.")
+    helpText("The data set contains", nrow(DATA_SET$data[!complete.cases(DATA_SET$data),]),
+             "missing values.")
   })
   
   #Slider visualizacion grafico de missing values
@@ -571,7 +572,7 @@ server <- function(input, output, session) {
       withProgress({
         setProgress(message = "This may take a while...")
         aggr(data_histogramPlot(), col=c('dark grey','red'), numbers=TRUE, 
-             sortVars=TRUE, labels=names(data), cex.axis=.8, gap=1, 
+             sortVars=TRUE, labels=names(data_histogramPlot()), cex.axis=.8, gap=1, 
              ylab=c("Histogram of missing data","Pattern"))
       })
     }, error = function(e) {
@@ -651,7 +652,7 @@ server <- function(input, output, session) {
   datNremovalx <- reactive({
     if(is.null(DATA_SET$data)){return()}
     if(cantCol_nominal(DATA_SET$data) == 0){
-      closeAlert(session, "alertlofID")
+      closeAlert(session, "alertNoise")
       x <- DATA_SET$data[,-input$response_nremoval]
       x[input$observations_removal[1]:input$observations_removal[2],
                input$attributes_nremoval[1]:input$attributes_nremoval[2]]
@@ -746,7 +747,7 @@ server <- function(input, output, session) {
     minimo <- round(min(outlier.scores()), digits=2)
     maximo <- round(max(outlier.scores()), digits=2)
     sliderInput("thresholdt", "Threshold", min = minimo,
-                max = maximo, value = 1.25, step= 0.01)
+                max = maximo, value = (minimo + maximo)/2, step= 0.01)
   })
   
   #llamado a la funcion lof, la cual devuelve una lista
@@ -851,7 +852,7 @@ server <- function(input, output, session) {
     if (is.null(input$normalizationType) || is.null(DATA_SET$data))
       return()
     switch(input$normalizationType,
-           '2' =  tags$div( class = 'col-sm-8',
+           '1' =  tags$div( class = 'col-sm-8',
                             tags$div( class = 'col-sm-4',
                                       numericInput("min", label = "Min", value = 0)
                             ),
@@ -888,11 +889,11 @@ server <- function(input, output, session) {
     switch(input$normalizationType,
            '1'=  withProgress({
              setProgress(message = "This may take a while...")
-             normalizeData(DATA_SET$data)
+             normalizeData(DATA_SET$data, input$min, input$max)
            }),
            '2'=  withProgress({
              setProgress(message = "This may take a while...")
-             normalizeData(DATA_SET$data, input$min, input$max)
+             normalizeData(DATA_SET$data)
            }),
            '3'=  withProgress({
              setProgress(message = "This may take a while...") 
@@ -1045,8 +1046,8 @@ server <- function(input, output, session) {
   
   #calculos de los pesos de las variables
   weights <- reactive({
-    if(is.null(input$attributeS_response)) {return()}
-    (fmla <- as.formula(paste(paste(input$attributeS_response, " ~ "), ".")))
+    if(is.null(input$attributeS_response) || is.na(input$attributeS_response)) {return()}
+    (fmla <- as.formula(paste(input$attributeS_response, " ~ ", ".", sep='')))
     information.gain(fmla, DATA_SET$data)
   })
   
@@ -1071,6 +1072,7 @@ server <- function(input, output, session) {
   #evento tras presionar el boton para aplicar cambios
   observeEvent(input$apply_attributeS,{
     atributte <- cutoff.k(weights(), input$attribute_num)
+    atributte[input$attribute_num+1] <- input$attributeS_response
     DATA_SET$data <- DATA_SET$data[, names(DATA_SET$data) %in% atributte]
   })
   
@@ -1127,7 +1129,7 @@ server <- function(input, output, session) {
   
   #tipo de validacion para el modelo
   validation_lm <- reactive({
-    tryCatch({
+    # tryCatch({
       if (is.null(input$validationType_lm) || is.null(model_lm()) || is.null(DATA_SET$data))
         return()
       if(input$validationType_lm == '2' && is.null(input$fileTest_lm))
@@ -1146,10 +1148,11 @@ server <- function(input, output, session) {
                    }
              
       )
-    }, error = function(e) {
-      createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
-                  content = paste("",e), style = "warning")
-    })
+    # }, error = function(e) {
+    #   print(e)
+    #   # createAlert(session, "alertValidation", "alertValidationID", title = titleAlert,
+    #   #             content = paste("",e), style = "warning")
+    # })
   })
   
   #resultado tras aplicar el metodo de validacion seleccionado

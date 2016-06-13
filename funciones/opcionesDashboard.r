@@ -27,8 +27,8 @@ sidebar <- function(isLogged, username) {
              ),
              menuItem("Preprocessing", tabName = "preprocessing", icon=shiny::icon("wrench"),
                       menuSubItem("Missing Values", tabName = "mvalues", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Local outlier factor", tabName = "outlier", icon = shiny::icon("angle-double-right")),
-                      menuSubItem("Noise removal", tabName = "nremoval", icon = shiny::icon("angle-double-right"))
+                      menuSubItem("Local Outlier Factor", tabName = "outlier", icon = shiny::icon("angle-double-right")),
+                      menuSubItem("Noise Removal", tabName = "nremoval", icon = shiny::icon("angle-double-right"))
              ),
              menuItem("Transformation", tabName = "transformation", icon=shiny::icon("sliders"),
                       menuSubItem("Normalization", tabName = "normalization", icon = shiny::icon("angle-double-right")),
