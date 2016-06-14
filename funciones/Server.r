@@ -20,6 +20,17 @@ server <- function(input, output, session) {
   titleAlertInfo <- "Congratulations"
   outputDir <- "file" #directorio donde se almacenan los data set
   
+  #Variable contiene el data set atualizado
+  DATA_SET <- reactiveValues(name = NULL, data = NULL, original.obs = NULL, 
+                             original.var = NULL)
+  
+  #variable que contiene las opciones de Preprocessing
+  PREPROCESSING <- reactiveValues(missingValues = NULL, mv=FALSE, outlier = NULL, out=FALSE, noiseR = NULL, noise = FALSE)
+  
+  #variable que contiene las opciones de transformación
+  TRANFORMATION <- reactiveValues(normalization = FALSE, pca = FALSE, pcs = NULL, selection.atributte = NULL, 
+                                  sAtributte = FALSE)
+  
   #--------------> logo
   output$logo <- renderImage({
     list(
@@ -156,9 +167,7 @@ server <- function(input, output, session) {
   
   #-------------------------------------------------------
   #-----------------------> data <-----------------------
-  #Variable contiene el data set atualizado
-  DATA_SET <- reactiveValues(name = NULL, data = NULL, original.obs = NULL, 
-                             original.var = NULL)
+  
   #variable que contiene la lista de data set contenidos en la app
   list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3),
                               data_setsID = list(iris, airquality, sleep))
@@ -269,6 +278,7 @@ server <- function(input, output, session) {
     DATA_SET$data <- file()
     DATA_SET$original.obs <- nrow(file())
     DATA_SET$original.var <- ncol(file())
+    PREPROCESSING$missingValues <- nrow(file()[!complete.cases(file()),])
   })
   
   #guardar el data set obtenido de upload
@@ -501,11 +511,13 @@ server <- function(input, output, session) {
   #---------------> Graficos correspondientes a missing values
   observeEvent(input$deleteMS,{
       DATA_SET$data <- na.omit(DATA_SET$data)
+      PREPROCESSING$mv <- TRUE
   })
   
   output$sumMV <- renderUI({
     helpText("The data set contains", nrow(DATA_SET$data[!complete.cases(DATA_SET$data),]),
              "missing values.")
+    
   })
   
   #Slider visualizacion grafico de missing values
@@ -716,8 +728,10 @@ server <- function(input, output, session) {
     }else{
       diffValues <- calculateDiff(DATA_SET$data)
       columnsNoise <- getColumnsNoise(diffValues, input$limitNoise)
+      PREPROCESSING$noiseR <- nrow(columnsNoise)
+      PREPROCESSING$noise <- TRUE
       #  columnsNoise <- as.data.frame(columnsNoise[,1] + ncol(missingV()))
-      DATA_SET$data[,-columnsNoise[,1]]
+      DATA_SET$data <- DATA_SET$data[,-columnsNoise[,1]]
     }
   })
   
@@ -828,7 +842,7 @@ server <- function(input, output, session) {
   #without outliers data
   output$strWithoutOutliers <- renderPrint({
     if(is.na(res_lof()) || is.null(res_lof())){return()}
-    dataWithoutOutliers<-data.frame(res_lof()[2])  ##the data without outliers
+    dataWithoutOutliers<-data.frame(res_lof()[2])  #the data without outliers
     str(dataWithoutOutliers)
   })
   
@@ -836,6 +850,8 @@ server <- function(input, output, session) {
   observeEvent(input$delete_lof, {
     if(is.null(res_lof())){return()}
     tryCatch({
+      PREPROCESSING$out <- TRUE
+      PREPROCESSING$outlier <- data.frame(res_lof()[4])
       DATA_SET$data <- data.frame(res_lof()[2])
     }, error = function(e) {
       print(e)
@@ -884,12 +900,13 @@ server <- function(input, output, session) {
   #obtengo el tipo de normalizacion seleccionada y aplico la normalizacion correspondiente
   normalization_type <- reactive({
     if (is.null(input$normalizationType) || cantCol_nominal(DATA_SET$data) > 0)
+        #|| is.null(input$type_normalization))
       return()
     closeAlert(session, "alertNormalizationID")
     switch(input$normalizationType,
            '1'=  withProgress({
              setProgress(message = "This may take a while...")
-             normalizeData(DATA_SET$data, input$min, input$max)
+             normalizeData(DATA_SET$data, as.numeric(input$min), input$max)
            }),
            '2'=  withProgress({
              setProgress(message = "This may take a while...")
@@ -923,6 +940,7 @@ server <- function(input, output, session) {
   #evento tras precionar el boton apply
   observeEvent(input$apply_normalization,{
     if(is.null(normalization_type())){ return()}
+    TRANFORMATION$normalization <- TRUE
     DATA_SET$data <- normalization_type()
     createAlert(session, "alertNormalizationApply", "alertNormalizationApplyID", title = titleAlertInfo,
                 content = "The normalization has been applied correctly.", style = "success")
@@ -980,6 +998,8 @@ server <- function(input, output, session) {
   #data luego de aplicar un metodo de reduccion como pca
   observeEvent(input$reduceDim, {
     if(is.null(data_pca())){return()}
+    TRANFORMATION$pca <- TRUE
+    TRANFORMATION$pcs <- summary(pca())
     DATA_SET$data <- data_pca()
   })
   
@@ -1057,7 +1077,7 @@ server <- function(input, output, session) {
     weights()
   })
   
-  #indica ordenado las mejores variables del dataSet
+  #lista ordenada de las mejores variables del dataSet
   output$print_subset <- renderPrint({
     if( is.null(weights())) {return()}
     cutoff.k(weights(), input$attribute_num)
@@ -1073,6 +1093,8 @@ server <- function(input, output, session) {
   observeEvent(input$apply_attributeS,{
     atributte <- cutoff.k(weights(), input$attribute_num)
     atributte[input$attribute_num+1] <- input$attributeS_response
+    TRANFORMATION$sAtributte <- TRUE
+    TRANFORMATION$selection.atributte <- atributte
     DATA_SET$data <- DATA_SET$data[, names(DATA_SET$data) %in% atributte]
   })
   
@@ -1162,14 +1184,19 @@ server <- function(input, output, session) {
     }
   })
   
-  #resultado grafico de la prediccion realizada
-  output$plotValitation_lm <- renderPlot({
+  #creación del gráfico de la prediccion
+  plotValitation_lm1 <- reactive({
     if(is.null(validation_lm())){return()}
     if(input$validationType_lm == '3'){
       simplePlot(validation_lm(),  DATA_SET$data[-train_lm(),input$lm_response], 2, 1, input$lm_response, 2, 0.9)
     }else{
       simplePlot(validation_lm(),  DATA_SET$data[,input$lm_response], 2, 1, input$lm_response, 2, 0.9)
     }
+  })
+  
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_lm <- renderPlot({
+    plotValitation_lm1()
   })
   
   #***** Colinearity Test lm
@@ -1316,10 +1343,15 @@ server <- function(input, output, session) {
     coefplot(model_pls(), ncom = 1:input$comp_pls, legendpos = "bottomright")
   })
   
-  #grafico correspondiente a la predicción del modelo pls
-  output$plotPred <- renderPlot({
+  #contrucción del grafico de prediccion para el modelo
+  plotPred_pls <- reactive({
     if(is.null(model_pls())){ return()}
     predplot(model_pls(), ncomp = 1:input$comp_pls)
+  })
+  
+  #grafico correspondiente a la predicción del modelo pls
+  output$plotPred <- renderPlot({
+    plotPred_pls()
   })
   #-----------------------> ridge
   
@@ -1447,14 +1479,19 @@ server <- function(input, output, session) {
       validation_ridge()
   })
   
-  #resultado grafico de la prediccion realizada
-  output$plotValitation_ridge <- renderPlot({
+  #construccion del grafico de prediccion para el modelo
+  plotValitation_ridge1 <- reactive({
     if(is.null(validation_ridge())){ return()}
     if(input$validationType_ridge =='3'){
       simplePlot(validation_ridge(),  DATA_SET$data[-train_ridge(),input$ridge_response], 2, 1, input$ridge_response, 2, 0.9)
     }else{
       simplePlot(validation_ridge(),  DATA_SET$data[,input$ridge_response], 2, 1, input$ridge_response, 2, 0.9)
     }
+  })
+  
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_ridge <- renderPlot({
+    plotValitation_ridge1()
   })
   
   #-----------------------> rglm
@@ -1545,8 +1582,8 @@ server <- function(input, output, session) {
       na.omit(validation_rglm())
   })
   
-  #resultado grafico de la prediccion realizada
-  output$plotValitation_rglm <- renderPlot({
+  #construccion dle grafico de prediccion para el modelo
+  plotValitation_rglm1 <- reactive({
     if(is.null(validation_rglm())){ return()}
     if(input$validationType_rglm == '3'){
       simplePlot(validation_rglm(),  DATA_SET$data[train_rglm(),input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
@@ -1555,19 +1592,24 @@ server <- function(input, output, session) {
     }
   })
   
+  #resultado grafico de la prediccion realizada
+  output$plotValitation_rglm <- renderPlot({
+    plotValitation_rglm1()
+  })
+  
   #-------------------------------------------------------
   #-----------------------> Linear Model Evaluation <-----------------------
   
   #-----------------------> Diagnostic Plots
   
   diagnostic <- reactive({
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     diagnosticData(model_lm())
   })
   
   #funcion para el grafico residual vs fitted
   plotRF <- function(){
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
@@ -1588,7 +1630,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$ResidualsFitted_brushInfo <- renderPrint({
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     brushedPoints(diagnostic(), input$ResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
@@ -1599,7 +1641,7 @@ server <- function(input, output, session) {
   
   #funcion para el grafico Standarized Residuals v/s Fitted Values
   plotSF <- function(){
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
@@ -1620,7 +1662,7 @@ server <- function(input, output, session) {
   
   #muestra informacion de los puntos seleccionados
   output$StResidualsFitted_brushInfo <- renderPrint({
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     brushedPoints(diagnostic(), input$StResidualsFitted_brush)[1:dim(DATA_SET$data)[2]]
   })
   
@@ -1631,7 +1673,7 @@ server <- function(input, output, session) {
   
   #funcion para el grafico normal Q-Q
   plotQQ <- function(){
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     withProgress({
       setProgress(message = "This may take a while...")
       NormalQQ(diagnostic(), input$lm_response)
@@ -1661,7 +1703,7 @@ server <- function(input, output, session) {
   
   #funcion para el grafico residual vs leverage
   plotRL <- function(){
-    if(is.null(model_lm)){return()}
+    if(is.null(model_lm())){return()}
     myPalette <- c(input$col1, input$col2, input$col3)
     withProgress({
       setProgress(message = "This may take a while...")
@@ -1693,37 +1735,189 @@ server <- function(input, output, session) {
   #-------------------------------------------------------
   #-----------------------> report <-----------------------
   
-  #Acciones realizadas en el item Data
-  output$data_report <- renderUI({
-    if(is.null(DATA_SET$data) || is.null(input$dataSetEdit)){return()}
-    # data <- paste("The data set selected:", DATA_SET$name,
-    #          "Original observations",DATA_SET$original.obs, 
-    #          "and original variables",DATA_SET$original.var)
-    # editdata <- if(input$dataSetEdit == 1 & !is.null(input$varDelete)){
-    #               # if(input$deleteCol){
-    #                 paste("Edit data set with 'Delete column'", 
-    #                 "Column deleted:",input$varDelete)
-    #               #}
-    #             }else if(input$dataSetEdit == 2){"Edit data set with 'Delete nominal values'"}
-    # paste(data, editdata)
+  #***********Acciones realizadas en el item Data
+  
+  #Retorna el nombre del set de dtaos, la cantidad de obs y variables originales
+  output$dataReport <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
     column(12,
       p(style = "text-align:justify;","The data set selected:", DATA_SET$name),
       p(style = "text-align:justify;","Original observations",DATA_SET$original.obs, 
        "and original variables",DATA_SET$original.var),
-      if(input$dataSetEdit == '1' & !is.null(input$varDelete)){
-         if(!is.null(input$deleteCol)){
-            if(input$deleteCol > 0){
-        p(style = "text-align:justify;","Edit data set with 'Delete column'",
-          "Column deleted:",input$varDelete)}
-        }
-      },
-      if(input$dataSetEdit == '2'){p(style = "text-align:justify;","Edit data set with 'Delete nominal values'")}
+      "Data set variables:"
     )
   })
   
-  #Acciones realizadas en el item Preprocessing
-  #Acciones realizadas en el item Transformation
-  #Acciones realizadas en el item Regression
-  #Acciones realizadas en el item Linear model evaluation
+  #retorna el nombre de las variables del set de datos
+  output$data_variables <- renderPrint({
+    if(is.null(DATA_SET$data)){return()}
+    names(DATA_SET$data)
+  })
+  
+  #retorna si el set de datos fue modificado o no y con que metodo
+  output$edit_data <- renderUI({
+    if(is.null(DATA_SET$data) || is.null(input$dataSetEdit)){return()}
+     column(12,
+        p(style = "text-align:justify;","Edit data set with 'Delete column':",
+          if(!is.null(input$deleteCol)){"TRUE"}
+          else{"FALSE"}),
+        p(style = "text-align:justify;","Edit data set with 'Delete nominal values':",
+        if(input$dataSetEdit == '2'){"TRUE"}
+        else{"FALSE"})
+    )
+  })
+  
+  #***********Acciones realizadas en el item Preprocessing
+  
+  #retorna si se aplico missing values, lof y noise removal
+  output$preprocessing <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
+    column(12,
+           p("Missing values:",
+             if(PREPROCESSING$mv){
+               column(12,
+                    "TRUE", br(),
+                    PREPROCESSING$missingValues,
+                    "missing values were eliminated."
+                )
+              }
+             else{"FALSE"}), #br(),
+           p("LOF:",
+            if(PREPROCESSING$out){
+               column(12,
+                    "TRUE", br(),
+                      "Outliers:",
+                    renderPrint({
+                      PREPROCESSING$outlier
+                    })
+               )
+            }else{"FALSE"}),
+           p("Noise Removal:",
+             if(PREPROCESSING$noise){
+               column(12,
+                      "TRUE", br(),
+                      PREPROCESSING$noiseR,
+                      "columns were removed"
+               )
+             }else{"FALSE"})
+    )
+  })
+  
+  #***********Acciones realizadas en el item Transformation
+  
+  #retorna si se aplico alguna de las tecnicas del modulo
+  output$transformation <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
+    column(12,
+           p("Normalization:",
+             if(TRANFORMATION$normalization){
+               column(12,
+                 "TRUE", br(), "Normalization applied:",
+                 switch(input$normalizationType,
+                        '1' = "Scale Standardization",
+                        '2' = "Normalization 0-1",
+                        '3' = input$type_normalization
+                 )
+               )
+              }
+             else{"FALSE"}), #br(),
+           p("PCA:",
+             if(TRANFORMATION$pca){
+               column(12,
+                      "TRUE", br(),
+                      "Principal Components:",
+                      renderPrint({
+                        TRANFORMATION$pcs
+                      })
+               )
+             }else{"FALSE"}),
+           # p("SVD:",
+           #   if(!is.na(s())){ s()}),
+           p("Attribute Selection:",
+             if(TRANFORMATION$sAtributte){
+               column(12,
+                      "TRUE", br(), "Selected attributes:",
+                      renderPrint({
+                        TRANFORMATION$selection.atributte
+                      })
+               )
+             }else{"FALSE"})
+    )
+  })
+  
+  #***********Acciones realizadas en el item Regression
+  
+  #retorna si se aplico alguna de las tecnicas del modulo
+  output$regression <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
+    column(12,
+           p("Linear Regression:",
+             if(is.null(model_lm())){"FALSE"}
+             else{
+               column(12,
+                 "TRUE", br(), "Validation: ",
+                 switch(input$validationType_lm,
+                        '1' = "10xCV",
+                        '2' = "Test file",
+                        '3' = "% test"
+                 ), br(),
+                 "Model:",
+                 renderPrint({summary(model_lm())}), br(),
+                 "Prediction plot:",
+                 renderPlot({plotValitation_lm1()})
+               )
+             }), #br(),
+           p("PLS:",
+             if(is.null(model_pls())){"FALSE"}
+             else{
+               column(12,
+                  "TRUE", br(), "Validation: ",
+                  switch(input$validationType_pls,
+                         '1' = "10xCV",
+                         '2' = "Test file",
+                         '3' = "% test"
+                  ), br(),
+                  "Model:",
+                  renderPrint({summary(model_pls())}), br(),
+                  "Prediction plot:",
+                  renderPlot({plotPred_pls()})
+               )
+             }),
+           p("Ridge:",
+             if(is.null(model_ridge())){"FALSE"}
+             else{
+               column(12,
+                    "TRUE", br(), "Validation: ",
+                    switch(input$validationType_ridge,
+                           '1' = "10xCV",
+                           '2' = "Test file",
+                           '3' = "% test"
+                    ), br(),
+                    "Model:",
+                    renderPrint({summary(model_ridge())}), br(),
+                    "Prediction plot:",
+                    renderPlot({plotValitation_ridge1()})
+               )
+             }),
+           p("RGML:",
+             if(is.null(model_rglm())){"FALSE"}
+             else{
+               column(12,
+                    "TRUE", br(), "Validation: ",
+                    switch(input$validationType_rglm,
+                           '1' = "10xCV",
+                           '2' = "Test file",
+                           '3' = "% test"
+                    ), br(),
+                    "Model:",
+                    renderPrint({summary(model_rglm())}),br(),
+                    "Prediction plot:",
+                    renderPlot({plotValitation_rglm1()})
+               )
+             })
+    )
+  })
+  
+  #***********Acciones realizadas en el item Linear model evaluation
   
 }
