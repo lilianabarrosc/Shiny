@@ -278,7 +278,8 @@ server <- function(input, output, session) {
     DATA_SET$data <- file()
     DATA_SET$original.obs <- nrow(file())
     DATA_SET$original.var <- ncol(file())
-    PREPROCESSING$missingValues <- nrow(file()[!complete.cases(file()),])
+    if(!is.null(file()))
+      PREPROCESSING$missingValues <- nrow((file()[!complete.cases(file()),]))
   })
   
   #guardar el data set obtenido de upload
