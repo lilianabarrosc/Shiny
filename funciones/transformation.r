@@ -15,7 +15,7 @@ normalizations <- function(title){
     box( width = 12, title = "Normalization", solidHeader = TRUE, status = "success",
          tags$div( class = 'col-sm-4',
                    radioButtons("normalizationType", label = "Type", selected = 1,
-                                choices = list("Scale Standardization" = 1, "Normalization 0-1" = 2,
+                                choices = list("Normalization in range" = 1, "Normalization 0-1" = 2,
                                                "Other normalization" = 3)
                    )
          ),

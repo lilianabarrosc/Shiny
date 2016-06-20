@@ -67,9 +67,9 @@ pls <- function(){
                  ),
     tabBox(width = 12,
            tabPanel("Model",h4("PLS result"),
-                    verbatimTextOutput("result_pls"), #coeficientes estandar
-                    h4("Statistical pls"),
-                    verbatimTextOutput("statistical_pls") #resultado obtenido
+                    verbatimTextOutput("result_pls") #coeficientes estandar
+                    # h4("Statistical pls"),
+                    # verbatimTextOutput("statistical_pls") #resultado obtenido
             ),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.",
@@ -98,7 +98,10 @@ ridge <- function() {
 #                                                         style = "success"))
                  ),
     tabBox(width = 12,
-           tabPanel("Model", verbatimTextOutput("result_ridge")),
+           tabPanel("Model", verbatimTextOutput("result_ridge"),
+                    h4("Statistical Ridge"),
+                    verbatimTextOutput("statical_validationRidge") #resultado obtenido
+           ),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.", bsAlert("alertValidation"),
                     verbatimTextOutput("resultValidation_ridge")

@@ -24,6 +24,9 @@ server <- function(input, output, session) {
   DATA_SET <- reactiveValues(name = NULL, data = NULL, original.obs = NULL, 
                              original.var = NULL)
   
+  #variable que contiene las opciones de Data
+  DATA <- reactiveValues(deletevar = FALSE, vars = NULL)
+  
   #variable que contiene las opciones de Preprocessing
   PREPROCESSING <- reactiveValues(missingValues = NULL, mv=FALSE, outlier = NULL, out=FALSE, noiseR = NULL, noise = FALSE)
   
@@ -367,6 +370,8 @@ server <- function(input, output, session) {
   #eliminar columnas del data set
   observeEvent(input$deleteCol,{
     if(input$varDelete != "" && !is.null(input$varDelete)){
+      DATA$deletevar <- TRUE
+      DATA$vars <- input$varDelete
       DATA_SET$data <- DATA_SET$data[,!names(DATA_SET$data) %in% input$varDelete]
       createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlertInfo,
                   content = "Columns have been removed correctly.", style = "success")
@@ -1495,6 +1500,33 @@ server <- function(input, output, session) {
     plotValitation_ridge1()
   })
   
+  #estadística obtenida de la predicción
+  statistical_resultRidge <- function(){
+    if(is.null(model_ridge()))
+      return()
+    if(input$validationType_ridge == "3"){
+      X1<- as.matrix(predictores_ridge()[train_ridge(),])
+    }else{
+      X1 <- as.matrix(predictores_ridge())
+    }
+    ridge.fitted <- cbind(1,X1)%*%coef(model_ridge())
+    overfittedRMSE <- rmse(as.matrix(ridge.fitted), as.data.frame(DATA_SET$data[,input$ridge_response])) #overfitted RMSE
+    overfittedR2 <- cor(as.matrix(ridge.fitted), DATA_SET$data[,input$ridge_response])^2 #overfitted R2
+    overfittedIA <- d(ridge.fitted, as.data.frame(DATA_SET$data[,input$ridge_response]))
+    
+    Statistical <- as.data.frame(array(0, dim=c(1,4)))
+    names(Statistical) <- c("RMSE", "R2", "IA")
+    Statistical[1,1] <- overfittedRMSE
+    Statistical[1,2] <- overfittedR2
+    Statistical[1,3] <- overfittedIA
+    
+    return(Statistical)
+  }
+  
+  output$statical_validationRidge <- renderPrint({
+    statistical_resultRidge()
+  })
+  
   #-----------------------> rglm
   #seleccion de la variable dependiente
   output$select_rglm <- renderUI({
@@ -1745,26 +1777,21 @@ server <- function(input, output, session) {
       p(style = "text-align:justify;","The data set selected:", DATA_SET$name),
       p(style = "text-align:justify;","Original observations",DATA_SET$original.obs, 
        "and original variables",DATA_SET$original.var),
-      "Data set variables:"
-    )
-  })
-  
-  #retorna el nombre de las variables del set de datos
-  output$data_variables <- renderPrint({
-    if(is.null(DATA_SET$data)){return()}
-    names(DATA_SET$data)
-  })
-  
-  #retorna si el set de datos fue modificado o no y con que metodo
-  output$edit_data <- renderUI({
-    if(is.null(DATA_SET$data) || is.null(input$dataSetEdit)){return()}
-     column(12,
-        p(style = "text-align:justify;","Edit data set with 'Delete column':",
-          if(!is.null(input$deleteCol)){"TRUE"}
-          else{"FALSE"}),
-        p(style = "text-align:justify;","Edit data set with 'Delete nominal values':",
-        if(input$dataSetEdit == '2'){"TRUE"}
-        else{"FALSE"})
+      "Data set variables:", br(),
+      renderPrint({
+        names(DATA_SET$data)
+      }),
+      #editar el set de datos
+      p(style = "text-align:justify;","Was performed edit data set with 'Delete column':",
+      if(DATA$deletevar){
+        column(12,
+           "TRUE",br(),
+           renderPrint({ DATA$vars})
+        )
+      }else{"FALSE"}),
+      p(style = "text-align:justify;","Was performed edit data set with 'Delete nominal values':",
+      if(input$dataSetEdit == '2'){"TRUE"}
+      else{"FALSE"})
     )
   })
   
@@ -1774,7 +1801,7 @@ server <- function(input, output, session) {
   output$preprocessing <- renderUI({
     if(is.null(DATA_SET$data)){return()}
     column(12,
-           p("Missing values:",
+           p("Was performed missing values:",
              if(PREPROCESSING$mv){
                column(12,
                     "TRUE", br(),
@@ -1783,7 +1810,7 @@ server <- function(input, output, session) {
                 )
               }
              else{"FALSE"}), #br(),
-           p("LOF:",
+           p("Was performed LOF:",
             if(PREPROCESSING$out){
                column(12,
                     "TRUE", br(),
@@ -1793,7 +1820,7 @@ server <- function(input, output, session) {
                     })
                )
             }else{"FALSE"}),
-           p("Noise Removal:",
+           p("Was performed Noise Removal:",
              if(PREPROCESSING$noise){
                column(12,
                       "TRUE", br(),
@@ -1810,7 +1837,7 @@ server <- function(input, output, session) {
   output$transformation <- renderUI({
     if(is.null(DATA_SET$data)){return()}
     column(12,
-           p("Normalization:",
+           p("Was performed normalization:",
              if(TRANFORMATION$normalization){
                column(12,
                  "TRUE", br(), "Normalization applied:",
@@ -1822,7 +1849,7 @@ server <- function(input, output, session) {
                )
               }
              else{"FALSE"}), #br(),
-           p("PCA:",
+           p("Was performed PCA:",
              if(TRANFORMATION$pca){
                column(12,
                       "TRUE", br(),
@@ -1834,7 +1861,7 @@ server <- function(input, output, session) {
              }else{"FALSE"}),
            # p("SVD:",
            #   if(!is.na(s())){ s()}),
-           p("Attribute Selection:",
+           p("Was performed Attribute Selection:",
              if(TRANFORMATION$sAtributte){
                column(12,
                       "TRUE", br(), "Selected attributes:",
@@ -1852,7 +1879,7 @@ server <- function(input, output, session) {
   output$regression <- renderUI({
     if(is.null(DATA_SET$data)){return()}
     column(12,
-           p("Linear Regression:",
+           p("Was performed Linear Regression:",
              if(is.null(model_lm())){"FALSE"}
              else{
                column(12,
@@ -1868,7 +1895,7 @@ server <- function(input, output, session) {
                  renderPlot({plotValitation_lm1()})
                )
              }), #br(),
-           p("PLS:",
+           p("Was performed PLS:",
              if(is.null(model_pls())){"FALSE"}
              else{
                column(12,
@@ -1884,7 +1911,7 @@ server <- function(input, output, session) {
                   renderPlot({plotPred_pls()})
                )
              }),
-           p("Ridge:",
+           p("Was performed Ridge:",
              if(is.null(model_ridge())){"FALSE"}
              else{
                column(12,
@@ -1895,12 +1922,13 @@ server <- function(input, output, session) {
                            '3' = "% test"
                     ), br(),
                     "Model:",
-                    renderPrint({summary(model_ridge())}), br(),
+                    renderPrint({summary(model_ridge())}), 
+                    renderPrint(statistical_resultRidge()), br(),
                     "Prediction plot:",
                     renderPlot({plotValitation_ridge1()})
                )
              }),
-           p("RGML:",
+           p("Was performed RGML:",
              if(is.null(model_rglm())){"FALSE"}
              else{
                column(12,

@@ -12,9 +12,9 @@ report <- function(){
            ),
         box(width = 12, title = "Report", solidHeader = TRUE, status = "success",
             box(width = 12, title = "Data", status = "success",
-                uiOutput("dataReport"),
-                verbatimTextOutput("data_variables"),
-                uiOutput("edit_data")
+                uiOutput("dataReport")
+                #verbatimTextOutput("data_variables"),
+                #uiOutput("edit_data")
             ),
                 #textOutput("data_report")),
             box(width = 12, title = "Preprocessing", status = "success",
