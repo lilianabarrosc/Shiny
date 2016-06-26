@@ -1506,15 +1506,17 @@ server <- function(input, output, session) {
       return()
     if(input$validationType_ridge == "3"){
       X1<- as.matrix(predictores_ridge()[train_ridge(),])
+      y <- DATA_SET$data[train_ridge(),input$ridge_response]
     }else{
       X1 <- as.matrix(predictores_ridge())
+      y <- DATA_SET$data[,input$ridge_response]
     }
     ridge.fitted <- cbind(1,X1)%*%coef(model_ridge())
-    overfittedRMSE <- rmse(as.matrix(ridge.fitted), as.data.frame(DATA_SET$data[,input$ridge_response])) #overfitted RMSE
-    overfittedR2 <- cor(as.matrix(ridge.fitted), DATA_SET$data[,input$ridge_response])^2 #overfitted R2
-    overfittedIA <- d(ridge.fitted, as.data.frame(DATA_SET$data[,input$ridge_response]))
+    overfittedRMSE <- rmse(as.matrix(ridge.fitted), as.data.frame(y)) #overfitted RMSE
+    overfittedR2 <- cor(as.matrix(ridge.fitted), y)^2 #overfitted R2
+    overfittedIA <- d(ridge.fitted, as.data.frame(y))
     
-    Statistical <- as.data.frame(array(0, dim=c(1,4)))
+    Statistical <- as.data.frame(array(0, dim=c(1,3)))
     names(Statistical) <- c("RMSE", "R2", "IA")
     Statistical[1,1] <- overfittedRMSE
     Statistical[1,2] <- overfittedR2
@@ -1947,6 +1949,30 @@ server <- function(input, output, session) {
     )
   })
   
-  #***********Acciones realizadas en el item Linear model evaluation
-  
+  #*********** Descargar el reporte
+  output$downloadReport <- downloadHandler(
+    if(is.null(DATA_SET$data)){return()}
+    filename = function() {
+      paste('my-report', sep = '.', switch(
+        input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
+      ))
+    },
+    
+    content = function(file) {
+      src <- normalizePath('report.Rmd')
+      
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src, 'report.Rmd', overwrite = TRUE)
+      
+      library(rmarkdown)
+      out <- render('report.Rmd', switch(
+        input$formatReport,
+        PDF = pdf_document(), HTML = html_document(), Word = word_document()
+      ))
+      file.rename(out, file)
+    }
+  )
 }

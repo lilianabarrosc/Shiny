@@ -1,0 +1,39 @@
+---
+title: "Report G&#252;i&#241;a"
+# date: "6 de junio de 2016"
+# output: html_document
+output:
+  html_document:
+    toc: true
+    theme: united
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Data
+The data set selected is `r DATA_SET$name`.
+
+Original observations `r DATA_SET$original.obs`, and original variables `r DATA_SET$original.var`.
+
+Data set variables:
+```{r}
+names(DATA_SET$data)
+```
+
+Was performed edit data set with 'Delete column':
+`r if(DATA$deletevar){ "TRUE"} else{"FALSE"}`
+```{r}
+if(DATA$deletevar){ DATA$vars}
+```
+
+Was performed edit data set with 'Delete nominal values':
+`r if(input$dataSetEdit == '2'){"TRUE"} else{"FALSE"}`
+
+
+#### Preprocessing
+#### Transformation
+#### Regression
+

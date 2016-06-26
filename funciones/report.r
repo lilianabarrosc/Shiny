@@ -25,7 +25,10 @@ report <- function(){
             ),
             box(width = 12, title = "Regression", status = "success",
                 uiOutput("regression")
-            )
+            ),
+            radioButtons('formatReport', 'Document format', c('PDF', 'HTML', 'Word'),
+                         inline = TRUE),
+            downloadButton('downloadReport')
         )
     )
 }
