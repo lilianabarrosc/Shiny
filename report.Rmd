@@ -13,27 +13,150 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### Data
+### Data
 The data set selected is `r DATA_SET$name`.
 
 Original observations `r DATA_SET$original.obs`, and original variables `r DATA_SET$original.var`.
 
 Data set variables:
-```{r}
+```{r eval=TRUE, echo=FALSE}
 names(DATA_SET$data)
 ```
 
 Was performed edit data set with 'Delete column':
-`r if(DATA$deletevar){ "TRUE"} else{"FALSE"}`
-```{r}
-if(DATA$deletevar){ DATA$vars}
+`r if(DATA$deletevar){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(DATA$deletevar){ print(DATA$vars)}
 ```
 
 Was performed edit data set with 'Delete nominal values':
-`r if(input$dataSetEdit == '2'){"TRUE"} else{"FALSE"}`
+`r if(input$dataSetEdit == '2'){"TRUE"} else{"FALSE"}`.
 
 
-#### Preprocessing
-#### Transformation
-#### Regression
+### Preprocessing
+Was performed missing values:
+`r if(PREPROCESSING$mv){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(PREPROCESSING$mv){ print(paste(PREPROCESSING$missingValues,
+                    "missing values were eliminated."))}
+```
 
+Was performed LOF:
+`r if(PREPROCESSING$out){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(PREPROCESSING$out){ print(PREPROCESSING$outlier) }
+```
+
+Was performed Noise Removal:
+`r if(PREPROCESSING$noise){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(PREPROCESSING$noise){ print(paste(PREPROCESSING$noiseR,
+                      "columns were removed."))}
+```
+
+### Transformation
+Was performed normalization:
+`r if(TRANFORMATION$normalization){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(TRANFORMATION$normalization){ print(paste("Normalization applied:",
+                      switch(input$normalizationType,
+                        '1' = "Scale Standardization.",
+                        '2' = "Normalization 0-1.",
+                        '3' = input$type_normalization
+                 )))}
+```
+
+Was performed PCA:
+`r if(TRANFORMATION$pca){ "TRUE"} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(TRANFORMATION$pca){ print(paste("Principal Components:",
+                        TRANFORMATION$pcs))}
+```
+
+Was performed Attribute Selection:
+`r if(TRANFORMATION$sAtributte){ paste("TRUE","Selected attributes:", sep="\n")} else{"FALSE"}`.
+```{r eval=TRUE, echo=FALSE}
+if(TRANFORMATION$sAtributte){ print(TRANFORMATION$selection.atributte)}
+```
+
+### Regression
+
+Was performed Linear Regression:
+`r if(is.null(model_lm())){"FALSE"} else{ "TRUE"}`.
+```{r model, echo=FALSE}
+if(!is.null(model_lm())){ print(paste("Validation:",
+                      switch(input$validationType_lm,
+                        '1' = "10xCV",
+                        '2' = "Test file",
+                        '3' = "% test"
+                      )))
+                      print("Model:")
+                      summary(model_lm())
+  }
+```
+
+```{r plot, fig.height=5, echo=FALSE}
+if(!is.null(model_lm())){
+  print("Prediction plot:")
+  plotValitation_lm1()}
+```
+
+Was performed PLS:
+`r if(is.null(model_pls())){"FALSE"} else{ "TRUE"}`.
+```{r model2, echo=FALSE}
+if(!is.null(model_pls())){ print(paste("Validation:",
+                      switch(input$validationType_pls,
+                        '1' = "10xCV",
+                        '2' = "Test file",
+                        '3' = "% test"
+                      )))
+                      print("Model:")
+                      summary(model_pls())
+  }
+```
+
+```{r plot2, fig.height=5, echo=FALSE}
+if(!is.null(model_pls())){
+  print("Prediction plot:")
+  plotPred_pls()}
+```
+
+Was performed Ridge:
+`r if(is.null(model_ridge())){"FALSE"} else{ "TRUE"}`.
+```{r model3, echo=FALSE}
+if(!is.null(model_ridge())){ print(paste("Validation:",
+                      switch(input$validationType_ridge,
+                        '1' = "10xCV",
+                        '2' = "Test file",
+                        '3' = "% test"
+                      )))
+                      print("Model:")
+                      summary(model_ridge())
+  }
+```
+
+```{r plot3, fig.height=5, echo=FALSE}
+if(!is.null(model_ridge())){
+  print("Prediction plot:")
+  plotValitation_ridge1()}
+```
+
+Was performed RGML:
+`r if(is.null(model_rglm())){"FALSE"} else{ "TRUE"}`.
+```{r model4, echo=FALSE}
+if(!is.null(model_rglm())){ print(paste("Validation:",
+                      switch(input$validationType_rglm,
+                        '1' = "10xCV",
+                        '2' = "Test file",
+                        '3' = "% test"
+                      )))
+                      print("Model:")
+                      summary(model_rglm())
+  }
+```
+
+```{r plot4, fig.height=5, echo=FALSE}
+if(!is.null(model_rglm())){
+  print("Prediction plot:")
+  plotValitation_rglm1()}
+```

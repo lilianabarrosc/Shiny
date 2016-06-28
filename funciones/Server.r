@@ -1950,8 +1950,20 @@ server <- function(input, output, session) {
   })
   
   #*********** Descargar el reporte
-  output$downloadReport <- downloadHandler(
+  
+  #vista para descargar el reporte
+  output$optionDescarga <- renderUI({
     if(is.null(DATA_SET$data)){return()}
+    
+    column(12,
+       radioButtons('formatReport', 'Document format', c('PDF', 'HTML', 'Word'),
+                    inline = TRUE),
+       downloadButton('downloadReport', class = "btn-success")
+    )
+  })
+  
+  #Función para descargar el reporte con knitr
+  output$downloadReport <- downloadHandler(
     filename = function() {
       paste('my-report', sep = '.', switch(
         input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
