@@ -371,7 +371,7 @@ server <- function(input, output, session) {
   observeEvent(input$deleteCol,{
     if(input$varDelete != "" && !is.null(input$varDelete)){
       DATA$deletevar <- TRUE
-      DATA$vars <- input$varDelete
+      DATA$vars <- c(DATA$vars,input$varDelete)
       DATA_SET$data <- DATA_SET$data[,!names(DATA_SET$data) %in% input$varDelete]
       createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlertInfo,
                   content = "Columns have been removed correctly.", style = "success")
@@ -1205,6 +1205,26 @@ server <- function(input, output, session) {
     plotValitation_lm1()
   })
   
+  #estadística obtenida de la predicción
+  statistical_resultLM <- function(){
+    if(is.null(model_lm()))
+      return()
+    if(input$validationType_lm == "3"){
+      X1<- as.matrix(predictores_lm()[train_lm(),])
+      y <- DATA_SET$data[train_lm(),input$lm_response]
+    }else{
+      X1 <- as.matrix(predictores_lm())
+      y <- DATA_SET$data[,input$lm_response]
+    }
+    coef <- cbind(1,X1)%*%coef(model_lm())
+    Statistical <- statistical(as.matrix(coef), as.data.frame(y))
+    return(Statistical)
+  }
+
+  output$statical_validationLM <- renderPrint({
+    statistical_resultLM()
+  })
+  
   #***** Colinearity Test lm
   
   #resultado de aplicar el test de colinealidad
@@ -1258,18 +1278,9 @@ server <- function(input, output, session) {
                     content = "Data set have missing values", style = "warning")
       }else{
         closeAlert(session, "alertplsID")
-#         val <- TRUE #valor por defecto para la validacion cruzada
-#         if(input$crosval == "FALSE"){ val <- FALSE }
         if(input$validationType_pls == '2' && is.null(input$fileTest_pls)){
           return()
         }else{ #Se aplica el modelo pls
-#           if(is.null(input$pls_predictors)){
-#             (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), ".")))
-#           }
-#           else{
-#             (fmla <- as.formula(paste(paste(input$pls_response, " ~ "), paste(input$pls_predictors, collapse= "-"))))
-#           }
-          
           fmla <- formula_model(input$pls_predictors,input$pls_response)
           print('fmla:')
           print(fmla)
@@ -1281,8 +1292,6 @@ server <- function(input, output, session) {
                  '2' = plsr(fmla, ncomp = input$comp_pls, data = DATA_SET$data),
                  '3' = plsr(fmla, ncomp = input$comp_pls, data = DATA_SET$data[train_pls(),])
           )
-#           plsreg1(predictores_pls(), DATA_SET$data[,input$pls_response], 
-#                   crosval = val, comps = input$comp_pls)
         }
       }
     }, error = function(e) {
@@ -1330,6 +1339,26 @@ server <- function(input, output, session) {
     if(!is.null(validation_pls()))
       validation_pls()
   })
+  
+  #estadística obtenida de la predicción
+  # statistical_resultPLS <- function(){
+  #   if(is.null(model_pls()))
+  #     return()
+  #   if(input$validationType_pls == "3"){
+  #     X1<- as.matrix(predictores_pls()[train_pls(),])
+  #     y <- DATA_SET$data[train_pls(),input$pls_response]
+  #   }else{
+  #     X1 <- as.matrix(predictores_pls())
+  #     y <- DATA_SET$data[,input$pls_response]
+  #   }
+  #   coef <- cbind(1,X1) %*% as.vector(coef(model_pls()))
+  #   Statistical <- statistical(coef, as.data.frame(y))
+  #   return(Statistical)
+  # }
+  # 
+  # output$statical_validationPLS <- renderPrint({
+  #   statistical_resultPLS()
+  # })
   
   #grafico correspondiente a correlaciones del modelo pls
   output$plotCorr <- renderPlot({
@@ -1512,16 +1541,7 @@ server <- function(input, output, session) {
       y <- DATA_SET$data[,input$ridge_response]
     }
     ridge.fitted <- cbind(1,X1)%*%coef(model_ridge())
-    overfittedRMSE <- rmse(as.matrix(ridge.fitted), as.data.frame(y)) #overfitted RMSE
-    overfittedR2 <- cor(as.matrix(ridge.fitted), y)^2 #overfitted R2
-    overfittedIA <- d(ridge.fitted, as.data.frame(y))
-    
-    Statistical <- as.data.frame(array(0, dim=c(1,3)))
-    names(Statistical) <- c("RMSE", "R2", "IA")
-    Statistical[1,1] <- overfittedRMSE
-    Statistical[1,2] <- overfittedR2
-    Statistical[1,3] <- overfittedIA
-    
+    Statistical <- statistical(as.matrix(ridge.fitted), as.data.frame(y))
     return(Statistical)
   }
   
@@ -1566,11 +1586,10 @@ server <- function(input, output, session) {
                   '1' = randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], 
                                   nCandidateCovariates=ncol(predictores_rglm()), 
                                   nBags=10, keepModels = TRUE, nThreads = 1),
-                  '2' = { inFile <- input$fileTest_lm
-                          randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response], read.csv(inFile$datapath),
+                  '2' = {randomGLM(predictores_rglm(), DATA_SET$data[,input$rglm_response],
                                   nCandidateCovariates=ncol(predictores_rglm()), 
                                   nBags=1, keepModels = TRUE, nThreads = 1)},
-                  '3' = {randomGLM(predictores_rglm()[train_rglm(), ], DATA_SET$data[train_rglm(),input$rglm_response], predictores_rglm()[-train_rglm(),],
+                  '3' = {randomGLM(predictores_rglm()[train_rglm(), ], DATA_SET$data[train_rglm(),input$rglm_response],
                                   nCandidateCovariates=ncol(predictores_rglm()), nBags=1, keepModels = TRUE, nThreads = 1)}
           )
         }
@@ -1599,14 +1618,32 @@ server <- function(input, output, session) {
       if(input$validationType_rglm == '2' && is.null(input$fileTest_rglm))
         return()
       
-      Prediction <- model_rglm()$predictedOOB
-      if(input$validationType_rglm == '3'){
-        (response_variable <- DATA_SET$data[-train_rglm(),input$rglm_response])
-      }else{
-        (response_variable <- DATA_SET$data[,input$rglm_response])
-      }
-      data.frame(cbind(Prediction, response_variable))
-
+      switch(input$validationType_rglm,
+             '1' = {Prediction <- predict(model_rglm(), newdata = predictores_rglm())
+                   response_variable <- DATA_SET$data[,input$rglm_response]
+                   data.frame(cbind(Prediction, response_variable))},
+             '2' = { inFile <- input$fileTest_rglm
+                   Prediction <-predict(model_rglm(), read.csv(inFile$datapath))
+                   response_variable <- DATA_SET$data[,input$rglm_response]
+                   data.frame(cbind(Prediction, response_variable))
+             },
+             '3' = { Prediction <- predict(model_rglm(), predictores_rglm()[-train_rglm(),])
+                   response_variable <- DATA_SET$data[-train_rglm(),input$rglm_response]
+                   data.frame(cbind(Prediction, response_variable))
+             }
+             
+      )
+      
+      # Prediction <- model_rglm()$predictedOOB
+      # if(input$validationType_rglm == '3'){
+      #   (response_variable <- DATA_SET$data[-train_rglm(),input$rglm_response])
+      #   Prediction2 <- predict(model_rglm(), newdata = DATA_SET$data[-train_rglm(),])
+      # }else{
+      #   (response_variable <- DATA_SET$data[,input$rglm_response])
+      #   Prediction2 <- predict(model_rglm(), newdata = lm_x)
+      # }
+      # #data.frame(cbind(Prediction, response_variable))
+      # Prediction
     }, error = function(e) {
       print(e)
     })
@@ -1617,11 +1654,31 @@ server <- function(input, output, session) {
       na.omit(validation_rglm())
   })
   
-  #construccion dle grafico de prediccion para el modelo
+  
+  #estadística obtenida de la predicción
+  statistical_resultRGLM <- function(){
+    if(is.null(model_rglm()))
+      return()
+    if(input$validationType_rglm == "3"){
+      X1<- as.matrix(predictores_rglm()[train_rglm(),])
+      y <- DATA_SET$data[-train_rglm(),input$rglm_response]
+    }else{
+      X1 <- as.matrix(predictores_rglm())
+      y <- DATA_SET$data[,input$rglm_response]
+    }
+    Statistical <- statistical(validation_rglm()[,1], y)
+    return(Statistical)
+  }
+  
+  output$statical_validationRGLM <- renderPrint({
+    statistical_resultRGLM()
+  })
+  
+  #construccion del grafico de prediccion para el modelo
   plotValitation_rglm1 <- reactive({
     if(is.null(validation_rglm())){ return()}
     if(input$validationType_rglm == '3'){
-      simplePlot(validation_rglm(),  DATA_SET$data[train_rglm(),input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
+      simplePlot(validation_rglm(),  DATA_SET$data[-train_rglm(),input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
     }else{
       simplePlot(validation_rglm(),  DATA_SET$data[,input$rglm_response], 2, 1, input$rglm_response, 2, 0.9)
     }

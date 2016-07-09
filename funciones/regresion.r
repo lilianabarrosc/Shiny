@@ -15,7 +15,10 @@ linearRegression <- function() {
 #                           style = "success"))
                  ),
     tabBox(width = 12,
-           tabPanel("Model", verbatimTextOutput("summary_lm")),
+           tabPanel("Model", verbatimTextOutput("summary_lm"),
+                    h4("Statistical Linear Regression"),
+                    verbatimTextOutput("statical_validationLM")
+                  ),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.", 
                     verbatimTextOutput("resultValidation_lm")),
@@ -58,18 +61,13 @@ pls <- function(){
     validation("validationType_pls", "fileTest_pls", "porcentTest_pls"),
     optionsModel("Partial Least Squares Regression", "alertpls", 
                  column(6, uiOutput("select_pls")),
-                 column(6, uiOutput("componentes_pls")
-#                         selectInput("crosval", label = h4("Cross validation"), 
-#                                     choices = c("TRUE","FALSE"), selected = "TRUE")
-#                         tags$div( class = 'col-sm-2', bsButton("apply_pls", label = "Apply",
-#                                                                style = "success"))
-                      )
+                 column(6, uiOutput("componentes_pls"))
                  ),
     tabBox(width = 12,
            tabPanel("Model",h4("PLS result"),
-                    verbatimTextOutput("result_pls") #coeficientes estandar
-                    # h4("Statistical pls"),
-                    # verbatimTextOutput("statistical_pls") #resultado obtenido
+                    verbatimTextOutput("result_pls"), #coeficientes estandar
+                    h4("Statistical pls"),
+                    verbatimTextOutput("statical_validationPLS") #resultado obtenido
             ),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.",
@@ -126,7 +124,10 @@ rglm <- function() {
     optionsModel("Random General Linear Model", "alertRGLM", uiOutput("select_rglm"), NULL),
     
     tabBox(width = 12,
-           tabPanel("Model", verbatimTextOutput("result_rglm")),
+           tabPanel("Model", verbatimTextOutput("result_rglm"),
+                    h4("Statistical RGLM"),
+                    verbatimTextOutput("statical_validationRGLM")
+                    ),
            tabPanel("Prediction", "It shows the predicted value for each testing 
                     instance provided by the user.", bsAlert("alertValidation"),
                     verbatimTextOutput("resultValidation_rglm")
@@ -204,4 +205,20 @@ predictors <- function(dataSet, x, y){
       predictors <- dataSet[, !names(dataSet) %in% y]
       return(predictors[,!names(predictors) %in% x])
     }
+}
+
+#estadística obtenida de la predicción
+statistical <- function(coef, y){
+  RMSE <- rmse(coef, y) # RMSE
+  R2 <- cor(coef, y)^2 # R2
+  IA <- d(coef, y) # IA
+  
+  #data con el resultado obtenido
+  Statistical <- as.data.frame(array(0, dim=c(1,3)))
+  names(Statistical) <- c("RMSE", "R2", "IA")
+  Statistical[1,1] <- RMSE
+  Statistical[1,2] <- R2
+  Statistical[1,3] <- IA
+  
+  return(Statistical)
 }

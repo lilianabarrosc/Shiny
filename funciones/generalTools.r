@@ -127,9 +127,9 @@ twoSlider <- function(x, y, file, xname, yname){
   box(
     width = 6, status = "success",
     h4("Range"),
-    sliderInput(x, label = xname, min = 1, 
+    sliderInput(x, label = xname, min = 1, step = 1,
                 max = ncol(file), value = c(1, 4)),
-    sliderInput(y, label = yname, min = 1, 
+    sliderInput(y, label = yname, min = 1, step = 1,
                 max = nrow(file), value = c(1, (nrow(file))))
   )
 }
@@ -140,15 +140,15 @@ treeSlider <- function(x, y, z, file, xname, yname, zname, MS){
     width = 6, status = "success",
     h4("Range"),
     if(MS){
-      sliderInput(x, label = xname, min = 1,
+      sliderInput(x, label = xname, min = 1, step = 1,
                   max = ncol(file), value = c(1,4))
     }else{
-      sliderInput(x, label = xname, min = 1, 
+      sliderInput(x, label = xname, min = 1, step = 1,
                   max = ncol(file)-1, value = c(1,4)) 
     },
-    sliderInput(y, label = yname, min = 1, 
+    sliderInput(y, label = yname, min = 1, step = 1,
                 max = ncol(file), value = 3),
-    sliderInput(z, label = zname, min = 1, 
+    sliderInput(z, label = zname, min = 1, step = 1,
                 max = nrow(file), value = c(1, nrow(file)))
   )
 }
