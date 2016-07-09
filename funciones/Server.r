@@ -359,12 +359,30 @@ server <- function(input, output, session) {
                                                bsButton("deleteCol", "Delete Columns", style = "success")
                                                ))
             })},
-      '2' = { nums <- sapply(DATA_SET$data, is.numeric)
-              print(nums)
-              DATA_SET$data <- DATA_SET$data[, nums]
+      '2' = { fators <- sapply(DATA_SET$data, is.factor) #detecta las variables nominales
+              n <- sapply(DATA_SET$data[,fators], as.numeric) #las tranforma a datos numericos
+              names <- names(DATA_SET$data)
+              #variables numericas
+              nums <- sapply(DATA_SET$data, is.numeric)
+              # print(nrow(DATA_SET$data[,nums]))
+              # print(length(n))
+              #agregar las var transformadas
+              if(length(n) > 0){
+                DATA_SET$data <- cbind(DATA_SET$data[,nums], n)
+                names(DATA_SET$data) <- names
+              }
+              #print(nums)
               createAlert(session, "alertEditFile", "alertEditFileID", title = titleAlertInfo,
                           content = "Nominal values have been removed correctly.", style = "success")}
     )
+  })
+  
+  output$helpFactors <- renderUI({
+    #fators <- sapply(DATA_SET$data, is.factor)
+    numVar_nominal <- cantCol_nominal(DATA_SET$data)
+    helpText("The data set contains", numVar_nominal,#sum(is.factor(DATA_SET$data[,factors])),
+             "nominal variables.")
+
   })
   
   #eliminar columnas del data set

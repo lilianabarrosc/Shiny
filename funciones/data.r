@@ -42,8 +42,9 @@ viewData <- function() {
         #panel contenedor de herramientas como eliminar los valores nominales, eliminar
         #alguna columna.
         tabPanel("Edit data set",
+            uiOutput("helpFactors"),
             radioButtons("dataSetEdit", label = NULL, choices = list("Delete column" = 1,
-                                                                 "Delete nominal values" = 2)),
+                                                                 "Transform nominal values" = 2)),
             #uiOutput("selectVarDelete"),
             conditionalPanel(
               condition = "input.dataSetEdit == '1'",
