@@ -175,11 +175,16 @@ server <- function(input, output, session) {
   list.data <- reactiveValues(data_sets = list("iris" = 1, "airquality" = 2, "sleep" = 3),
                               data_setsID = list(iris, airquality, sleep))
   
-  #data set disponibles
-  observe({
+  dataDisponibles <- function(){
     #data set contenidos en la app
-   #data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
-    other_data <- list("Upload file" = 1, "URL file" = 2)
+    #data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
+    # 
+    # other_data <- NULL
+    # list.data$data_sets <- NULL
+    # list.data$data_setsID <- NULL
+    # list.data$data_sets <- list("iris" = 1, "airquality" = 2, "sleep" = 3)
+    # list.data$data_setsID <- list(iris, airquality, sleep)
+    
     #consulta para obtener los nombres de los data set
     sql <- "select name,id from data_set"
     drv <- dbDriver("PostgreSQL")
@@ -206,13 +211,23 @@ server <- function(input, output, session) {
       createAlert(session, "alertData", "alertDataID", title = titleAlert,
                   content = paste("",e), style = "warning", append = FALSE)
     })
+  }
   
+  #data set disponibles
+  observe({
+    #obtengo los data set disponibles
+    dataDisponibles()
+    
+    other_data <- list("Upload file" = 1, "URL file" = 2)
     #muestra los data set disponibles
     output$view_data <- renderUI({
       if (is.null(input$dataSet)){ return()}
       switch(input$dataSet,
-             '1'= selectInput("select_file", label = NULL, selected = 2,
-                              choices = list.data$data_sets),
+             '1'= column(12,
+                     selectInput("select_file", label = NULL, selected = 2,
+                                 choices = list.data$data_sets),
+                     bsButton("deleteData", label = "Delete data set", style = "success")
+                  ),
              '2'= radioButtons("select_newfile", label = NULL, choices = other_data)
       )
     })
@@ -244,6 +259,34 @@ server <- function(input, output, session) {
                     content = paste("",e), style = "warning")
       })
     }
+  })
+  
+  #accion tras presionar el boton delete data set
+  observeEvent(input$deleteData, {
+    if(input$select_file < 4){return()}
+    sql <- paste("delete from data_set where id='",
+                 list.data$data_setsID[[as.numeric(input$select_file)]],"'", sep = '')
+    # print(list.data$data_setsID[[4]])
+    # print(input$select_file)
+    # print(list.data$data_setsID[[input$select_file]])
+    # print(sql)
+    drv <- dbDriver("PostgreSQL")
+    con <- conexionbd(drv)
+    tryCatch({
+      closeAlert(session, "alertURLID")
+      rs <- dbSendQuery(con, sql)
+      if(dbHasCompleted(rs)){
+        createAlert(session, "alertDelete", "alertDeleteID", title = titleAlert,
+                    content = "The data set was removed successfully.", style = "success")
+        #obtengo los data set disponibles
+        dataDisponibles()
+      }
+      desconexionbd(con, drv) #desconexion con la bd
+    }, error = function(e) {
+      desconexionbd(con, drv) #desconexion con la bd
+      createAlert(session, "alertDelete", "alertDeleteID", title = titleAlert,
+                  content = "Couldn't delete.", style = "warning")
+    })
   })
   
   #Accion a realizar tras presionar el boton upload de la opcion URL (lee el archivo)
@@ -299,6 +342,8 @@ server <- function(input, output, session) {
       tryCatch({
         rs <- dbSendQuery(con, sql)
         desconexionbd(con, drv) #desconexion con la bd
+        #obtengo los data set disponibles
+        dataDisponibles()
       },error = function(e) {
         createAlert(session, "alertData", "alertDataID", title = titleAlert,
                     content = paste("",e), 
@@ -325,6 +370,8 @@ server <- function(input, output, session) {
       tryCatch({
         rs <- dbSendQuery(con, sql)
         desconexionbd(con, drv) #desconexion con la bd
+        #obtengo los data set disponibles
+        dataDisponibles()
       },error = function(e) {
         createAlert(session, "alertData", "alertDataID", title = titleAlert,
                     content = paste("",e), style = "warning", append = FALSE)
@@ -1040,7 +1087,7 @@ server <- function(input, output, session) {
   
   output$summary_reduceDimensionality <- renderUI({
     d <- dim(DATA_SET$data)
-    helpText("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables")
+    helpText("Data frame", DATA_SET$name,":",d[1],"obs. of",d[2],"variables (excluding the dependent variable).")
   })
   
   #------------SVD
@@ -2045,21 +2092,26 @@ server <- function(input, output, session) {
       ))
     },
     
-    content = function(file) {
-      src <- normalizePath('report.Rmd')
-      
-      # temporarily switch to the temp dir, in case you do not have write
-      # permission to the current working directory
-      owd <- setwd(tempdir())
-      on.exit(setwd(owd))
-      file.copy(src, 'report.Rmd', overwrite = TRUE)
-      
-      library(rmarkdown)
-      out <- render('report.Rmd', switch(
-        input$formatReport,
-        PDF = pdf_document(), HTML = html_document(), Word = word_document()
-      ))
-      file.rename(out, file)
-    }
+    tryCatch({
+        content = function(file) {
+        src <- normalizePath('report.Rmd')
+        
+        # temporarily switch to the temp dir, in case you do not have write
+        # permission to the current working directory
+        owd <- setwd(tempdir())
+        on.exit(setwd(owd))
+        file.copy(src, 'report.Rmd', overwrite = TRUE)
+        
+        library(rmarkdown)
+        out <- render('report.Rmd', switch(
+          input$formatReport,
+          PDF = pdf_document(), HTML = html_document(), Word = word_document()
+        ))
+        file.rename(out, file)
+      }
+    
+    }, error = function(e){
+                print(e)
+    })
   )
 }

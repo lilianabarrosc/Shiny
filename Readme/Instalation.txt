@@ -1,0 +1,17 @@
+Una vez descargado el repositorio desde Github, es necesario instalar una serie
+de librerias las cuales están contenidas en el archivo "libraries" contenido en
+la carpeta "funciones".
+Tambíen es necesario instalar el paquete RmarkDown el cual no se encuentra en el
+archivo anterior.
+
+Después de instalar los paquetes necesarios, se requiere la instalación de Post-
+gresSQL herramienta para la base de datos. Se debe crear un usuario y contraseña,
+además de una base de datos bacía llamada guinia para realizar un restore de la
+base de datos básica para sistema contenida en BackupDB/guinia.sql.
+El restore de la base de datos se realiza mediante la siguiente línea:
+psql -h localhost -p <puerto> -U <usuario> -d <base de datos> -f <direccion del archivo/guinia.sql>
+Por ejemplo:
+psql -h localhost -p 5432 -U liliana -d guinia -f ~/Shiny/BackupDB/guinia.sql
+
+Demás de realizar el restore, se debe indicar el usuario y contraseña de Post-
+gresSQL en el archivo funciones/dataBase.

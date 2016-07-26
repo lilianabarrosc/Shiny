@@ -33,7 +33,8 @@ viewData <- function() {
         urls()
       ),
       column(12,
-        bsAlert("alertSaveData")
+        bsAlert("alertSaveData"),
+        bsAlert("alertDelete")
       )
     ),
     tabBox(width = 12,
