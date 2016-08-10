@@ -2086,6 +2086,7 @@ server <- function(input, output, session) {
   
   #Función para descargar el reporte con knitr
   output$downloadReport <- downloadHandler(
+    if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
     filename = function() {
       paste('my-report', sep = '.', switch(
         input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
@@ -2102,7 +2103,10 @@ server <- function(input, output, session) {
         on.exit(setwd(owd))
         file.copy(src, 'report.Rmd', overwrite = TRUE)
         
-        library(rmarkdown)
+        # validate(
+        #   need(library(rmarkdown), "Please...")
+        # )
+        
         out <- render('report.Rmd', switch(
           input$formatReport,
           PDF = pdf_document(), HTML = html_document(), Word = word_document()
@@ -2111,6 +2115,8 @@ server <- function(input, output, session) {
       }
     
     }, error = function(e){
+                print(e)
+    }, warning = function(war) {
                 print(e)
     })
   )
