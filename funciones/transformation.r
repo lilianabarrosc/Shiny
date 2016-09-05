@@ -60,6 +60,7 @@ pca <- function(title){
                 tools_general_grafics("radio_pca", "note4", "save4", "cancel4",
                                       "download_pcaPlot", uiOutput("slider_pca"),
                                       box(width = 6, status = "success",
+                                          uiOutput("responsePCA"),
                                           bsButton("reduceDim", label = "Reduce Dimensionality", style = "success"),
                                           hr(),
                                           uiOutput("summary_reduceDimensionality")

@@ -1020,17 +1020,31 @@ server <- function(input, output, session) {
   #************************************************
   #-------------> Reduccion de la dimencionalidad
   
+  #------------PCA
+  
+  #variable de respuesta
+  output$responsePCA <- renderUI({
+    if(is.null(DATA_SET$data)){return()}
+    namesVariables <- names(DATA_SET$data)
+    column(12,
+           selectInput("responsePCA", label = h4("Response variable"), 
+                       choices = namesVariables, selected = namesVariables[ncol(DATA_SET$data)])
+    )
+  })
+  
   #Slider visualizacion grafico PCA
   output$slider_pca <- renderUI({
     if(is.null(DATA_SET$data)){return()}
-    twoSlider("attributes_pca","observation_pca",DATA_SET$data,"Attributes",strz)
+    data <- DATA_SET$data[, !names(DATA_SET$data) %in% input$responsePCA]
+    twoSlider("attributes_pca","observation_pca",data,"Attributes",strz)
   })
   
   #Obtengo la seleccion de atributos y observaciones para pca
   data_pca <- reactive({
     if(cantCol_nominal(DATA_SET$data) > 0 || is.null(input$observation_pca) ||
        is.null(input$attributes_pca)){ return()}
-    DATA_SET$data[input$observation_pca[1]:input$observation_pca[2], 
+    data <- DATA_SET$data[, !names(DATA_SET$data) %in% input$responsePCA]
+    data[input$observation_pca[1]:input$observation_pca[2], 
                   input$attributes_pca[1]:input$attributes_pca[2]]
   })
   
@@ -1071,7 +1085,11 @@ server <- function(input, output, session) {
     if(is.null(data_pca())){return()}
     TRANFORMATION$pca <- TRUE
     TRANFORMATION$pcs <- summary(pca())
-    DATA_SET$data <- data_pca()
+    #DATA_SET$data <- data_pca()
+    
+    atributte <- names(data_pca())
+    atributte[ncol(data_pca())+1] <- input$responsePCA
+    DATA_SET$data <- DATA_SET$data[, names(DATA_SET$data) %in% atributte]
   })
   
   #-------------->dowload image plot
@@ -2086,7 +2104,7 @@ server <- function(input, output, session) {
   
   #Función para descargar el reporte con knitr
   output$downloadReport <- downloadHandler(
-    if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
+    # if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
     filename = function() {
       paste('my-report', sep = '.', switch(
         input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
