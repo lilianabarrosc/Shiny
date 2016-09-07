@@ -2098,11 +2098,12 @@ server <- function(input, output, session) {
     column(12,
        radioButtons('formatReport', 'Document format', c('PDF', 'HTML', 'Word'),
                     inline = TRUE),
-       if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
+       if("rmarkdown" %in% rownames(installed.packages()) == FALSE){print("Libreria no instalada")}#return()}
        else{downloadButton('downloadReport', class = "btn-success")}
     )
   })
   
+  #descarga del reporte
   output$downloadReport <- downloadHandler(
     #if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
       filename = function() {
