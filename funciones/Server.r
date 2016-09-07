@@ -2098,44 +2098,43 @@ server <- function(input, output, session) {
     column(12,
        radioButtons('formatReport', 'Document format', c('PDF', 'HTML', 'Word'),
                     inline = TRUE),
-       if("rmarkdown" %in% rownames(installed.packages()) == FALSE)
-        {return()}
-       else{ downloadButton('downloadReport', class = "btn-success")}
+       if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
+       else{downloadButton('downloadReport', class = "btn-success")}
     )
   })
   
-  #Función para descargar el reporte con knitr
   output$downloadReport <- downloadHandler(
-    filename = function() {
-      paste('my-report', sep = '.', switch(
-        input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
-      ))
-    },
-    
-    content = function(file) {
-      tryCatch({
-        src <- normalizePath('report.Rmd')
-        
-        # temporarily switch to the temp dir, in case you do not have write
-        # permission to the current working directory
-        owd <- setwd(tempdir())
-        on.exit(setwd(owd))
-        file.copy(src, 'report.Rmd', overwrite = TRUE)
-        
-        # validate(
-        #   need(library(rmarkdown), "Please...")
-        # )
-        
-        out <- render('report.Rmd', switch(
-          input$formatReport,
-          PDF = pdf_document(), HTML = html_document(), Word = word_document()
+    #if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
+      filename = function() {
+        paste('my-report', sep = '.', switch(
+          input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
         ))
-        file.rename(out, file)
-      }, error = function(e){
-        print(e)
-      }, warning = function(war) {
-        print(e)
-      })
-    }
+      },
+      content = function(file) {
+        tryCatch({
+          if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
+          src <- normalizePath('report.Rmd')
+          
+          # temporarily switch to the temp dir, in case you do not have write
+          # permission to the current working directory
+          owd <- setwd(tempdir())
+          on.exit(setwd(owd))
+          file.copy(src, 'report.Rmd', overwrite = TRUE)
+          
+          # validate(
+          #   need(library(rmarkdown), "Please...")
+          # )
+          
+          out <- render('report.Rmd', switch(
+            input$formatReport,
+            PDF = pdf_document(), HTML = html_document(), Word = word_document()
+          ))
+          file.rename(out, file)
+        }, error = function(e){
+          print(e)
+        }, warning = function(war) {
+          print(e)
+        })
+      }
   )
 }
