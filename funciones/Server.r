@@ -2100,15 +2100,7 @@ server <- function(input, output, session) {
                     inline = TRUE),
        if("rmarkdown" %in% rownames(installed.packages()) == FALSE)
         {return()}
-       else{
-         tryCatch({
-           downloadButton('downloadReport', class = "btn-success")
-         }, error = function(e){
-           print(e)
-         }, warning = function(war) {
-           print(e)
-         })
-      }
+       else{ downloadButton('downloadReport', class = "btn-success")}
     )
   })
   
@@ -2120,8 +2112,8 @@ server <- function(input, output, session) {
       ))
     },
     
-    tryCatch({
-        content = function(file) {
+    content = function(file) {
+      tryCatch({
         src <- normalizePath('report.Rmd')
         
         # temporarily switch to the temp dir, in case you do not have write
@@ -2139,12 +2131,11 @@ server <- function(input, output, session) {
           PDF = pdf_document(), HTML = html_document(), Word = word_document()
         ))
         file.rename(out, file)
-      }
-    
-    }, error = function(e){
-                print(e)
-    }, warning = function(war) {
-                print(e)
-    })
+      }, error = function(e){
+        print(e)
+      }, warning = function(war) {
+        print(e)
+      })
+    }
   )
 }
