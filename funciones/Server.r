@@ -2098,13 +2098,22 @@ server <- function(input, output, session) {
     column(12,
        radioButtons('formatReport', 'Document format', c('PDF', 'HTML', 'Word'),
                     inline = TRUE),
-       downloadButton('downloadReport', class = "btn-success")
+       if("rmarkdown" %in% rownames(installed.packages()) == FALSE)
+        {return()}
+       else{
+         tryCatch({
+           downloadButton('downloadReport', class = "btn-success")
+         }, error = function(e){
+           print(e)
+         }, warning = function(war) {
+           print(e)
+         })
+      }
     )
   })
   
   #Función para descargar el reporte con knitr
   output$downloadReport <- downloadHandler(
-    # if("rmarkdown" %in% rownames(installed.packages()) == FALSE){return()}
     filename = function() {
       paste('my-report', sep = '.', switch(
         input$formatReport, PDF = 'pdf', HTML = 'html', Word = 'docx'
